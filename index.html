@@ -34,6 +34,9 @@
         .liquidity-info {
             border-color: #4CAF50;
         }
+        .remove-info {
+            border-color: #9C27B0;
+        }
         button {
             background-color: #4CAF50;
             color: white;
@@ -51,6 +54,12 @@
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.danger {
+            background-color: #f44336;
         }
         input {
             padding: 10px;
@@ -79,9 +88,20 @@
             margin-top: 10px;
             display: none;
         }
+        .success-message {
+            color: #4CAF50;
+            margin-top: 10px;
+            display: none;
+        }
         .loading {
             display: none;
             margin-top: 10px;
+        }
+        .liquidity-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -123,7 +143,27 @@
             
             <button id="addLiquidity">Adicionar Liquidez</button>
             <div id="addLiquidityError" class="error-message"></div>
-            <div id="loadingIndicator" class="loading">Processando transação...</div>
+            <div id="addLiquiditySuccess" class="success-message"></div>
+            <div id="loadingAdd" class="loading">Processando transação...</div>
+        </div>
+        
+        <div class="card remove-info">
+            <h2>Remover Liquidez</h2>
+            
+            <div class="liquidity-stats">
+                <p><strong>Seus Tokens LP:</strong> <span id="lpTokenBalance">0</span></p>
+                <p><strong>Taxas acumuladas:</strong> <span id="earnedFees">0</span> USDT/USDC</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="lpAmount">Quantidade de Tokens LP para remover:</label>
+                <input type="number" id="lpAmount" placeholder="0.0" step="0.01" min="0">
+            </div>
+            
+            <button id="removeLiquidity" class="danger">Remover Liquidez</button>
+            <div id="removeLiquidityError" class="error-message"></div>
+            <div id="removeLiquiditySuccess" class="success-message"></div>
+            <div id="loadingRemove" class="loading">Processando transação...</div>
         </div>
     </div>
 
@@ -150,12 +190,10 @@
             router: '0x10ED43C718714eb63d5aA57B78B54704E256024E'
         };
 
-        // ABI corrigido do contrato
+        // ABI completo do contrato
         const CONTRACT_ABI = [
             {
-                "inputs": [
-                    {"internalType":"address","name":"_router","type":"address"}
-                ],
+                "inputs": [{"internalType":"address","name":"_router","type":"address"}],
                 "stateMutability":"nonpayable",
                 "type":"constructor"
             },
@@ -171,7 +209,11 @@
                     {"internalType":"uint256","name":"deadline","type":"uint256"}
                 ],
                 "name":"addLiquidity",
-                "outputs": [],
+                "outputs": [
+                    {"internalType":"uint256","name":"amountA","type":"uint256"},
+                    {"internalType":"uint256","name":"amountB","type":"uint256"},
+                    {"internalType":"uint256","name":"liquidity","type":"uint256"}
+                ],
                 "stateMutability":"nonpayable",
                 "type":"function"
             },
@@ -186,13 +228,23 @@
                     {"internalType":"uint256","name":"deadline","type":"uint256"}
                 ],
                 "name":"removeLiquidity",
-                "outputs": [],
+                "outputs": [
+                    {"internalType":"uint256","name":"amountA","type":"uint256"},
+                    {"internalType":"uint256","name":"amountB","type":"uint256"}
+                ],
                 "stateMutability":"nonpayable",
+                "type":"function"
+            },
+            {
+                "inputs": [{"internalType":"address","name":"","type":"address"}],
+                "name":"providedLiquidity",
+                "outputs": [{"internalType":"uint256","name":"","type":"uint256"}],
+                "stateMutability":"view",
                 "type":"function"
             }
         ];
 
-        // ABI padrão para tokens ERC-20
+        // ABI para tokens ERC-20 e LP
         const ERC20_ABI = [
             {
                 "constant": true,
@@ -219,38 +271,49 @@
         let proxyContract;
         let usdtContract;
         let usdcContract;
+        let lpTokenContract;
 
-        // Inicialização da aplicação
+        // Inicialização
         document.addEventListener('DOMContentLoaded', async () => {
             if (typeof window.ethereum === 'undefined') {
-                showError('walletError', 'Por favor, instale o MetaMask para usar esta aplicação!');
+                showError('walletError', 'MetaMask não instalado!');
                 return;
             }
 
             web3 = new Web3(window.ethereum);
             
-            // Configurar contratos
-            proxyContract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-            usdtContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdt);
-            usdcContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdc);
+            try {
+                // Configurar contratos
+                proxyContract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                usdtContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdt);
+                usdcContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdc);
+                
+                // Obter endereço do par USDT-USDC
+                const pairAddress = await getPairAddress();
+                lpTokenContract = new web3.eth.Contract(ERC20_ABI, pairAddress);
 
-            // Configurar listeners
-            document.getElementById('connectWallet').addEventListener('click', connectWallet);
-            document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
+                // Configurar listeners
+                document.getElementById('connectWallet').addEventListener('click', connectWallet);
+                document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
+                document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
 
-            // Verificar se já está conectado
-            if (window.ethereum.selectedAddress) {
-                accounts = [window.ethereum.selectedAddress];
-                updateWalletInfo();
-                document.getElementById('walletInfo').style.display = 'block';
+                // Verificar conexão existente
+                if (window.ethereum.selectedAddress) {
+                    accounts = [window.ethereum.selectedAddress];
+                    updateWalletInfo();
+                    document.getElementById('walletInfo').style.display = 'block';
+                }
+
+                // Listeners de mudança
+                window.ethereum.on('chainChanged', () => window.location.reload());
+                window.ethereum.on('accountsChanged', (newAccounts) => {
+                    accounts = newAccounts;
+                    updateWalletInfo();
+                });
+                
+            } catch (error) {
+                showError('walletError', `Erro de inicialização: ${error.message}`);
             }
-
-            // Listeners de mudança
-            window.ethereum.on('chainChanged', () => window.location.reload());
-            window.ethereum.on('accountsChanged', (newAccounts) => {
-                accounts = newAccounts;
-                updateWalletInfo();
-            });
         });
 
         // Conectar carteira
@@ -290,12 +353,13 @@
 
         // Adicionar liquidez
         async function addLiquidity() {
-            const addButton = document.getElementById('addLiquidity');
-            const loading = document.getElementById('loadingIndicator');
+            const button = document.getElementById('addLiquidity');
+            const loading = document.getElementById('loadingAdd');
             
             try {
                 clearError('addLiquidityError');
-                addButton.disabled = true;
+                clearSuccess('addLiquiditySuccess');
+                button.disabled = true;
                 loading.style.display = 'block';
                 
                 const tokenAAmount = document.getElementById('tokenAAmount').value;
@@ -303,7 +367,7 @@
                 
                 // Validações
                 if (!tokenAAmount || !tokenBAmount || isNaN(tokenAAmount) || isNaN(tokenBAmount)) {
-                    throw new Error('Insira valores válidos para ambos os tokens');
+                    throw new Error('Valores inválidos');
                 }
                 
                 const account = accounts[0];
@@ -315,27 +379,27 @@
                 const usdcBalance = await usdcContract.methods.balanceOf(account).call();
                 
                 if (usdtBalance < tokenAWei || usdcBalance < tokenBWei) {
-                    throw new Error('Saldo insuficiente para adicionar liquidez');
+                    throw new Error('Saldo insuficiente');
                 }
                 
-                // Aprovações
-                await approveTokens(account, TOKEN_ADDRESSES.usdt, tokenAWei);
-                await approveTokens(account, TOKEN_ADDRESSES.usdc, tokenBWei);
+                // Aprovar tokens
+                await approveToken(TOKEN_ADDRESSES.usdt, tokenAWei);
+                await approveToken(TOKEN_ADDRESSES.usdc, tokenBWei);
                 
                 // Adicionar liquidez
                 const deadline = Math.floor(Date.now() / 1000) + 300;
-                await proxyContract.methods.addLiquidity(
+                const result = await proxyContract.methods.addLiquidity(
                     TOKEN_ADDRESSES.usdt,
                     TOKEN_ADDRESSES.usdc,
                     tokenAWei,
                     tokenBWei,
-                    tokenAWei * 0.9 / 1, // 90% do valor (mínimo aceitável)
-                    tokenBWei * 0.9 / 1, // 90% do valor (mínimo aceitável)
+                    tokenAWei * 0.9 / 1, // 90% como mínimo
+                    tokenBWei * 0.9 / 1, // 90% como mínimo
                     account,
                     deadline
                 ).send({ from: account });
                 
-                alert('Liquidez adicionada com sucesso!');
+                showSuccess('addLiquiditySuccess', 'Liquidez adicionada com sucesso!');
                 updateWalletInfo();
                 
                 // Limpar campos
@@ -344,17 +408,90 @@
                 
             } catch (error) {
                 showError('addLiquidityError', `Erro: ${error.message}`);
-                console.error('Erro:', error);
+                console.error('Erro ao adicionar liquidez:', error);
             } finally {
-                addButton.disabled = false;
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        // Remover liquidez
+        async function removeLiquidity() {
+            const button = document.getElementById('removeLiquidity');
+            const loading = document.getElementById('loadingRemove');
+            
+            try {
+                clearError('removeLiquidityError');
+                clearSuccess('removeLiquiditySuccess');
+                button.disabled = true;
+                loading.style.display = 'block';
+                
+                const lpAmount = document.getElementById('lpAmount').value;
+                
+                if (!lpAmount || isNaN(lpAmount)) {
+                    throw new Error('Quantidade inválida');
+                }
+                
+                const account = accounts[0];
+                const lpWei = web3.utils.toWei(lpAmount, 'ether');
+                
+                // Verificar saldo LP
+                const lpBalance = await lpTokenContract.methods.balanceOf(account).call();
+                if (lpBalance < lpWei) {
+                    throw new Error('Saldo LP insuficiente');
+                }
+                
+                // Aprovar tokens LP
+                await approveToken(await getPairAddress(), lpWei);
+                
+                // Remover liquidez
+                const deadline = Math.floor(Date.now() / 1000) + 300;
+                const result = await proxyContract.methods.removeLiquidity(
+                    TOKEN_ADDRESSES.usdt,
+                    TOKEN_ADDRESSES.usdc,
+                    lpWei,
+                    0, // amountAMin mínimo
+                    0, // amountBMin mínimo
+                    account,
+                    deadline
+                ).send({ from: account });
+                
+                showSuccess('removeLiquiditySuccess', 'Liquidez removida com sucesso!');
+                updateWalletInfo();
+                
+                // Limpar campo
+                document.getElementById('lpAmount').value = '';
+                
+            } catch (error) {
+                showError('removeLiquidityError', `Erro: ${error.message}`);
+                console.error('Erro ao remover liquidez:', error);
+            } finally {
+                button.disabled = false;
                 loading.style.display = 'none';
             }
         }
 
         // Funções auxiliares
-        async function approveTokens(account, tokenAddress, amount) {
+        async function getPairAddress() {
+            const routerContract = new web3.eth.Contract([
+                {
+                    "constant": true,
+                    "inputs": [
+                        {"name":"tokenA","type":"address"},
+                        {"name":"tokenB","type":"address"}
+                    ],
+                    "name": "getPair",
+                    "outputs": [{"name":"pair","type":"address"}],
+                    "type": "function"
+                }
+            ], TOKEN_ADDRESSES.router);
+            
+            return await routerContract.methods.getPair(TOKEN_ADDRESSES.usdt, TOKEN_ADDRESSES.usdc).call();
+        }
+
+        async function approveToken(tokenAddress, amount) {
             const tokenContract = new web3.eth.Contract(ERC20_ABI, tokenAddress);
-            await tokenContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: account });
+            await tokenContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: accounts[0] });
         }
 
         async function updateWalletInfo() {
@@ -362,19 +499,31 @@
             
             try {
                 const account = accounts[0];
+                
+                // Atualizar endereço
                 document.getElementById('walletAddress').textContent = 
                     `${account.substring(0, 6)}...${account.substring(38)}`;
                 
+                // Atualizar saldos
                 const usdtBalance = await usdtContract.methods.balanceOf(account).call();
                 const usdcBalance = await usdcContract.methods.balanceOf(account).call();
+                const lpBalance = await lpTokenContract.methods.balanceOf(account).call();
                 
                 document.getElementById('usdtBalance').textContent = 
                     parseFloat(web3.utils.fromWei(usdtBalance, 'mwei')).toFixed(2);
                 document.getElementById('usdcBalance').textContent = 
                     parseFloat(web3.utils.fromWei(usdcBalance, 'mwei')).toFixed(2);
+                document.getElementById('lpTokenBalance').textContent = 
+                    parseFloat(web3.utils.fromWei(lpBalance, 'ether')).toFixed(6);
+                
+                // Atualizar taxas acumuladas (simulação)
+                const providedLiquidity = await proxyContract.methods.providedLiquidity(account).call();
+                const earnedFees = providedLiquidity * 0.01; // 1% de taxa
+                document.getElementById('earnedFees').textContent = 
+                    parseFloat(web3.utils.fromWei(earnedFees.toString(), 'mwei')).toFixed(6);
                 
             } catch (error) {
-                console.error('Erro ao atualizar saldos:', error);
+                console.error('Erro ao atualizar carteira:', error);
             }
         }
 
@@ -385,6 +534,18 @@
         }
 
         function clearError(elementId) {
+            const element = document.getElementById(elementId);
+            element.textContent = '';
+            element.style.display = 'none';
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+
+        function clearSuccess(elementId) {
             const element = document.getElementById(elementId);
             element.textContent = '';
             element.style.display = 'none';
