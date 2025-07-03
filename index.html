@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Liquidez Avançado</title>
+    <title>Gerenciador de Liquidez USDT/USDC</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -35,9 +34,6 @@
         .liquidity-info {
             border-color: #4CAF50;
         }
-        .analytics-info {
-            border-color: #9C27B0;
-        }
         button {
             background-color: #4CAF50;
             color: white;
@@ -56,13 +52,7 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
-        button.secondary {
-            background-color: #2196F3;
-        }
-        button.secondary:hover {
-            background-color: #0b7dda;
-        }
-        input, select {
+        input {
             padding: 10px;
             margin: 8px 0;
             width: 100%;
@@ -73,72 +63,44 @@
         .form-group {
             margin-bottom: 15px;
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        .balance-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
-        .stat-box {
-            background-color: white;
-            padding: 15px;
+        .balance-box {
+            width: 48%;
+            padding: 10px;
+            background-color: #f9f9f9;
             border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .stat-label {
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-        .chart-container {
-            margin-top: 30px;
-            height: 400px;
-        }
-        .network-alert {
-            background-color: #ffeb3b;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: none;
         }
         .error-message {
             color: #f44336;
             margin-top: 10px;
             display: none;
         }
+        .loading {
+            display: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="networkAlert" class="network-alert">
-            <strong>Atenção:</strong> Você precisa estar conectado à Binance Smart Chain (BSC) Mainnet para usar esta aplicação.
-        </div>
-
-        <h1>Gerenciador de Liquidez Avançado</h1>
+        <h1>Gerenciador de Liquidez USDT/USDC</h1>
         <p>Contrato: 0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0</p>
         
         <div class="card wallet-info">
             <h2>Carteira</h2>
-            <button id="connectWallet" class="secondary">Conectar Carteira</button>
+            <button id="connectWallet">Conectar Carteira</button>
             <div id="walletInfo" style="display: none; margin-top: 15px;">
                 <p><strong>Conectado:</strong> <span id="walletAddress"></span></p>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-value" id="bnbBalance">0</div>
-                        <div class="stat-label">BNB Balance</div>
+                <div class="balance-info">
+                    <div class="balance-box">
+                        <p><strong>Saldo USDT:</strong> <span id="usdtBalance">0</span></p>
                     </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="usdtBalance">0</div>
-                        <div class="stat-label">USDT Balance</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="usdcBalance">0</div>
-                        <div class="stat-label">USDC Balance</div>
+                    <div class="balance-box">
+                        <p><strong>Saldo USDC:</strong> <span id="usdcBalance">0</span></p>
                     </div>
                 </div>
                 <div id="walletError" class="error-message"></div>
@@ -146,59 +108,28 @@
         </div>
         
         <div class="card liquidity-info">
-            <h2>Gerenciamento de Liquidez</h2>
+            <h2>Adicionar Liquidez</h2>
+            <p>Taxa de 1% será aplicada automaticamente</p>
             
             <div class="form-group">
-                <h3>Adicionar Liquidez</h3>
-                <p>Taxa de 1% será aplicada automaticamente</p>
-                
                 <label for="tokenAAmount">Quantidade USDT:</label>
-                <input type="number" id="tokenAAmount" placeholder="0.0">
-                
-                <label for="tokenBAmount">Quantidade USDC:</label>
-                <input type="number" id="tokenBAmount" placeholder="0.0">
-                
-                <button id="addLiquidity">Adicionar Liquidez</button>
-                <div id="addLiquidityError" class="error-message"></div>
+                <input type="number" id="tokenAAmount" placeholder="0.0" step="0.01" min="0">
             </div>
             
             <div class="form-group">
-                <h3>Remover Liquidez</h3>
-                <label for="liquidityAmount">Quantidade de Tokens LP:</label>
-                <input type="number" id="liquidityAmount" placeholder="0.0">
-                
-                <button id="removeLiquidity">Remover Liquidez</button>
-                <div id="removeLiquidityError" class="error-message"></div>
-            </div>
-        </div>
-        
-        <div class="card analytics-info">
-            <h2>Estatísticas e Análises</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-value" id="totalLiquidity">0</div>
-                    <div class="stat-label">Liquidez Total</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="yourLiquidity">0</div>
-                    <div class="stat-label">Sua Liquidez</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="totalFees">0</div>
-                    <div class="stat-label">Taxas Acumuladas</div>
-                </div>
+                <label for="tokenBAmount">Quantidade USDC:</label>
+                <input type="number" id="tokenBAmount" placeholder="0.0" step="0.01" min="0">
             </div>
             
-            <div class="chart-container">
-                <canvas id="liquidityChart"></canvas>
-            </div>
+            <button id="addLiquidity">Adicionar Liquidez</button>
+            <div id="addLiquidityError" class="error-message"></div>
+            <div id="loadingIndicator" class="loading">Processando transação...</div>
         </div>
     </div>
 
     <script>
         // Configurações da BSC Mainnet
-        const BSC_MAINNET_CHAIN_ID = '0x38'; // 56 em decimal
+        const BSC_MAINNET_CHAIN_ID = '0x38';
         const BSC_MAINNET_PARAMS = {
             chainId: BSC_MAINNET_CHAIN_ID,
             chainName: 'Binance Smart Chain Mainnet',
@@ -219,7 +150,7 @@
             router: '0x10ED43C718714eb63d5aA57B78B54704E256024E'
         };
 
-        // ABI do seu contrato (simplificado)
+        // ABI corrigido do contrato
         const CONTRACT_ABI = [
             {
                 "inputs": [
@@ -235,7 +166,7 @@
                     {"internalType":"uint256","name":"amountADesired","type":"uint256"},
                     {"internalType":"uint256","name":"amountBDesired","type":"uint256"},
                     {"internalType":"uint256","name":"amountAMin","type":"uint256"},
-                    {"internalType":"uint256","name":"amountBMin","type":"address"},
+                    {"internalType":"uint256","name":"amountBMin","type":"uint256"},
                     {"internalType":"address","name":"to","type":"address"},
                     {"internalType":"uint256","name":"deadline","type":"uint256"}
                 ],
@@ -250,20 +181,13 @@
                     {"internalType":"address","name":"tokenB","type":"address"},
                     {"internalType":"uint256","name":"liquidity","type":"uint256"},
                     {"internalType":"uint256","name":"amountAMin","type":"uint256"},
-                    {"internalType":"uint256","name":"amountBMin","type":"address"},
+                    {"internalType":"uint256","name":"amountBMin","type":"uint256"},
                     {"internalType":"address","name":"to","type":"address"},
                     {"internalType":"uint256","name":"deadline","type":"uint256"}
                 ],
                 "name":"removeLiquidity",
                 "outputs": [],
                 "stateMutability":"nonpayable",
-                "type":"function"
-            },
-            {
-                "inputs": [],
-                "name":"owner",
-                "outputs": [{"internalType":"address","name":"","type":"address"}],
-                "stateMutability":"view",
                 "type":"function"
             }
         ];
@@ -295,17 +219,14 @@
         let proxyContract;
         let usdtContract;
         let usdcContract;
-        let liquidityChart;
 
         // Inicialização da aplicação
         document.addEventListener('DOMContentLoaded', async () => {
-            // Verificar se MetaMask está instalado
             if (typeof window.ethereum === 'undefined') {
-                showError('Por favor, instale o MetaMask para usar esta aplicação!');
+                showError('walletError', 'Por favor, instale o MetaMask para usar esta aplicação!');
                 return;
             }
 
-            // Configurar provedor Web3
             web3 = new Web3(window.ethereum);
             
             // Configurar contratos
@@ -313,62 +234,41 @@
             usdtContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdt);
             usdcContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdc);
 
-            // Configurar listeners de eventos
+            // Configurar listeners
             document.getElementById('connectWallet').addEventListener('click', connectWallet);
             document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
-            document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
 
-            // Verificar rede conectada
-            checkNetwork();
+            // Verificar se já está conectado
+            if (window.ethereum.selectedAddress) {
+                accounts = [window.ethereum.selectedAddress];
+                updateWalletInfo();
+                document.getElementById('walletInfo').style.display = 'block';
+            }
 
-            // Inicializar gráfico
-            initChart();
-
-            // Listeners de mudança de rede e conta
-            window.ethereum.on('chainChanged', (chainId) => {
-                window.location.reload();
-            });
-
+            // Listeners de mudança
+            window.ethereum.on('chainChanged', () => window.location.reload());
             window.ethereum.on('accountsChanged', (newAccounts) => {
                 accounts = newAccounts;
                 updateWalletInfo();
             });
         });
 
-        // Função para verificar a rede conectada
-        async function checkNetwork() {
-            const chainId = await web3.eth.getChainId();
-            const networkAlert = document.getElementById('networkAlert');
-
-            if (chainId != parseInt(BSC_MAINNET_CHAIN_ID, 16)) {
-                networkAlert.style.display = 'block';
-                disableInterface();
-            } else {
-                networkAlert.style.display = 'none';
-                enableInterface();
-            }
-        }
-
-        // Função para conectar a carteira
+        // Conectar carteira
         async function connectWallet() {
             try {
                 clearError('walletError');
                 
-                // Solicitar conexão da carteira
                 accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 
-                // Verificar se estamos na BSC Mainnet
+                // Verificar rede
                 const chainId = await web3.eth.getChainId();
-                
                 if (chainId != parseInt(BSC_MAINNET_CHAIN_ID, 16)) {
                     try {
-                        // Tentar mudar para a BSC Mainnet
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
                             params: [{ chainId: BSC_MAINNET_CHAIN_ID }],
                         });
                     } catch (switchError) {
-                        // Se a rede não estiver adicionada, solicitar adição
                         if (switchError.code === 4902) {
                             await window.ethereum.request({
                                 method: 'wallet_addEthereumChain',
@@ -380,48 +280,57 @@
                     }
                 }
                 
-                // Atualizar informações da carteira
                 updateWalletInfo();
-                
-                // Mostrar seção da carteira
                 document.getElementById('walletInfo').style.display = 'block';
                 
             } catch (error) {
-                showError('walletError', `Erro ao conectar carteira: ${error.message}`);
-                console.error('Erro ao conectar carteira:', error);
+                showError('walletError', `Erro ao conectar: ${error.message}`);
             }
         }
 
-        // Função para adicionar liquidez
+        // Adicionar liquidez
         async function addLiquidity() {
+            const addButton = document.getElementById('addLiquidity');
+            const loading = document.getElementById('loadingIndicator');
+            
             try {
                 clearError('addLiquidityError');
-                document.getElementById('addLiquidity').disabled = true;
+                addButton.disabled = true;
+                loading.style.display = 'block';
                 
                 const tokenAAmount = document.getElementById('tokenAAmount').value;
                 const tokenBAmount = document.getElementById('tokenBAmount').value;
                 
+                // Validações
                 if (!tokenAAmount || !tokenBAmount || isNaN(tokenAAmount) || isNaN(tokenBAmount)) {
-                    throw new Error('Por favor, insira valores válidos para ambos os tokens');
+                    throw new Error('Insira valores válidos para ambos os tokens');
                 }
                 
                 const account = accounts[0];
-                const tokenAWei = web3.utils.toWei(tokenAAmount, 'mwei'); // USDT tem 6 decimais
-                const tokenBWei = web3.utils.toWei(tokenBAmount, 'mwei'); // USDC tem 6 decimais
+                const tokenAWei = web3.utils.toWei(tokenAAmount, 'mwei');
+                const tokenBWei = web3.utils.toWei(tokenBAmount, 'mwei');
                 
-                // Aprovar tokens para serem gastos pelo contrato proxy
+                // Verificar saldos
+                const usdtBalance = await usdtContract.methods.balanceOf(account).call();
+                const usdcBalance = await usdcContract.methods.balanceOf(account).call();
+                
+                if (usdtBalance < tokenAWei || usdcBalance < tokenBWei) {
+                    throw new Error('Saldo insuficiente para adicionar liquidez');
+                }
+                
+                // Aprovações
                 await approveTokens(account, TOKEN_ADDRESSES.usdt, tokenAWei);
                 await approveTokens(account, TOKEN_ADDRESSES.usdc, tokenBWei);
                 
-                // Adicionar liquidez através do proxy
-                const deadline = Math.floor(Date.now() / 1000) + 300; // 5 minutos a partir de agora
+                // Adicionar liquidez
+                const deadline = Math.floor(Date.now() / 1000) + 300;
                 await proxyContract.methods.addLiquidity(
                     TOKEN_ADDRESSES.usdt,
                     TOKEN_ADDRESSES.usdc,
                     tokenAWei,
                     tokenBWei,
-                    0, // amountAMin - mínimo aceitável
-                    0, // amountBMin - mínimo aceitável
+                    tokenAWei * 0.9 / 1, // 90% do valor (mínimo aceitável)
+                    tokenBWei * 0.9 / 1, // 90% do valor (mínimo aceitável)
                     account,
                     deadline
                 ).send({ from: account });
@@ -429,139 +338,46 @@
                 alert('Liquidez adicionada com sucesso!');
                 updateWalletInfo();
                 
+                // Limpar campos
+                document.getElementById('tokenAAmount').value = '';
+                document.getElementById('tokenBAmount').value = '';
+                
             } catch (error) {
-                showError('addLiquidityError', `Erro ao adicionar liquidez: ${error.message}`);
-                console.error('Erro ao adicionar liquidez:', error);
+                showError('addLiquidityError', `Erro: ${error.message}`);
+                console.error('Erro:', error);
             } finally {
-                document.getElementById('addLiquidity').disabled = false;
+                addButton.disabled = false;
+                loading.style.display = 'none';
             }
         }
 
-        // Função para remover liquidez
-        async function removeLiquidity() {
-            try {
-                clearError('removeLiquidityError');
-                document.getElementById('removeLiquidity').disabled = true;
-                
-                const liquidityAmount = document.getElementById('liquidityAmount').value;
-                
-                if (!liquidityAmount || isNaN(liquidityAmount)) {
-                    throw new Error('Por favor, insira uma quantidade válida de tokens LP');
-                }
-                
-                const account = accounts[0];
-                const liquidityWei = web3.utils.toWei(liquidityAmount, 'ether');
-                
-                // Obter endereço do par USDT-USDC
-                const pair = await getPairAddress(TOKEN_ADDRESSES.usdt, TOKEN_ADDRESSES.usdc);
-                
-                // Aprovar tokens LP para serem gastos pelo contrato proxy
-                await approveTokens(account, pair, liquidityWei);
-                
-                // Remover liquidez através do proxy
-                const deadline = Math.floor(Date.now() / 1000) + 300; // 5 minutos a partir de agora
-                await proxyContract.methods.removeLiquidity(
-                    TOKEN_ADDRESSES.usdt,
-                    TOKEN_ADDRESSES.usdc,
-                    liquidityWei,
-                    0, // amountAMin - mínimo aceitável
-                    0, // amountBMin - mínimo aceitável
-                    account,
-                    deadline
-                ).send({ from: account });
-                
-                alert('Liquidez removida com sucesso!');
-                updateWalletInfo();
-                
-            } catch (error) {
-                showError('removeLiquidityError', `Erro ao remover liquidez: ${error.message}`);
-                console.error('Erro ao remover liquidez:', error);
-            } finally {
-                document.getElementById('removeLiquidity').disabled = false;
-            }
-        }
-
-        // Função auxiliar para aprovar tokens
+        // Funções auxiliares
         async function approveTokens(account, tokenAddress, amount) {
             const tokenContract = new web3.eth.Contract(ERC20_ABI, tokenAddress);
             await tokenContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: account });
         }
 
-        // Função auxiliar para obter endereço do par
-        async function getPairAddress(tokenA, tokenB) {
-            const routerContract = new web3.eth.Contract([
-                {
-                    "constant": true,
-                    "inputs": [
-                        {"name":"tokenA","type":"address"},
-                        {"name":"tokenB","type":"address"}
-                    ],
-                    "name": "getPair",
-                    "outputs": [{"name":"pair","type":"address"}],
-                    "type": "function"
-                }
-            ], TOKEN_ADDRESSES.router);
-            
-            return await routerContract.methods.getPair(tokenA, tokenB).call();
-        }
-
-        // Função para atualizar informações da carteira
         async function updateWalletInfo() {
             if (accounts.length === 0) return;
             
             try {
                 const account = accounts[0];
-                
-                // Formatar endereço para exibição
                 document.getElementById('walletAddress').textContent = 
                     `${account.substring(0, 6)}...${account.substring(38)}`;
                 
-                // Obter saldos
-                const bnbBalance = await web3.eth.getBalance(account);
                 const usdtBalance = await usdtContract.methods.balanceOf(account).call();
                 const usdcBalance = await usdcContract.methods.balanceOf(account).call();
                 
-                // Atualizar UI
-                document.getElementById('bnbBalance').textContent = 
-                    parseFloat(web3.utils.fromWei(bnbBalance, 'ether')).toFixed(4);
                 document.getElementById('usdtBalance').textContent = 
                     parseFloat(web3.utils.fromWei(usdtBalance, 'mwei')).toFixed(2);
                 document.getElementById('usdcBalance').textContent = 
                     parseFloat(web3.utils.fromWei(usdcBalance, 'mwei')).toFixed(2);
                 
             } catch (error) {
-                console.error('Erro ao atualizar informações da carteira:', error);
+                console.error('Erro ao atualizar saldos:', error);
             }
         }
 
-        // Função para inicializar o gráfico
-        function initChart() {
-            const ctx = document.getElementById('liquidityChart').getContext('2d');
-            liquidityChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                    datasets: [{
-                        label: 'Sua Liquidez',
-                        data: [0, 0, 0, 0, 0, 0],
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Histórico de Liquidez'
-                        },
-                    }
-                }
-            });
-        }
-
-        // Funções auxiliares para tratamento de erros
         function showError(elementId, message) {
             const element = document.getElementById(elementId);
             element.textContent = message;
@@ -572,18 +388,6 @@
             const element = document.getElementById(elementId);
             element.textContent = '';
             element.style.display = 'none';
-        }
-
-        function disableInterface() {
-            document.getElementById('connectWallet').disabled = true;
-            document.getElementById('addLiquidity').disabled = true;
-            document.getElementById('removeLiquidity').disabled = true;
-        }
-
-        function enableInterface() {
-            document.getElementById('connectWallet').disabled = false;
-            document.getElementById('addLiquidity').disabled = false;
-            document.getElementById('removeLiquidity').disabled = false;
         }
     </script>
 </body>
