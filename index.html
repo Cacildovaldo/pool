@@ -1,387 +1,98 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Liquidez USDT/USDC</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
-    <style>
-        /* Estilos mantidos iguais ao anterior */
-        body {
-            font-family: 'Arial', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 4px solid #4CAF50;
-        }
-        .wallet-info {
-            border-color: #2196F3;
-        }
-        .liquidity-info {
-            border-color: #4CAF50;
-        }
-        .remove-info {
-            border-color: #9C27B0;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        button.secondary {
-            background-color: #2196F3;
-        }
-        button.danger {
-            background-color: #f44336;
-        }
-        input {
-            padding: 10px;
-            margin: 8px 0;
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .balance-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-        .balance-box {
-            width: 48%;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
-        .error-message {
-            color: #f44336;
-            margin-top: 10px;
-            display: none;
-        }
-        .success-message {
-            color: #4CAF50;
-            margin-top: 10px;
-            display: none;
-        }
-        .loading {
-            display: none;
-            margin-top: 10px;
-        }
-        .liquidity-stats {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f0f8ff;
-            border-radius: 5px;
-        }
-        #networkAlert {
-            background-color: #ffeb3b;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: none;
-        }
-    </style>
+  <title>Liquidez BEP-20 - Pancake Proxy</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .token { margin-bottom: 10px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div id="networkAlert">
-            <strong>Atenção:</strong> Você precisa estar conectado à Binance Smart Chain (BSC) Mainnet para usar esta aplicação.
-        </div>
+  <h2>Liquidez PancakeSwap via Proxy</h2>
+  <button onclick="connectWallet()">Conectar Wallet</button>
+  <p id="wallet">Carteira: não conectada</p>
 
-        <h1>Gerenciador de Liquidez USDT/USDC</h1>
-        <p>Contrato: 0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0</p>
-        
-        <div class="card wallet-info">
-            <h2>Carteira</h2>
-            <button id="connectWallet">Conectar Carteira</button>
-            <div id="walletInfo" style="display: none; margin-top: 15px;">
-                <p><strong>Conectado:</strong> <span id="walletAddress"></span></p>
-                <div class="balance-info">
-                    <div class="balance-box">
-                        <p><strong>Saldo USDT:</strong> <span id="usdtBalance">0</span></p>
-                    </div>
-                    <div class="balance-box">
-                        <p><strong>Saldo USDC:</strong> <span id="usdcBalance">0</span></p>
-                    </div>
-                </div>
-                <div id="walletError" class="error-message"></div>
-            </div>
-        </div>
-        
-        <div class="card liquidity-info">
-            <h2>Adicionar Liquidez</h2>
-            <p>Taxa de 1% será aplicada automaticamente</p>
-            
-            <div class="form-group">
-                <label for="tokenAAmount">Quantidade USDT:</label>
-                <input type="number" id="tokenAAmount" placeholder="0.0" step="0.01" min="0">
-            </div>
-            
-            <div class="form-group">
-                <label for="tokenBAmount">Quantidade USDC:</label>
-                <input type="number" id="tokenBAmount" placeholder="0.0" step="0.01" min="0">
-            </div>
-            
-            <button id="addLiquidity" disabled>Adicionar Liquidez</button>
-            <div id="addLiquidityError" class="error-message"></div>
-            <div id="addLiquiditySuccess" class="success-message"></div>
-            <div id="loadingAdd" class="loading">Processando transação...</div>
-        </div>
-        
-        <div class="card remove-info">
-            <h2>Remover Liquidez</h2>
-            
-            <div class="liquidity-stats">
-                <p><strong>Seus Tokens LP:</strong> <span id="lpTokenBalance">0</span></p>
-                <p><strong>Taxas acumuladas:</strong> <span id="earnedFees">0</span> USDT/USDC</p>
-            </div>
-            
-            <div class="form-group">
-                <label for="lpAmount">Quantidade de Tokens LP para remover:</label>
-                <input type="number" id="lpAmount" placeholder="0.0" step="0.01" min="0">
-            </div>
-            
-            <button id="removeLiquidity" class="danger" disabled>Remover Liquidez</button>
-            <div id="removeLiquidityError" class="error-message"></div>
-            <div id="removeLiquiditySuccess" class="success-message"></div>
-            <div id="loadingRemove" class="loading">Processando transação...</div>
-        </div>
-    </div>
+  <h3>Saldos dos Tokens:</h3>
+  <div id="balances"></div>
 
-    <script>
-        // Configurações da BSC Mainnet
-        const BSC_MAINNET_CHAIN_ID = '0x38'; // 56 em decimal
-        const BSC_MAINNET_PARAMS = {
-            chainId: BSC_MAINNET_CHAIN_ID,
-            chainName: 'Binance Smart Chain Mainnet',
-            nativeCurrency: {
-                name: 'BNB',
-                symbol: 'bnb',
-                decimals: 18
-            },
-            rpcUrls: ['https://bsc-dataseed.binance.org/'],
-            blockExplorerUrls: ['https://bscscan.com']
-        };
+  <h3>Analytics:</h3>
+  <pre id="analytics">Aguardando ações...</pre>
 
-        // Endereços dos contratos (BSC Mainnet)
-        const CONTRACT_ADDRESS = '0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0';
-        const TOKEN_ADDRESSES = {
-            usdt: '0x55d398326f99059fF775485246999027B3197955',
-            usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-            router: '0x10ED43C718714eb63d5aA57B78B54704E256024E'
-        };
+  <script>
+    const proxyContractAddress = "0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0";
+    const BSC_RPC = "https://bsc-dataseed.binance.org/";
+    const web3 = new Web3(window.ethereum || BSC_RPC);
 
-        // ABI do contrato (mesmo do anterior)
-        const CONTRACT_ABI = [/* Mesmo ABI do código anterior */];
-        const ERC20_ABI = [/* Mesmo ERC20_ABI do código anterior */];
+    const tokens = {
+      USDT: { address: "0x55d398326f99059fF775485246999027B3197955", symbol: "USDT" },
+      USDC: { address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", symbol: "USDC" },
+      WBNB: { address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", symbol: "WBNB" },
+    };
 
-        // Variáveis globais
-        let web3;
-        let accounts = [];
-        let proxyContract;
-        let usdtContract;
-        let usdcContract;
-        let lpTokenContract;
+    const ERC20_ABI = [
+      { "constant":true, "inputs":[{"name":"_owner","type":"address"}], "name":"balanceOf", "outputs":[{"name":"balance","type":"uint256"}], "type":"function" },
+      { "constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function" }
+    ];
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Verificar se MetaMask está instalado
-            if (typeof window.ethereum === 'undefined') {
-                showError('walletError', 'Por favor, instale o MetaMask para usar esta aplicação!');
-                return;
-            }
+    const proxyABI = [
+      {
+        "inputs": [
+          { "internalType": "address", "name": "tokenA", "type": "address" },
+          { "internalType": "address", "name": "tokenB", "type": "address" },
+          { "internalType": "uint256", "name": "amountADesired", "type": "uint256" },
+          { "internalType": "uint256", "name": "amountBDesired", "type": "uint256" }
+        ],
+        "name": "addLiquidityProxy",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
 
-            web3 = new Web3(window.ethereum);
-            
-            try {
-                // Configurar contratos
-                proxyContract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-                usdtContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdt);
-                usdcContract = new web3.eth.Contract(ERC20_ABI, TOKEN_ADDRESSES.usdc);
-                
-                // Configurar listeners
-                document.getElementById('connectWallet').addEventListener('click', connectWallet);
-                document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
-                document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
+    let account;
 
-                // Verificar se já está conectado
-                const currentAccounts = await web3.eth.getAccounts();
-                if (currentAccounts.length > 0) {
-                    accounts = currentAccounts;
-                    await checkNetwork();
-                    updateWalletInfo();
-                    document.getElementById('walletInfo').style.display = 'block';
-                    enableDappFunctions();
-                }
+    async function connectWallet() {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      account = accounts[0];
+      document.getElementById("wallet").innerText = "Carteira: " + account;
+      getBalances();
+    }
 
-                // Listeners de mudança
-                window.ethereum.on('chainChanged', () => window.location.reload());
-                window.ethereum.on('accountsChanged', (newAccounts) => {
-                    if (newAccounts.length === 0) {
-                        // Carteira desconectada
-                        accounts = [];
-                        document.getElementById('walletInfo').style.display = 'none';
-                        disableDappFunctions();
-                    } else {
-                        // Conta alterada
-                        accounts = newAccounts;
-                        updateWalletInfo();
-                        checkNetwork();
-                    }
-                });
-                
-            } catch (error) {
-                showError('walletError', `Erro de inicialização: ${error.message}`);
-            }
-        });
+    async function getBalances() {
+      let output = "";
+      for (let key in tokens) {
+        const contract = new web3.eth.Contract(ERC20_ABI, tokens[key].address);
+        let balance = await contract.methods.balanceOf(account).call();
+        balance = web3.utils.fromWei(balance);
+        output += `<div class="token">${tokens[key].symbol}: ${parseFloat(balance).toFixed(4)}</div>`;
+      }
+      document.getElementById("balances").innerHTML = output;
+    }
 
-        // Conectar carteira - FUNÇÃO CORRIGIDA
-        async function connectWallet() {
-            try {
-                clearError('walletError');
-                
-                // Solicitar conexão da carteira
-                accounts = await window.ethereum.request({ 
-                    method: 'eth_requestAccounts' 
-                }).catch(err => {
-                    if (err.code === 4001) {
-                        // Usuário rejeitou a conexão
-                        throw new Error('Por favor, conecte sua carteira para usar este dApp');
-                    }
-                    throw err;
-                });
+    async function addLiquidity(tokenA, tokenB, amountA, amountB) {
+      const proxy = new web3.eth.Contract(proxyABI, proxyContractAddress);
 
-                // Verificar rede
-                await checkNetwork();
-                
-                // Obter endereço do par
-                const pairAddress = await getPairAddress();
-                lpTokenContract = new web3.eth.Contract(ERC20_ABI, pairAddress);
-                
-                // Atualizar UI
-                updateWalletInfo();
-                document.getElementById('walletInfo').style.display = 'block';
-                enableDappFunctions();
-                
-            } catch (error) {
-                showError('walletError', `Erro ao conectar: ${error.message}`);
-                console.error('Erro na conexão:', error);
-            }
-        }
+      const amountAWei = web3.utils.toWei(amountA.toString(), "ether");
+      const amountBWei = web3.utils.toWei(amountB.toString(), "ether");
 
-        // Verificar rede
-        async function checkNetwork() {
-            const chainId = await web3.eth.getChainId();
-            const networkAlert = document.getElementById('networkAlert');
+      const tokenAContract = new web3.eth.Contract(ERC20_ABI, tokenA);
+      const tokenBContract = new web3.eth.Contract(ERC20_ABI, tokenB);
 
-            if (chainId !== parseInt(BSC_MAINNET_CHAIN_ID, 16)) {
-                networkAlert.style.display = 'block';
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: BSC_MAINNET_CHAIN_ID }],
-                    });
-                    networkAlert.style.display = 'none';
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        try {
-                            await window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [BSC_MAINNET_PARAMS],
-                            });
-                            networkAlert.style.display = 'none';
-                        } catch (addError) {
-                            console.error('Erro ao adicionar rede:', addError);
-                        }
-                    } else {
-                        console.error('Erro ao mudar de rede:', switchError);
-                    }
-                }
-            } else {
-                networkAlert.style.display = 'none';
-            }
-        }
+      await tokenAContract.methods.approve(proxyContractAddress, amountAWei).send({ from: account });
+      await tokenBContract.methods.approve(proxyContractAddress, amountBWei).send({ from: account });
 
-        // Habilitar funções do dApp
-        function enableDappFunctions() {
-            document.getElementById('addLiquidity').disabled = false;
-            document.getElementById('removeLiquidity').disabled = false;
-        }
+      await proxy.methods.addLiquidityProxy(tokenA, tokenB, amountAWei, amountBWei)
+        .send({ from: account });
 
-        // Desabilitar funções do dApp
-        function disableDappFunctions() {
-            document.getElementById('addLiquidity').disabled = true;
-            document.getElementById('removeLiquidity').disabled = true;
-        }
+      // Cobrança da taxa de 1%
+      const feeA = (parseFloat(amountA) * 0.01).toFixed(6);
+      const feeB = (parseFloat(amountB) * 0.01).toFixed(6);
 
-        // Funções de adicionar/remover liquidez (mantidas iguais ao anterior)
-        async function addLiquidity() {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        async function removeLiquidity() {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        // Funções auxiliares (mantidas iguais ao anterior)
-        async function getPairAddress() {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        async function approveToken(tokenAddress, amount) {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        async function updateWalletInfo() {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        function showError(elementId, message) {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        function clearError(elementId) {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        function showSuccess(elementId, message) {
-            /* Implementação idêntica à versão anterior */
-        }
-
-        function clearSuccess(elementId) {
-            /* Implementação idêntica à versão anterior */
-        }
-    </script>
+      document.getElementById("analytics").innerText =
+        `Adicionado: ${amountA} e ${amountB}\n` +
+        `Taxa (1%): ${feeA} ${tokens.USDT.symbol} / ${feeB} ${tokens.USDC.symbol}`;
+    }
+  </script>
 </body>
 </html>
