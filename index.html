@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Liquidez USDT-USDC</title>
+    <title>Fee Collector USDT-USDC</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 20px auto;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f0f8ff;
+            background-color: #f5f8fa;
         }
         .container {
             background: white;
@@ -22,17 +22,27 @@
         h1 {
             color: #2c3e50;
             text-align: center;
-            font-size: 24px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #3498db;
+            margin-bottom: 15px;
         }
         .input-group {
-            margin: 15px 0;
+            margin-bottom: 15px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input {
+        input, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -44,19 +54,39 @@
             color: white;
             border: none;
             padding: 12px;
-            width: 100%;
             border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
+            width: 100%;
             margin-top: 10px;
         }
         button:hover {
             background-color: #2980b9;
         }
-        .message {
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
             margin-top: 15px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .info-label {
+            color: #7f8c8d;
+        }
+        .info-value {
+            font-weight: bold;
+        }
+        .message {
             padding: 10px;
             border-radius: 5px;
+            margin-top: 15px;
             text-align: center;
         }
         .success {
@@ -67,149 +97,549 @@
             background-color: #f8d7da;
             color: #721c24;
         }
-        .wallet-info {
+        .tabs {
+            display: flex;
             margin-bottom: 20px;
-            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 3px solid #3498db;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Adicionar Liquidez USDT-USDC</h1>
+        <h1>Fee Collector USDT-USDC</h1>
         
-        <div class="wallet-info" id="walletInfo">Carteira não conectada</div>
-        <button id="connectWallet">Conectar Carteira</button>
-        
-        <div class="input-group">
-            <label for="usdtAmount">Quantidade de USDT:</label>
-            <input type="number" id="usdtAmount" placeholder="Ex: 0.56" step="0.01" min="0">
+        <div class="tabs">
+            <div class="tab active" id="connectTab">Conectar</div>
+            <div class="tab" id="addTab">Adicionar Liquidez</div>
+            <div class="tab" id="removeTab">Remover Liquidez</div>
+            <div class="tab" id="statsTab">Estatísticas</div>
         </div>
         
-        <div class="input-group">
-            <label for="usdcAmount">Quantidade de USDC:</label>
-            <input type="number" id="usdcAmount" placeholder="Ex: 0.46" step="0.01" min="0">
+        <!-- Seção de Conexão -->
+        <div id="connectSection" class="section">
+            <div class="section-title">Conexão com Carteira</div>
+            <div id="walletInfo" class="info-box">Status: Não conectado</div>
+            <button id="connectWallet">Conectar Carteira</button>
+            <div id="connectMessage" class="message"></div>
         </div>
         
-        <button id="addLiquidity">Adicionar Liquidez</button>
+        <!-- Seção de Adicionar Liquidez -->
+        <div id="addSection" class="section" style="display: none;">
+            <div class="section-title">Adicionar Liquidez</div>
+            <div class="input-group">
+                <label for="usdtAmount">Quantidade de USDT:</label>
+                <input type="text" id="usdtAmount" placeholder="0.0" inputmode="decimal">
+            </div>
+            <div class="input-group">
+                <label for="usdcAmount">Quantidade de USDC:</label>
+                <input type="text" id="usdcAmount" placeholder="0.0" inputmode="decimal">
+            </div>
+            <button id="addLiquidity">Adicionar Liquidez</button>
+            <div id="addMessage" class="message"></div>
+        </div>
         
-        <div class="message" id="message"></div>
+        <!-- Seção de Remover Liquidez -->
+        <div id="removeSection" class="section" style="display: none;">
+            <div class="section-title">Remover Liquidez</div>
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Seus Tokens LP:</span>
+                    <span class="info-value" id="lpBalance">0.0</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="removePercentage">Porcentagem para remover:</label>
+                <input type="number" id="removePercentage" min="1" max="100" value="100">
+            </div>
+            <button id="removeLiquidity">Remover Liquidez</button>
+            <div id="removeMessage" class="message"></div>
+        </div>
+        
+        <!-- Seção de Estatísticas -->
+        <div id="statsSection" class="section" style="display: none;">
+            <div class="section-title">Estatísticas de Taxas</div>
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Taxas acumuladas (BNB):</span>
+                    <span class="info-value" id="totalFees">0.0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Taxas hoje (BNB):</span>
+                    <span class="info-value" id="todayFees">0.0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total de transações:</span>
+                    <span class="info-value" id="totalTransactions">0</span>
+                </div>
+            </div>
+            <button id="withdrawFees">Retirar Taxas</button>
+            <div id="statsMessage" class="message"></div>
+        </div>
     </div>
 
     <script>
         // Configurações
-        const contractAddress = "0xBF2D0384Bd16E2Ddd82Ea0Ea9001ab6339B0FFe0";
-        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-        const usdcAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+        const CONTRACT_ADDRESS = "0xDdca4a702217CD5A2C1873b5463d6203BeF41111"; // Substitua pelo endereço do seu contrato
+        const CONTRACT_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_feeReceiver",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountADesired",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountBDesired",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountAMin",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountBMin",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "addLiquidity",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountA",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountB",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "BNB",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "feeReceiver",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "FEE_PERCENT",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getPairAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "PANCAKE_ROUTER",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pairAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount0",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount1",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "pancakeCall",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "liquidity",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountAMin",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountBMin",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "removeLiquidity",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountA",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountB",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_feeReceiver",
+                "type": "address"
+            }
+        ],
+        "name": "setFeeReceiver",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "USDC",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "USDT",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "withdrawFees",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
         
-        // Variáveis
+        // Endereços dos tokens
+        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+        const USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
+        const BNB_ADDRESS = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
+        const PANCAKE_ROUTER = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
+        
+        // Variáveis globais
         let web3;
         let accounts = [];
-        let contract;
+        let feeCollectorContract;
         let usdtContract;
         let usdcContract;
+        let bnbContract;
+        let lpContract;
         
-        // Iniciar
+        // Iniciar aplicação
         window.addEventListener('load', async () => {
+            // Configurar abas
+            document.getElementById('connectTab').addEventListener('click', () => showTab('connect'));
+            document.getElementById('addTab').addEventListener('click', () => showTab('add'));
+            document.getElementById('removeTab').addEventListener('click', () => showTab('remove'));
+            document.getElementById('statsTab').addEventListener('click', () => showTab('stats'));
+            
             // Configurar botões
             document.getElementById('connectWallet').addEventListener('click', connectWallet);
             document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
+            document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
+            document.getElementById('withdrawFees').addEventListener('click', withdrawFees);
             
-            // Verificar se MetaMask está instalado
+            // Configurar inputs numéricos
+            setupNumberInput('usdtAmount');
+            setupNumberInput('usdcAmount');
+            
+            // Verificar MetaMask
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 try {
-                    // Verificar se já está conectado
+                    // Tentar conectar automaticamente
                     accounts = await web3.eth.getAccounts();
                     if (accounts.length > 0) {
                         updateWalletInfo();
                         setupContracts();
+                        loadPoolData();
                     }
                 } catch (error) {
-                    showMessage("Erro ao verificar conexão: " + error.message, "error");
+                    showMessage("Erro ao verificar conexão: " + error.message, "error", "connect");
                 }
             } else {
-                showMessage("Instale o MetaMask para usar esta página", "error");
+                showMessage("Instale o MetaMask para usar esta página", "error", "connect");
             }
         });
+        
+        // Mostrar aba selecionada
+        function showTab(tab) {
+            // Esconder todas as seções
+            document.getElementById('connectSection').style.display = 'none';
+            document.getElementById('addSection').style.display = 'none';
+            document.getElementById('removeSection').style.display = 'none';
+            document.getElementById('statsSection').style.display = 'none';
+            
+            // Remover classe active de todas as abas
+            document.getElementById('connectTab').classList.remove('active');
+            document.getElementById('addTab').classList.remove('active');
+            document.getElementById('removeTab').classList.remove('active');
+            document.getElementById('statsTab').classList.remove('active');
+            
+            // Mostrar seção e marcar aba como ativa
+            if (tab === 'connect') {
+                document.getElementById('connectSection').style.display = 'block';
+                document.getElementById('connectTab').classList.add('active');
+            } else if (tab === 'add') {
+                document.getElementById('addSection').style.display = 'block';
+                document.getElementById('addTab').classList.add('active');
+            } else if (tab === 'remove') {
+                document.getElementById('removeSection').style.display = 'block';
+                document.getElementById('removeTab').classList.add('active');
+                if (accounts.length > 0) loadPoolData();
+            } else if (tab === 'stats') {
+                document.getElementById('statsSection').style.display = 'block';
+                document.getElementById('statsTab').classList.add('active');
+                if (accounts.length > 0) loadStats();
+            }
+        }
+        
+        // Configurar input para números decimais
+        function setupNumberInput(id) {
+            const input = document.getElementById(id);
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9.]/g, '')
+                                      .replace(/(\..*)\./g, '$1');
+            });
+        }
         
         // Conectar carteira
         async function connectWallet() {
             try {
-                // Solicitar conexão da carteira
                 accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                
-                // Atualizar interface
                 updateWalletInfo();
                 setupContracts();
-                showMessage("Carteira conectada com sucesso!", "success");
-                
-                // Configurar listeners para mudanças
-                window.ethereum.on('accountsChanged', (newAccounts) => {
-                    accounts = newAccounts;
-                    updateWalletInfo();
-                });
-                
-                window.ethereum.on('chainChanged', () => {
-                    window.location.reload();
-                });
-                
+                loadPoolData();
+                showMessage("Carteira conectada com sucesso!", "success", "connect");
+                showTab('add'); // Mudar para a aba de adicionar liquidez
             } catch (error) {
-                showMessage("Erro ao conectar carteira: " + error.message, "error");
+                showMessage("Erro ao conectar carteira: " + error.message, "error", "connect");
             }
         }
         
-        // Atualizar info da carteira
+        // Atualizar informações da carteira
         function updateWalletInfo() {
             const walletInfo = document.getElementById('walletInfo');
             if (accounts.length > 0) {
-                const shortAddress = accounts[0].substring(0, 6) + "..." + accounts[0].substring(38);
-                walletInfo.textContent = "Conectado: " + shortAddress;
-                document.getElementById('addLiquidity').disabled = false;
+                const shortAddress = `${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}`;
+                walletInfo.innerHTML = `Status: Conectado<br>Endereço: ${shortAddress}`;
             } else {
-                walletInfo.textContent = "Carteira não conectada";
-                document.getElementById('addLiquidity').disabled = true;
+                walletInfo.textContent = "Status: Não conectado";
             }
         }
         
         // Configurar contratos
         function setupContracts() {
-            // ABI simplificada
+            // ABI simplificada para tokens ERC20
             const erc20ABI = [
+                {
+                    "constant": true,
+                    "inputs": [{"name": "_owner", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "balance", "type": "uint256"}],
+                    "type": "function"
+                },
                 {
                     "constant": false,
                     "inputs": [
-                        {"name": "spender", "type": "address"},
-                        {"name": "amount", "type": "uint256"}
+                        {"name": "_spender", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
                     ],
                     "name": "approve",
-                    "outputs": [{"name": "", "type": "bool"}],
+                    "outputs": [{"name": "success", "type": "bool"}],
                     "type": "function"
-                }
-            ];
-            
-            const proxyABI = [
+                },
                 {
+                    "constant": false,
                     "inputs": [
-                        {"name": "tokenA", "type": "address"},
-                        {"name": "tokenB", "type": "address"},
-                        {"name": "amountADesired", "type": "uint256"},
-                        {"name": "amountBDesired", "type": "uint256"},
-                        {"name": "amountAMin", "type": "uint256"},
-                        {"name": "amountBMin", "type": "uint256"},
-                        {"name": "to", "type": "address"},
-                        {"name": "deadline", "type": "uint256"}
+                        {"name": "_to", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
                     ],
-                    "name": "addLiquidity",
-                    "outputs": [],
-                    "stateMutability": "nonpayable",
+                    "name": "transfer",
+                    "outputs": [{"name": "success", "type": "bool"}],
                     "type": "function"
                 }
             ];
             
-            contract = new web3.eth.Contract(proxyABI, contractAddress);
-            usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
-            usdcContract = new web3.eth.Contract(erc20ABI, usdcAddress);
+            // Instanciar contratos
+            feeCollectorContract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+            usdtContract = new web3.eth.Contract(erc20ABI, USDT_ADDRESS);
+            usdcContract = new web3.eth.Contract(erc20ABI, USDC_ADDRESS);
+            bnbContract = new web3.eth.Contract(erc20ABI, BNB_ADDRESS);
+            
+            // Obter endereço do contrato LP
+            feeCollectorContract.methods.pairAddress().call()
+                .then(address => {
+                    lpContract = new web3.eth.Contract(erc20ABI, address);
+                });
+        }
+        
+        // Carregar dados da pool
+        async function loadPoolData() {
+            try {
+                const lpBalance = await lpContract.methods.balanceOf(accounts[0]).call();
+                document.getElementById('lpBalance').textContent = (lpBalance / 1e18).toFixed(6);
+            } catch (error) {
+                console.error("Erro ao carregar dados da pool:", error);
+                showMessage("Erro ao carregar dados da pool", "error", "remove");
+            }
+        }
+        
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                // Implementar lógica para buscar estatísticas
+                // Exemplo: const totalFees = await feeCollectorContract.methods.totalFees().call();
+                // document.getElementById('totalFees').textContent = (totalFees / 1e18).toFixed(6);
+                
+                showMessage("Estatísticas carregadas", "success", "stats");
+            } catch (error) {
+                console.error("Erro ao carregar estatísticas:", error);
+                showMessage("Erro ao carregar estatísticas", "error", "stats");
+            }
         }
         
         // Adicionar liquidez
@@ -217,52 +647,100 @@
             const usdtAmount = document.getElementById('usdtAmount').value;
             const usdcAmount = document.getElementById('usdcAmount').value;
             
-            // Validar entradas
-            if (!usdtAmount || !usdcAmount) {
-                showMessage("Preencha ambos os valores", "error");
+            if (!usdtAmount || !usdcAmount || parseFloat(usdtAmount) <= 0 || parseFloat(usdcAmount) <= 0) {
+                showMessage("Insira valores válidos para ambos os tokens", "error", "add");
                 return;
             }
             
             try {
-                showMessage("Processando...", "success");
+                showMessage("Processando...", "success", "add");
                 
-                // Converter para unidades mínimas (assumindo 18 decimais)
+                // Converter para unidades mínimas
                 const usdtWei = web3.utils.toWei(usdtAmount, 'ether');
                 const usdcWei = web3.utils.toWei(usdcAmount, 'ether');
                 
                 // Aprovar tokens
-                await usdtContract.methods.approve(contractAddress, usdtWei).send({ from: accounts[0] });
-                await usdcContract.methods.approve(contractAddress, usdcWei).send({ from: accounts[0] });
+                await usdtContract.methods.approve(CONTRACT_ADDRESS, usdtWei).send({ from: accounts[0] });
+                await usdcContract.methods.approve(CONTRACT_ADDRESS, usdcWei).send({ from: accounts[0] });
                 
-                // Adicionar liquidez (deadline 10 minutos)
-                const deadline = Math.floor(Date.now() / 1000) + 600;
-                await contract.methods.addLiquidity(
-                    usdtAddress,
-                    usdcAddress,
+                // Adicionar liquidez (deadline 20 minutos)
+                const deadline = Math.floor(Date.now() / 1000) + 1200;
+                await feeCollectorContract.methods.addLiquidity(
                     usdtWei,
                     usdcWei,
-                    "0",
-                    "0",
-                    accounts[0],
+                    0, // amountAMin
+                    0, // amountBMin
+                    accounts[0], // to
                     deadline
                 ).send({ from: accounts[0] });
                 
-                showMessage("Liquidez adicionada com sucesso!", "success");
-                
-                // Limpar campos
+                showMessage("Liquidez adicionada com sucesso!", "success", "add");
                 document.getElementById('usdtAmount').value = "";
                 document.getElementById('usdcAmount').value = "";
-                
+                loadPoolData();
             } catch (error) {
-                showMessage("Erro: " + error.message, "error");
+                console.error("Erro ao adicionar liquidez:", error);
+                showMessage("Erro: " + (error.message || "Transação falhou"), "error", "add");
+            }
+        }
+        
+        // Remover liquidez
+        async function removeLiquidity() {
+            const percentage = document.getElementById('removePercentage').value;
+            
+            if (!percentage || percentage < 1 || percentage > 100) {
+                showMessage("Insira uma porcentagem válida (1-100)", "error", "remove");
+                return;
+            }
+            
+            try {
+                showMessage("Processando...", "success", "remove");
+                
+                const lpBalance = await lpContract.methods.balanceOf(accounts[0]).call();
+                const amountToRemove = BigInt(lpBalance) * BigInt(percentage) / 100n;
+                
+                // Aprovar contrato para gastar tokens LP
+                await lpContract.methods.approve(CONTRACT_ADDRESS, amountToRemove.toString()).send({ from: accounts[0] });
+                
+                // Remover liquidez (deadline 20 minutos)
+                const deadline = Math.floor(Date.now() / 1000) + 1200;
+                await feeCollectorContract.methods.removeLiquidity(
+                    amountToRemove.toString(),
+                    0, // amountAMin
+                    0, // amountBMin
+                    accounts[0], // to
+                    deadline
+                ).send({ from: accounts[0] });
+                
+                showMessage(`Liquidez removida (${percentage}%) com sucesso!`, "success", "remove");
+                loadPoolData();
+            } catch (error) {
+                console.error("Erro ao remover liquidez:", error);
+                showMessage("Erro: " + (error.message || "Falha ao remover liquidez"), "error", "remove");
+            }
+        }
+        
+        // Retirar taxas acumuladas
+        async function withdrawFees() {
+            try {
+                showMessage("Processando retirada de taxas...", "success", "stats");
+                
+                // Chamar função de retirada no contrato
+                await feeCollectorContract.methods.withdrawFees().send({ from: accounts[0] });
+                
+                showMessage("Taxas retiradas com sucesso!", "success", "stats");
+                loadStats();
+            } catch (error) {
+                console.error("Erro ao retirar taxas:", error);
+                showMessage("Erro: " + (error.message || "Falha ao retirar taxas"), "error", "stats");
             }
         }
         
         // Mostrar mensagem
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
+        function showMessage(text, type, section) {
+            const messageDiv = document.getElementById(`${section}Message`);
             messageDiv.textContent = text;
-            messageDiv.className = "message " + type;
+            messageDiv.className = `message ${type}`;
         }
     </script>
 </body>
