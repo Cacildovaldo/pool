@@ -111,23 +111,22 @@
         
         // Iniciar
         window.addEventListener('load', async () => {
-            // Verificar MetaMask
+            // Configurar botões
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
+            
+            // Verificar se MetaMask está instalado
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
-                
-                // Configurar botões
-                document.getElementById('connectWallet').addEventListener('click', connectWallet);
-                document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
-                
-                // Tentar conectar automaticamente
                 try {
-                    accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    // Verificar se já está conectado
+                    accounts = await web3.eth.getAccounts();
                     if (accounts.length > 0) {
                         updateWalletInfo();
                         setupContracts();
                     }
                 } catch (error) {
-                    showMessage("Erro ao conectar: " + error.message, "error");
+                    showMessage("Erro ao verificar conexão: " + error.message, "error");
                 }
             } else {
                 showMessage("Instale o MetaMask para usar esta página", "error");
@@ -137,10 +136,24 @@
         // Conectar carteira
         async function connectWallet() {
             try {
+                // Solicitar conexão da carteira
                 accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // Atualizar interface
                 updateWalletInfo();
                 setupContracts();
                 showMessage("Carteira conectada com sucesso!", "success");
+                
+                // Configurar listeners para mudanças
+                window.ethereum.on('accountsChanged', (newAccounts) => {
+                    accounts = newAccounts;
+                    updateWalletInfo();
+                });
+                
+                window.ethereum.on('chainChanged', () => {
+                    window.location.reload();
+                });
+                
             } catch (error) {
                 showMessage("Erro ao conectar carteira: " + error.message, "error");
             }
@@ -152,8 +165,10 @@
             if (accounts.length > 0) {
                 const shortAddress = accounts[0].substring(0, 6) + "..." + accounts[0].substring(38);
                 walletInfo.textContent = "Conectado: " + shortAddress;
+                document.getElementById('addLiquidity').disabled = false;
             } else {
                 walletInfo.textContent = "Carteira não conectada";
+                document.getElementById('addLiquidity').disabled = true;
             }
         }
         
@@ -161,21 +176,35 @@
         function setupContracts() {
             // ABI simplificada
             const erc20ABI = [
-                {"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"},
-                {"constant":false,"inputs":[{"name":"recipient","type":"address"},{"name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"}
+                {
+                    "constant": false,
+                    "inputs": [
+                        {"name": "spender", "type": "address"},
+                        {"name": "amount", "type": "uint256"}
+                    ],
+                    "name": "approve",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "type": "function"
+                }
             ];
             
             const proxyABI = [
-                {"inputs":[
-                    {"name":"tokenA","type":"address"},
-                    {"name":"tokenB","type":"address"},
-                    {"name":"amountADesired","type":"uint256"},
-                    {"name":"amountBDesired","type":"uint256"},
-                    {"name":"amountAMin","type":"uint256"},
-                    {"name":"amountBMin","type":"uint256"},
-                    {"name":"to","type":"address"},
-                    {"name":"deadline","type":"uint256"}
-                ],"name":"addLiquidity","outputs":[],"stateMutability":"nonpayable","type":"function"}
+                {
+                    "inputs": [
+                        {"name": "tokenA", "type": "address"},
+                        {"name": "tokenB", "type": "address"},
+                        {"name": "amountADesired", "type": "uint256"},
+                        {"name": "amountBDesired", "type": "uint256"},
+                        {"name": "amountAMin", "type": "uint256"},
+                        {"name": "amountBMin", "type": "uint256"},
+                        {"name": "to", "type": "address"},
+                        {"name": "deadline", "type": "uint256"}
+                    ],
+                    "name": "addLiquidity",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                }
             ];
             
             contract = new web3.eth.Contract(proxyABI, contractAddress);
@@ -185,27 +214,12 @@
         
         // Adicionar liquidez
         async function addLiquidity() {
-            if (!accounts.length) {
-                showMessage("Conecte sua carteira primeiro", "error");
-                return;
-            }
-            
             const usdtAmount = document.getElementById('usdtAmount').value;
             const usdcAmount = document.getElementById('usdcAmount').value;
             
             // Validar entradas
             if (!usdtAmount || !usdcAmount) {
                 showMessage("Preencha ambos os valores", "error");
-                return;
-            }
-            
-            if (isNaN(usdtAmount) {
-                showMessage("Valor de USDT inválido", "error");
-                return;
-            }
-            
-            if (isNaN(usdcAmount)) {
-                showMessage("Valor de USDC inválido", "error");
                 return;
             }
             
@@ -227,8 +241,8 @@
                     usdcAddress,
                     usdtWei,
                     usdcWei,
-                    0,
-                    0,
+                    "0",
+                    "0",
                     accounts[0],
                     deadline
                 ).send({ from: accounts[0] });
