@@ -1,97 +1,123 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Liquidez BEP-20 - Pancake Proxy</title>
+  <title>Pancake Liquidity Manager</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .token { margin-bottom: 10px; }
+    body { font-family: Arial; margin: 20px; }
+    .section { margin-bottom: 20px; }
+    button { margin: 5px; }
   </style>
 </head>
 <body>
-  <h2>Liquidez PancakeSwap via Proxy</h2>
-  <button onclick="connectWallet()">Conectar Wallet</button>
-  <p id="wallet">Carteira: não conectada</p>
+  <h2>Gestor de Liquidez - Pancake Proxy</h2>
 
-  <h3>Saldos dos Tokens:</h3>
-  <div id="balances"></div>
+  <div class="section">
+    <button onclick="connectWallet()">🔗 Conectar Carteira</button>
+    <p id="wallet">Carteira: não conectada</p>
+  </div>
 
-  <h3>Analytics:</h3>
-  <pre id="analytics">Aguardando ações...</pre>
+  <div class="section">
+    <h3>💰 Saldos dos Tokens</h3>
+    <div id="balances">Carregando...</div>
+  </div>
+
+  <div class="section">
+    <h3>➕ Adicionar Liquidez (USDT/USDC)</h3>
+    <input id="amountA" placeholder="Quantia USDT" type="number" step="0.01">
+    <input id="amountB" placeholder="Quantia USDC" type="number" step="0.01">
+    <button onclick="addLiquidity()">Adicionar Liquidez</button>
+  </div>
+
+  <div class="section">
+    <h3>➖ Remover Liquidez (USDT/USDC)</h3>
+    <input id="liquidityToRemove" placeholder="Qtd Liquidez LP Token" type="number" step="0.01">
+    <button onclick="removeLiquidity()">Remover Liquidez</button>
+  </div>
+
+  <div class="section">
+    <h3>📊 Analytics da Pool</h3>
+    <button onclick="fetchPoolData()">Atualizar Dados</button>
+    <pre id="analytics">Carregando...</pre>
+  </div>
 
   <script>
-    const proxyContractAddress = "0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0";
-    const BSC_RPC = "https://bsc-dataseed.binance.org/";
-    const web3 = new Web3(window.ethereum || BSC_RPC);
+    const web3 = new Web3(window.ethereum);
+    const proxyAddress = "0x4D8DF7fef0d9E538b57CBc3Ce701b7cCc55A61E0";
 
     const tokens = {
       USDT: { address: "0x55d398326f99059fF775485246999027B3197955", symbol: "USDT" },
       USDC: { address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", symbol: "USDC" },
-      WBNB: { address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", symbol: "WBNB" },
     };
 
     const ERC20_ABI = [
-      { "constant":true, "inputs":[{"name":"_owner","type":"address"}], "name":"balanceOf", "outputs":[{"name":"balance","type":"uint256"}], "type":"function" },
-      { "constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function" }
+      { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
+      { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "", "type": "bool" }], "type": "function" }
     ];
 
     const proxyABI = [
-      {
-        "inputs": [
-          { "internalType": "address", "name": "tokenA", "type": "address" },
-          { "internalType": "address", "name": "tokenB", "type": "address" },
-          { "internalType": "uint256", "name": "amountADesired", "type": "uint256" },
-          { "internalType": "uint256", "name": "amountBDesired", "type": "uint256" }
-        ],
-        "name": "addLiquidityProxy",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
+      { "inputs": [ { "internalType": "address", "name": "tokenA", "type": "address" }, { "internalType": "address", "name": "tokenB", "type": "address" }, { "internalType": "uint256", "name": "amountADesired", "type": "uint256" }, { "internalType": "uint256", "name": "amountBDesired", "type": "uint256" } ], "name": "addLiquidityProxy", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+      { "inputs": [ { "internalType": "address", "name": "tokenA", "type": "address" }, { "internalType": "address", "name": "tokenB", "type": "address" }, { "internalType": "uint256", "name": "liquidity", "type": "uint256" } ], "name": "removeLiquidityProxy", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+      { "inputs": [ { "internalType": "address", "name": "tokenA", "type": "address" }, { "internalType": "address", "name": "tokenB", "type": "address" } ], "name": "getPoolData", "outputs": [ { "internalType": "uint256", "name": "totalLiquidity", "type": "uint256" }, { "internalType": "uint256", "name": "totalFees", "type": "uint256" }, { "internalType": "uint256", "name": "totalRewards", "type": "uint256" } ], "stateMutability": "view", "type": "function" }
     ];
 
     let account;
+    const proxy = new web3.eth.Contract(proxyABI, proxyAddress);
 
     async function connectWallet() {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       account = accounts[0];
-      document.getElementById("wallet").innerText = "Carteira: " + account;
-      getBalances();
+      document.getElementById("wallet").innerText = `Carteira: ${account}`;
+      updateBalances();
     }
 
-    async function getBalances() {
-      let output = "";
-      for (let key in tokens) {
+    async function updateBalances() {
+      let output = '';
+      for (const key in tokens) {
         const contract = new web3.eth.Contract(ERC20_ABI, tokens[key].address);
         let balance = await contract.methods.balanceOf(account).call();
-        balance = web3.utils.fromWei(balance);
-        output += `<div class="token">${tokens[key].symbol}: ${parseFloat(balance).toFixed(4)}</div>`;
+        output += `${tokens[key].symbol}: ${parseFloat(web3.utils.fromWei(balance)).toFixed(4)}\n`;
       }
-      document.getElementById("balances").innerHTML = output;
+      document.getElementById("balances").innerText = output;
     }
 
-    async function addLiquidity(tokenA, tokenB, amountA, amountB) {
-      const proxy = new web3.eth.Contract(proxyABI, proxyContractAddress);
+    async function addLiquidity() {
+      const amountA = document.getElementById("amountA").value;
+      const amountB = document.getElementById("amountB").value;
 
-      const amountAWei = web3.utils.toWei(amountA.toString(), "ether");
-      const amountBWei = web3.utils.toWei(amountB.toString(), "ether");
+      const amountAWei = web3.utils.toWei(amountA);
+      const amountBWei = web3.utils.toWei(amountB);
 
-      const tokenAContract = new web3.eth.Contract(ERC20_ABI, tokenA);
-      const tokenBContract = new web3.eth.Contract(ERC20_ABI, tokenB);
+      const usdt = new web3.eth.Contract(ERC20_ABI, tokens.USDT.address);
+      const usdc = new web3.eth.Contract(ERC20_ABI, tokens.USDC.address);
 
-      await tokenAContract.methods.approve(proxyContractAddress, amountAWei).send({ from: account });
-      await tokenBContract.methods.approve(proxyContractAddress, amountBWei).send({ from: account });
+      await usdt.methods.approve(proxyAddress, amountAWei).send({ from: account });
+      await usdc.methods.approve(proxyAddress, amountBWei).send({ from: account });
 
-      await proxy.methods.addLiquidityProxy(tokenA, tokenB, amountAWei, amountBWei)
+      await proxy.methods.addLiquidityProxy(tokens.USDT.address, tokens.USDC.address, amountAWei, amountBWei)
         .send({ from: account });
 
-      // Cobrança da taxa de 1%
-      const feeA = (parseFloat(amountA) * 0.01).toFixed(6);
-      const feeB = (parseFloat(amountB) * 0.01).toFixed(6);
+      fetchPoolData();
+    }
+
+    async function removeLiquidity() {
+      const liquidity = document.getElementById("liquidityToRemove").value;
+      const liquidityWei = web3.utils.toWei(liquidity);
+
+      await proxy.methods.removeLiquidityProxy(tokens.USDT.address, tokens.USDC.address, liquidityWei)
+        .send({ from: account });
+
+      fetchPoolData();
+    }
+
+    async function fetchPoolData() {
+      const data = await proxy.methods.getPoolData(tokens.USDT.address, tokens.USDC.address).call();
+      const liq = web3.utils.fromWei(data.totalLiquidity);
+      const fees = web3.utils.fromWei(data.totalFees);
+      const rewards = web3.utils.fromWei(data.totalRewards);
 
       document.getElementById("analytics").innerText =
-        `Adicionado: ${amountA} e ${amountB}\n` +
-        `Taxa (1%): ${feeA} ${tokens.USDT.symbol} / ${feeB} ${tokens.USDC.symbol}`;
+        `Liquidez Total: ${liq}\nTaxas Acumuladas: ${fees} USDT/USDC\nRecompensas: ${rewards}`;
     }
   </script>
 </body>
