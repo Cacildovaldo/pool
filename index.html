@@ -1,186 +1,545 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Liquidity Tax Proxy</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-    #container { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; }
-    button { margin-top: 10px; padding: 10px; cursor: pointer; }
-    input { padding: 6px; width: 100%; margin-top: 6px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Liquidez USDT-USDC</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .wallet-info {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .balance-info {
+            margin-top: 15px;
+        }
+        .transaction-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .loading {
+            background-color: #d9edf7;
+            color: #31708f;
+        }
+    </style>
 </head>
 <body>
-  <div id="container">
-    <h2>Liquidity Manager (USDT / USDC)</h2>
-    <div id="wallet">Wallet: not connected</div>
+    <div class="container">
+        <h1>Gerenciador de Liquidez USDT-USDC</h1>
+        
+        <div class="section">
+            <h2>Conexão com Carteira</h2>
+            <button id="connectWallet">Conectar Carteira</button>
+            <div id="walletInfo" class="wallet-info"></div>
+            <div id="networkInfo"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Saldo de Tokens</h2>
+            <button id="refreshBalances">Atualizar Saldos</button>
+            <div id="balances" class="balance-info"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Adicionar Liquidez</h2>
+            <label for="usdtAmount">Quantidade de USDT:</label>
+            <input type="number" id="usdtAmount" placeholder="0.0">
+            
+            <label for="usdcAmount">Quantidade de USDC:</label>
+            <input type="number" id="usdcAmount" placeholder="0.0">
+            
+            <button id="addLiquidity">Adicionar Liquidez</button>
+            <div id="addLiquidityStatus" class="transaction-status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Remover Liquidez</h2>
+            <label for="liquidityAmount">Quantidade de Tokens de Liquidez a Remover:</label>
+            <input type="number" id="liquidityAmount" placeholder="0.0">
+            
+            <button id="removeLiquidity">Remover Liquidez</button>
+            <div id="removeLiquidityStatus" class="transaction-status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Taxas e Estatísticas</h2>
+            <div id="feeStats"></div>
+        </div>
+    </div>
 
-    <h4>Your Balances</h4>
-    <div id="balances">Loading...</div>
-
-    <h4>Add Liquidity</h4>
-    <label>USDT Amount:</label>
-    <input type="text" id="usdtAmount">
-    <label>USDC Amount:</label>
-    <input type="text" id="usdcAmount">
-    <button onclick="addLiquidity()">Add Liquidity</button>
-
-    <h4>Pool Analytics</h4>
-    <div id="analytics">Listening for events...</div>
-  </div>
-
-<script>
-  const USDT = '0x55d398326f99059fF775485246999027B3197955'; // Endereço USDT na BSC
-  const USDC = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'; // Endereço USDC na BSC
-  const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E'; // Endereço PancakeRouterV2
-  const PROXY = '0xBF2D0384Bd16E2Ddd82Ea0Ea9001ab6339B0FFe0';
-  const ABI = [
-  {
-    "inputs": [
-      { "internalType": "address", "name": "_router", "type": "address" }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
-      { "indexed": false, "internalType": "address", "name": "tokenA", "type": "address" },
-      { "indexed": false, "internalType": "address", "name": "tokenB", "type": "address" },
-      { "indexed": false, "internalType": "uint256", "name": "amountA", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "amountB", "type": "uint256" }
-    ],
-    "name": "LiquidityAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "address", "name": "token", "type": "address" },
-      { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
-    ],
-    "name": "FeeTaken",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "FEE_RECEIVER",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "FEE_RATE",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "pancakeRouter",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "tokenA", "type": "address" },
-      { "internalType": "address", "name": "tokenB", "type": "address" },
-      { "internalType": "uint256", "name": "amountADesired", "type": "uint256" },
-      { "internalType": "uint256", "name": "amountBDesired", "type": "uint256" },
-      { "internalType": "uint256", "name": "amountAMin", "type": "uint256" },
-      { "internalType": "uint256", "name": "amountBMin", "type": "uint256" },
-      { "internalType": "address", "name": "to", "type": "address" },
-      { "internalType": "uint256", "name": "deadline", "type": "uint256" }
-    ],
-    "name": "addLiquidity",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-]
-;
-
-  let web3;
-  let account;
-  let proxy;
-
-  async function connectWallet() {
-    if (window.ethereum) {
-      web3 = new Web3(window.ethereum);
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const accounts = await web3.eth.getAccounts();
-      account = accounts[0];
-      document.getElementById('wallet').innerText = 'Wallet: ' + account;
-      proxy = new web3.eth.Contract(ABI, PROXY);
-      loadBalances();
-      listenToEvents();
-    } else {
-      alert('MetaMask não detectado');
-    }
-  }
-
-  async function loadBalances() {
-    const usdt = new web3.eth.Contract(ERC20_ABI, USDT);
-    const usdc = new web3.eth.Contract(ERC20_ABI, USDC);
-    const usdtBal = await usdt.methods.balanceOf(account).call();
-    const usdcBal = await usdc.methods.balanceOf(account).call();
-    document.getElementById('balances').innerText = `USDT: ${web3.utils.fromWei(usdtBal)} | USDC: ${web3.utils.fromWei(usdcBal)}`;
-  }
-
-  async function addLiquidity() {
-    const amountUSDT = web3.utils.toWei(document.getElementById('usdtAmount').value);
-    const amountUSDC = web3.utils.toWei(document.getElementById('usdcAmount').value);
-    const tokenA = USDT, tokenB = USDC;
-
-    const deadline = Math.floor(Date.now() / 1000) + 1200;
-    const ercA = new web3.eth.Contract(ERC20_ABI, tokenA);
-    const ercB = new web3.eth.Contract(ERC20_ABI, tokenB);
-
-    await ercA.methods.approve(PROXY, amountUSDT).send({ from: account });
-    await ercB.methods.approve(PROXY, amountUSDC).send({ from: account });
-
-    await proxy.methods.addLiquidity(
-      tokenA,
-      tokenB,
-      amountUSDT,
-      amountUSDC,
-      0,
-      0,
-      account,
-      deadline
-    ).send({ from: account });
-
-    alert("Liquidez adicionada com sucesso!");
-    loadBalances();
-  }
-
-  function listenToEvents() {
-    proxy.events.FeeTaken({}, (err, data) => {
-      if (!err) {
-        const t = data.returnValues.token;
-        const a = web3.utils.fromWei(data.returnValues.amount);
-        document.getElementById('analytics').innerHTML += `<div>Fee Taken: ${a} of ${t}</div>`;
-      }
-    });
-    proxy.events.LiquidityAdded({}, (err, data) => {
-      if (!err) {
-        const a = web3.utils.fromWei(data.returnValues.amountA);
-        const b = web3.utils.fromWei(data.returnValues.amountB);
-        document.getElementById('analytics').innerHTML += `<div>Liquidity Added: ${a} USDT, ${b} USDC</div>`;
-      }
-    });
-  }
-
-  const ERC20_ABI = [
-    { "constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"type":"function" },
-    { "constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"type":"function" },
-  ];
-
-  window.onload = connectWallet;
-</script>
+    <script>
+        // Configurações do contrato
+        const contractAddress = "0xBF2D0384Bd16E2Ddd82Ea0Ea9001ab6339B0FFe0";
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955"; // USDT na BSC
+        const usdcAddress = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"; // USDC na BSC
+        const feeReceiver = "0x9E74B0a29d0Ec2e73E7A9c984d6a0447e72df76c";
+        
+        // ABI do contrato LiquidityTaxProxy
+        const contractABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_router",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "FeeTaken",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "tokenA",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "tokenB",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amountA",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amountB",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "LiquidityAdded",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "tokenA",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "tokenB",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountADesired",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountBDesired",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountAMin",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountBMin",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "deadline",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "addLiquidity",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "FEE_RATE",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "FEE_RECEIVER",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "pancakeRouter",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+        
+        // ABI padrão para tokens ERC20
+        const erc20ABI = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "name",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{"name": "", "type": "uint8"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "_owner", "type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"name": "balance", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "_spender", "type": "address"},
+                    {"name": "_value", "type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [{"name": "success", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "_from", "type": "address"},
+                    {"name": "_to", "type": "address"},
+                    {"name": "_value", "type": "uint256"}
+                ],
+                "name": "transferFrom",
+                "outputs": [{"name": "success", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+        
+        // Variáveis globais
+        let web3;
+        let accounts = [];
+        let liquidityProxyContract;
+        let usdtContract;
+        let usdcContract;
+        
+        // Inicializar aplicação
+        window.addEventListener('load', async () => {
+            // Configurar listeners de botões
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            document.getElementById('refreshBalances').addEventListener('click', updateBalances);
+            document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
+            document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
+            
+            // Verificar se MetaMask está instalado
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                try {
+                    // Solicitar acesso à conta
+                    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    updateWalletInfo();
+                    
+                    // Inicializar contratos
+                    initializeContracts();
+                    
+                    // Atualizar saldos
+                    await updateBalances();
+                    
+                    // Configurar listener para mudanças de conta
+                    window.ethereum.on('accountsChanged', (newAccounts) => {
+                        accounts = newAccounts;
+                        updateWalletInfo();
+                        updateBalances();
+                    });
+                    
+                    // Configurar listener para mudanças de rede
+                    window.ethereum.on('chainChanged', () => {
+                        window.location.reload();
+                    });
+                } catch (error) {
+                    console.error("Erro ao conectar carteira:", error);
+                }
+            } else {
+                alert('Por favor, instale o MetaMask para usar esta aplicação!');
+            }
+        });
+        
+        // Conectar carteira
+        async function connectWallet() {
+            try {
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                updateWalletInfo();
+                initializeContracts();
+                await updateBalances();
+            } catch (error) {
+                console.error("Erro ao conectar carteira:", error);
+                document.getElementById('walletInfo').textContent = "Erro ao conectar carteira";
+            }
+        }
+        
+        // Atualizar informações da carteira
+        function updateWalletInfo() {
+            const walletInfo = document.getElementById('walletInfo');
+            if (accounts.length > 0) {
+                const shortAddress = `${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}`;
+                walletInfo.textContent = `Conectado: ${shortAddress}`;
+            } else {
+                walletInfo.textContent = "Não conectado";
+            }
+        }
+        
+        // Inicializar contratos
+        function initializeContracts() {
+            liquidityProxyContract = new web3.eth.Contract(contractABI, contractAddress);
+            usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
+            usdcContract = new web3.eth.Contract(erc20ABI, usdcAddress);
+        }
+        
+        // Atualizar saldos
+        async function updateBalances() {
+            if (!accounts.length) return;
+            
+            try {
+                const balancesDiv = document.getElementById('balances');
+                balancesDiv.innerHTML = "Carregando saldos...";
+                
+                // Obter saldos
+                const usdtBalance = await usdtContract.methods.balanceOf(accounts[0]).call();
+                const usdcBalance = await usdcContract.methods.balanceOf(accounts[0]).call();
+                
+                // Obter decimais para formatação
+                const usdtDecimals = await usdtContract.methods.decimals().call();
+                const usdcDecimals = await usdcContract.methods.decimals().call();
+                
+                // Formatando os saldos
+                const formattedUsdt = (usdtBalance / (10 ** usdtDecimals)).toFixed(2);
+                const formattedUsdc = (usdcBalance / (10 ** usdcDecimals)).toFixed(2);
+                
+                balancesDiv.innerHTML = `
+                    <p>Saldo USDT: ${formattedUsdt}</p>
+                    <p>Saldo USDC: ${formattedUsdc}</p>
+                `;
+            } catch (error) {
+                console.error("Erro ao atualizar saldos:", error);
+                document.getElementById('balances').textContent = "Erro ao carregar saldos";
+            }
+        }
+        
+        // Adicionar liquidez
+        async function addLiquidity() {
+            if (!accounts.length) {
+                alert("Por favor, conecte sua carteira primeiro");
+                return;
+            }
+            
+            const statusDiv = document.getElementById('addLiquidityStatus');
+            statusDiv.textContent = "Preparando transação...";
+            statusDiv.className = "transaction-status loading";
+            
+            try {
+                const usdtAmount = document.getElementById('usdtAmount').value;
+                const usdcAmount = document.getElementById('usdcAmount').value;
+                
+                if (!usdtAmount || !usdcAmount || parseFloat(usdtAmount) <= 0 || parseFloat(usdcAmount) <= 0) {
+                    throw new Error("Por favor, insira valores válidos para USDT e USDC");
+                }
+                
+                // Obter decimais dos tokens
+                const usdtDecimals = await usdtContract.methods.decimals().call();
+                const usdcDecimals = await usdcContract.methods.decimals().call();
+                
+                // Converter valores para unidades mínimas
+                const usdtAmountWei = web3.utils.toWei(usdtAmount, 'ether').slice(0, - (18 - usdtDecimals));
+                const usdcAmountWei = web3.utils.toWei(usdcAmount, 'ether').slice(0, - (18 - usdcDecimals));
+                
+                // Aprovar o contrato proxy para gastar os tokens
+                statusDiv.textContent = "Aprovando USDT...";
+                await usdtContract.methods.approve(contractAddress, usdtAmountWei).send({ from: accounts[0] });
+                
+                statusDiv.textContent = "Aprovando USDC...";
+                await usdcContract.methods.approve(contractAddress, usdcAmountWei).send({ from: accounts[0] });
+                
+                // Definir deadline (10 minutos a partir de agora)
+                const deadline = Math.floor(Date.now() / 1000) + 600;
+                
+                // Chamar a função addLiquidity do contrato proxy
+                statusDiv.textContent = "Adicionando liquidez...";
+                await liquidityProxyContract.methods.addLiquidity(
+                    usdtAddress,
+                    usdcAddress,
+                    usdtAmountWei,
+                    usdcAmountWei,
+                    0, // amountAMin
+                    0, // amountBMin
+                    accounts[0], // to
+                    deadline
+                ).send({ from: accounts[0] });
+                
+                statusDiv.textContent = "Liquidez adicionada com sucesso!";
+                statusDiv.className = "transaction-status success";
+                
+                // Atualizar saldos
+                await updateBalances();
+            } catch (error) {
+                console.error("Erro ao adicionar liquidez:", error);
+                statusDiv.textContent = `Erro: ${error.message}`;
+                statusDiv.className = "transaction-status error";
+            }
+        }
+        
+        // Remover liquidez (simplificado - na prática você precisaria do contrato do par)
+        async function removeLiquidity() {
+            if (!accounts.length) {
+                alert("Por favor, conecte sua carteira primeiro");
+                return;
+            }
+            
+            const statusDiv = document.getElementById('removeLiquidityStatus');
+            statusDiv.textContent = "Esta função é um exemplo. Na prática, você precisaria interagir com o contrato do par de liquidez.";
+            statusDiv.className = "transaction-status loading";
+            
+            // Implementação real exigiria:
+            // 1. Obter o endereço do contrato do par USDT-USDC
+            // 2. Criar uma instância do contrato do par com sua ABI
+            // 3. Aprovar o contrato do router para gastar seus tokens de liquidez
+            // 4. Chamar a função removeLiquidity do router
+        }
+    </script>
 </body>
 </html>
