@@ -3,568 +3,639 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fee Collector USDT-USDC</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <title>Arbitrage Bot - Polygon DEXs</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f8fa;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
-        .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #e1e8ed;
-            border-radius: 8px;
-        }
-        .section-title {
-            font-size: 18px;
-            color: #3498db;
-            margin-bottom: 15px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        .info-box {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .info-label {
-            color: #7f8c8d;
-        }
-        .info-value {
-            font-weight: bold;
-        }
-        .message {
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
-            text-align: center;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-        .tab.active {
-            border-bottom: 3px solid #3498db;
-            font-weight: bold;
-        }
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .wallet-section, .search-section { margin-bottom: 20px; }
+        button { padding: 10px 15px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px; }
+        button:disabled { background: #cccccc; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .arbitrage-opportunity { background-color: #e6f7ff; }
+        input, select { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        .panel { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
+    <h1>Arbitrage Bot - Polygon DEXs</h1>
+    
+    <div class="panel wallet-section">
+        <h2>Carteira</h2>
+        <button id="connectWallet">Conectar Carteira</button>
+        <div id="walletAddress" style="margin-top: 10px;"></div>
+        <div id="networkInfo" style="margin-top: 5px; color: #666;"></div>
+    </div>
+    
+    <div class="panel search-section">
+        <h2>Buscar Oportunidades</h2>
+        <button id="searchTokens">Buscar em todas as DEXs</button>
+        <div style="margin-top: 10px;">
+            <label for="tokenFilter">Filtrar por token:</label>
+            <input type="text" id="tokenFilter" placeholder="Endereço do token (0x...)">
+        </div>
+    </div>
+    
     <div class="container">
-        <h1>Fee Collector USDT-USDC</h1>
-        
-        <div class="tabs">
-            <div class="tab active" id="connectTab">Conectar</div>
-            <div class="tab" id="addTab">Adicionar Liquidez</div>
-            <div class="tab" id="removeTab">Remover Liquidez</div>
-            <div class="tab" id="statsTab">Estatísticas</div>
+        <div class="panel">
+            <h2>Resultados da Busca</h2>
+            <table id="pricesTable">
+                <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Uniswap</th>
+                        <th>SushiSwap</th>
+                        <th>QuickSwap</th>
+                        <th>Diferença</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="pricesTableBody">
+                    <!-- Resultados serão inseridos aqui -->
+                </tbody>
+            </table>
         </div>
         
-        <!-- Seção de Conexão -->
-        <div id="connectSection" class="section">
-            <div class="section-title">Conexão com Carteira</div>
-            <div id="walletInfo" class="info-box">Status: Não conectado</div>
-            <button id="connectWallet">Conectar Carteira</button>
-            <div id="connectMessage" class="message"></div>
-        </div>
-        
-        <!-- Seção de Adicionar Liquidez -->
-        <div id="addSection" class="section" style="display: none;">
-            <div class="section-title">Adicionar Liquidez</div>
-            <div class="input-group">
-                <label for="usdtAmount">Quantidade de USDT:</label>
-                <input type="text" id="usdtAmount" placeholder="0.0" inputmode="decimal">
-            </div>
-            <div class="input-group">
-                <label for="usdcAmount">Quantidade de USDC:</label>
-                <input type="text" id="usdcAmount" placeholder="0.0" inputmode="decimal">
-            </div>
-            <button id="addLiquidity">Adicionar Liquidez</button>
-            <div id="addMessage" class="message"></div>
-        </div>
-        
-        <!-- Seção de Remover Liquidez -->
-        <div id="removeSection" class="section" style="display: none;">
-            <div class="section-title">Remover Liquidez</div>
-            <div class="info-box">
-                <div class="info-row">
-                    <span class="info-label">Seus Tokens LP:</span>
-                    <span class="info-value" id="lpBalance">0.0</span>
+        <div class="panel">
+            <h2>Executar Arbitragem</h2>
+            <div id="arbitragePanel" style="display: none;">
+                <div>
+                    <label for="buyDex">Comprar em:</label>
+                    <select id="buyDex">
+                        <option value="uniswap">Uniswap</option>
+                        <option value="sushiswap">SushiSwap</option>
+                        <option value="quickswap">QuickSwap</option>
+                    </select>
                 </div>
-            </div>
-            <div class="input-group">
-                <label for="removePercentage">Porcentagem para remover:</label>
-                <input type="number" id="removePercentage" min="1" max="100" value="100">
-            </div>
-            <button id="removeLiquidity">Remover Liquidez</button>
-            <div id="removeMessage" class="message"></div>
-        </div>
-        
-        <!-- Seção de Estatísticas -->
-        <div id="statsSection" class="section" style="display: none;">
-            <div class="section-title">Estatísticas de Taxas</div>
-            <div class="info-box">
-                <div class="info-row">
-                    <span class="info-label">Taxas acumuladas (BNB):</span>
-                    <span class="info-value" id="totalFees">0.0</span>
+                <div>
+                    <label for="sellDex">Vender em:</label>
+                    <select id="sellDex">
+                        <option value="uniswap">Uniswap</option>
+                        <option value="sushiswap">SushiSwap</option>
+                        <option value="quickswap">QuickSwap</option>
+                    </select>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Taxas hoje (BNB):</span>
-                    <span class="info-value" id="todayFees">0.0</span>
+                <div>
+                    <label for="tokenAddress">Token (endereço):</label>
+                    <input type="text" id="tokenAddress" placeholder="0x...">
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Total de transações:</span>
-                    <span class="info-value" id="totalTransactions">0</span>
+                <div>
+                    <label for="tokenAmount">Quantidade (MATIC):</label>
+                    <input type="number" id="tokenAmount" min="0.01" step="0.01" value="1.0">
                 </div>
+                <div>
+                    <label>Lucro estimado:</label>
+                    <span id="expectedProfit">--</span> MATIC
+                </div>
+                <button id="executeArbitrage" disabled>Executar Arbitragem</button>
+                <div id="transactionStatus" style="margin-top: 10px;"></div>
             </div>
-            <button id="withdrawFees">Retirar Taxas</button>
-            <div id="statsMessage" class="message"></div>
         </div>
     </div>
 
     <script>
-        // Configurações
-        const CONTRACT_ADDRESS = "0x0A072E842103dB0F58CE3a77eF6f6c8FD4CF76FE"; // Substitua pelo endereço do seu contrato
+        // ABI do contrato (copiada diretamente do REMIX após compilação)
         const CONTRACT_ABI = [
-    {
-        "inputs": [
-            {"internalType": "address", "name": "_feeReceiver", "type": "address"}
-        ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
-        "inputs": [
-            {"internalType": "uint256", "name": "amountADesired", "type": "uint256"},
-            {"internalType": "uint256", "name": "amountBDesired", "type": "uint256"},
-            {"internalType": "uint256", "name": "amountAMin", "type": "uint256"},
-            {"internalType": "uint256", "name": "amountBMin", "type": "uint256"},
-            {"internalType": "address", "name": "to", "type": "address"},
-            {"internalType": "uint256", "name": "deadline", "type": "uint256"}
-        ],
-        "name": "addLiquidity",
-        "outputs": [
-            {"internalType": "uint256", "name": "amountA", "type": "uint256"},
-            {"internalType": "uint256", "name": "amountB", "type": "uint256"},
-            {"internalType": "uint256", "name": "liquidity", "type": "uint256"}
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "feeReceiver",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "FEE_PERCENT",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "pair",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "ROUTER",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "USDC",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "USDT",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "WBNB",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "withdrawFees",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "stateMutability": "payable",
-        "type": "receive"
-    }
-];
-        
-        // Endereços dos tokens
-        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-        const USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-        const BNB_ADDRESS = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
-        const PANCAKE_ROUTER = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-        
-        // Variáveis globais
-        let web3;
-        let accounts = [];
-        let feeCollectorContract;
-        let usdtContract;
-        let usdcContract;
-        let bnbContract;
-        let lpContract;
-        
-        // Iniciar aplicação
-        window.addEventListener('load', async () => {
-            // Configurar abas
-            document.getElementById('connectTab').addEventListener('click', () => showTab('connect'));
-            document.getElementById('addTab').addEventListener('click', () => showTab('add'));
-            document.getElementById('removeTab').addEventListener('click', () => showTab('remove'));
-            document.getElementById('statsTab').addEventListener('click', () => showTab('stats'));
-            
-            // Configurar botões
-            document.getElementById('connectWallet').addEventListener('click', connectWallet);
-            document.getElementById('addLiquidity').addEventListener('click', addLiquidity);
-            document.getElementById('removeLiquidity').addEventListener('click', removeLiquidity);
-            document.getElementById('withdrawFees').addEventListener('click', withdrawFees);
-            
-            // Configurar inputs numéricos
-            setupNumberInput('usdtAmount');
-            setupNumberInput('usdcAmount');
-            
-            // Verificar MetaMask
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                try {
-                    // Tentar conectar automaticamente
-                    accounts = await web3.eth.getAccounts();
-                    if (accounts.length > 0) {
-                        updateWalletInfo();
-                        setupContracts();
-                        loadPoolData();
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "executor",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "buyRouter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "sellRouter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "profit",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
                     }
+                ],
+                "name": "ArbitrageExecuted",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [],
+                "name": "ConfigUpdated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "FundsRecovered",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "router",
+                        "type": "address"
+                    }
+                ],
+                "name": "RouterUpdated",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "buyDex",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sellDex",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "expectedProfit",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "executeArbitrage",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "config",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "minProfit",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maxSlippage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "feeReceiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "recoverFunds",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "name": "routers",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "toggleArbitrage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "minProfit",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maxSlippage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "feeReceiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "updateConfig",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "router",
+                        "type": "address"
+                    }
+                ],
+                "name": "updateRouter",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "stateMutability": "payable",
+                "type": "receive"
+            }
+        ];
+        
+        // Endereços dos routers na Polygon
+        const ROUTERS = {
+            uniswap: "0xE592427A0AEce92De3Edee1F18E0157C05861564", // Uniswap V3
+            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", // SushiSwap
+            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" // QuickSwap
+        };
+        
+        const WMATIC = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
+        let web3;
+        let contract;
+        let account;
+        let contractAddress;
+        
+        // Conectar carteira
+        document.getElementById('connectWallet').addEventListener('click', async () => {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Obter conta
+                    const accounts = await web3.eth.getAccounts();
+                    account = accounts[0];
+                    document.getElementById('walletAddress').textContent = `Conectado: ${account.substring(0, 6)}...${account.substring(38)}`;
+                    
+                    // Obter network
+                    const chainId = await web3.eth.getChainId();
+                    if (chainId !== 137) {
+                        document.getElementById('networkInfo').textContent = "ERRO: Conecte-se à Polygon (ChainID: 137)";
+                        document.getElementById('networkInfo').style.color = "red";
+                        return;
+                    } else {
+                        document.getElementById('networkInfo').textContent = "Conectado à Polygon Mainnet";
+                        document.getElementById('networkInfo').style.color = "green";
+                    }
+                    
+                    // Solicitar endereço do contrato
+                    contractAddress = prompt("Cole o endereço do contrato deployado:");
+                    if (!contractAddress || !web3.utils.isAddress(contractAddress)) {
+                        alert("Endereço do contrato inválido!");
+                        return;
+                    }
+                    
+                    // Inicializar contrato
+                    contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
+                    
+                    // Habilitar painel de arbitragem
+                    document.getElementById('arbitragePanel').style.display = 'block';
+                    
                 } catch (error) {
-                    showMessage("Erro ao verificar conexão: " + error.message, "error", "connect");
+                    console.error("Erro ao conectar carteira:", error);
+                    alert("Erro ao conectar: " + error.message);
                 }
             } else {
-                showMessage("Instale o MetaMask para usar esta página", "error", "connect");
+                alert('Por favor, instale MetaMask!');
             }
         });
         
-        // Mostrar aba selecionada
-        function showTab(tab) {
-            // Esconder todas as seções
-            document.getElementById('connectSection').style.display = 'none';
-            document.getElementById('addSection').style.display = 'none';
-            document.getElementById('removeSection').style.display = 'none';
-            document.getElementById('statsSection').style.display = 'none';
-            
-            // Remover classe active de todas as abas
-            document.getElementById('connectTab').classList.remove('active');
-            document.getElementById('addTab').classList.remove('active');
-            document.getElementById('removeTab').classList.remove('active');
-            document.getElementById('statsTab').classList.remove('active');
-            
-            // Mostrar seção e marcar aba como ativa
-            if (tab === 'connect') {
-                document.getElementById('connectSection').style.display = 'block';
-                document.getElementById('connectTab').classList.add('active');
-            } else if (tab === 'add') {
-                document.getElementById('addSection').style.display = 'block';
-                document.getElementById('addTab').classList.add('active');
-            } else if (tab === 'remove') {
-                document.getElementById('removeSection').style.display = 'block';
-                document.getElementById('removeTab').classList.add('active');
-                if (accounts.length > 0) loadPoolData();
-            } else if (tab === 'stats') {
-                document.getElementById('statsSection').style.display = 'block';
-                document.getElementById('statsTab').classList.add('active');
-                if (accounts.length > 0) loadStats();
-            }
-        }
-        
-        // Configurar input para números decimais
-        function setupNumberInput(id) {
-            const input = document.getElementById(id);
-            input.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9.]/g, '')
-                                      .replace(/(\..*)\./g, '$1');
+        // Configurar evento de mudança de rede
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', () => window.location.reload());
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    window.location.reload();
+                } else {
+                    account = accounts[0];
+                    document.getElementById('walletAddress').textContent = `Conectado: ${account.substring(0, 6)}...${account.substring(38)}`;
+                }
             });
         }
         
-        // Conectar carteira
-        async function connectWallet() {
-            try {
-                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                updateWalletInfo();
-                setupContracts();
-                loadPoolData();
-                showMessage("Carteira conectada com sucesso!", "success", "connect");
-                showTab('add'); // Mudar para a aba de adicionar liquidez
-            } catch (error) {
-                showMessage("Erro ao conectar carteira: " + error.message, "error", "connect");
+        // Buscar tokens (simulação)
+        document.getElementById('searchTokens').addEventListener('click', async () => {
+            if (!web3) {
+                alert('Conecte sua carteira primeiro!');
+                return;
             }
-        }
-        
-        // Atualizar informações da carteira
-        function updateWalletInfo() {
-            const walletInfo = document.getElementById('walletInfo');
-            if (accounts.length > 0) {
-                const shortAddress = `${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}`;
-                walletInfo.innerHTML = `Status: Conectado<br>Endereço: ${shortAddress}`;
-            } else {
-                walletInfo.textContent = "Status: Não conectado";
-            }
-        }
-        
-        // Configurar contratos
-        function setupContracts() {
-            // ABI simplificada para tokens ERC20
-            const erc20ABI = [
-                {
-                    "constant": true,
-                    "inputs": [{"name": "_owner", "type": "address"}],
-                    "name": "balanceOf",
-                    "outputs": [{"name": "balance", "type": "uint256"}],
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {"name": "_spender", "type": "address"},
-                        {"name": "_value", "type": "uint256"}
-                    ],
-                    "name": "approve",
-                    "outputs": [{"name": "success", "type": "bool"}],
-                    "type": "function"
-                },
-                {
-                    "constant": false,
-                    "inputs": [
-                        {"name": "_to", "type": "address"},
-                        {"name": "_value", "type": "uint256"}
-                    ],
-                    "name": "transfer",
-                    "outputs": [{"name": "success", "type": "bool"}],
-                    "type": "function"
-                }
-            ];
             
-            // Instanciar contratos
-            feeCollectorContract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-            usdtContract = new web3.eth.Contract(erc20ABI, USDT_ADDRESS);
-            usdcContract = new web3.eth.Contract(erc20ABI, USDC_ADDRESS);
-            bnbContract = new web3.eth.Contract(erc20ABI, BNB_ADDRESS);
+            // Mostrar loading
+            const searchBtn = document.getElementById('searchTokens');
+            searchBtn.disabled = true;
+            searchBtn.textContent = "Buscando...";
             
-            // Obter endereço do contrato LP
-            feeCollectorContract.methods.pairAddress().call()
-                .then(address => {
-                    lpContract = new web3.eth.Contract(erc20ABI, address);
+            // Simulação de busca (em produção, você chamaria um backend)
+            setTimeout(() => {
+                const mockData = [
+                    { 
+                        token: 'WETH', 
+                        address: WMATIC,
+                        prices: {
+                            uniswap: (1.02 + Math.random() * 0.02).toFixed(4),
+                            sushiswap: (1.01 + Math.random() * 0.02).toFixed(4),
+                            quickswap: (1.03 + Math.random() * 0.02).toFixed(4)
+                        }
+                    },
+                    { 
+                        token: 'USDC', 
+                        address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                        prices: {
+                            uniswap: (1.001 + Math.random() * 0.001).toFixed(4),
+                            sushiswap: (0.999 + Math.random() * 0.001).toFixed(4),
+                            quickswap: (1.002 + Math.random() * 0.001).toFixed(4)
+                        }
+                    }
+                ];
+                
+                updatePriceTable(mockData);
+                
+                searchBtn.disabled = false;
+                searchBtn.textContent = "Buscar em todas as DEXs";
+            }, 1500);
+        });
+        
+        function updatePriceTable(tokenData) {
+            const tableBody = document.getElementById('pricesTableBody');
+            tableBody.innerHTML = '';
+            
+            tokenData.forEach(token => {
+                const prices = token.prices;
+                const minPrice = Math.min(...Object.values(prices));
+                const maxPrice = Math.max(...Object.values(prices));
+                const difference = ((maxPrice - minPrice) / minPrice * 100).toFixed(2);
+                
+                const row = document.createElement('tr');
+                if (difference > 1) row.classList.add('arbitrage-opportunity');
+                
+                row.innerHTML = `
+                    <td>${token.token} (${token.address.substring(0, 6)}...)</td>
+                    <td>${prices.uniswap}</td>
+                    <td>${prices.sushiswap}</td>
+                    <td>${prices.quickswap}</td>
+                    <td>${difference}%</td>
+                    <td><button class="setupArbitrage" data-token="${token.token}" data-address="${token.address}">Configurar</button></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Adicionar listeners aos botões de configuração
+            document.querySelectorAll('.setupArbitrage').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const token = e.target.getAttribute('data-token');
+                    const address = e.target.getAttribute('data-address');
+                    setupArbitrage(token, address);
                 });
+            });
         }
         
-        // Carregar dados da pool
-        async function loadPoolData() {
-            try {
-                const lpBalance = await lpContract.methods.balanceOf(accounts[0]).call();
-                document.getElementById('lpBalance').textContent = (lpBalance / 1e18).toFixed(6);
-            } catch (error) {
-                console.error("Erro ao carregar dados da pool:", error);
-                showMessage("Erro ao carregar dados da pool", "error", "remove");
-            }
-        }
-        
-        // Carregar estatísticas
-        async function loadStats() {
-            try {
-                // Implementar lógica para buscar estatísticas
-                // Exemplo: const totalFees = await feeCollectorContract.methods.totalFees().call();
-                // document.getElementById('totalFees').textContent = (totalFees / 1e18).toFixed(6);
-                
-                showMessage("Estatísticas carregadas", "success", "stats");
-            } catch (error) {
-                console.error("Erro ao carregar estatísticas:", error);
-                showMessage("Erro ao carregar estatísticas", "error", "stats");
-            }
-        }
-        
-        // Adicionar liquidez
-        async function addLiquidity() {
-            const usdtAmount = document.getElementById('usdtAmount').value;
-            const usdcAmount = document.getElementById('usdcAmount').value;
+        function setupArbitrage(token, tokenAddress) {
+            document.getElementById('tokenAddress').value = tokenAddress;
             
-            if (!usdtAmount || !usdcAmount || parseFloat(usdtAmount) <= 0 || parseFloat(usdcAmount) <= 0) {
-                showMessage("Insira valores válidos para ambos os tokens", "error", "add");
+            // Atualizar estimativa de lucro quando a quantidade mudar
+            document.getElementById('tokenAmount').addEventListener('input', updateProfitEstimate);
+            
+            // Habilitar botão de execução
+            document.getElementById('executeArbitrage').disabled = false;
+            
+            // Atualizar estimativa inicial
+            updateProfitEstimate();
+        }
+        
+        async function updateProfitEstimate() {
+            const buyDex = document.getElementById('buyDex').value;
+            const sellDex = document.getElementById('sellDex').value;
+            const tokenAddress = document.getElementById('tokenAddress').value;
+            const amount = document.getElementById('tokenAmount').value;
+            
+            if (!tokenAddress || !amount || amount <= 0) return;
+            
+            try {
+                // Simulação de cálculo de lucro (em produção, você chamaria o contrato)
+                const buyPrice = parseFloat(await simulateGetPrice(buyDex, WMATIC, tokenAddress, amount));
+                const sellPrice = parseFloat(await simulateGetPrice(sellDex, tokenAddress, WMATIC, buyPrice));
+                
+                const profit = sellPrice - amount;
+                const fee = profit * 0.005; // 0.5%
+                const netProfit = profit - fee;
+                
+                document.getElementById('expectedProfit').textContent = netProfit.toFixed(6);
+                
+            } catch (error) {
+                console.error("Erro ao estimar lucro:", error);
+                document.getElementById('expectedProfit').textContent = "Erro";
+            }
+        }
+        
+        // Simular obtenção de preço
+        async function simulateGetPrice(dex, tokenIn, tokenOut, amountIn) {
+            // Em produção, substituir por chamada real ao contrato
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const basePrices = {
+                        "WETH": 1.0,
+                        "USDC": 1.0
+                    };
+                    
+                    const tokenInSym = tokenIn === WMATIC ? "WETH" : "USDC";
+                    const tokenOutSym = tokenOut === WMATIC ? "WETH" : "USDC";
+                    
+                    const price = (basePrices[tokenOutSym] / basePrices[tokenInSym]) * (0.98 + Math.random() * 0.04);
+                    resolve((amountIn * price).toFixed(6));
+                }, 500);
+            });
+        }
+        
+        // Executar arbitragem
+        document.getElementById('executeArbitrage').addEventListener('click', async () => {
+            const buyDex = document.getElementById('buyDex').value;
+            const sellDex = document.getElementById('sellDex').value;
+            const tokenAddress = document.getElementById('tokenAddress').value;
+            const amount = document.getElementById('tokenAmount').value;
+            const expectedProfit = document.getElementById('expectedProfit').textContent;
+            
+            if (!buyDex || !sellDex || !tokenAddress || !amount || amount <= 0) {
+                alert('Preencha todos os campos!');
                 return;
             }
             
-            try {
-                showMessage("Processando...", "success", "add");
-                
-                // Converter para unidades mínimas
-                const usdtWei = web3.utils.toWei(usdtAmount, 'ether');
-                const usdcWei = web3.utils.toWei(usdcAmount, 'ether');
-                
-                // Aprovar tokens
-                await usdtContract.methods.approve(CONTRACT_ADDRESS, usdtWei).send({ from: accounts[0] });
-                await usdcContract.methods.approve(CONTRACT_ADDRESS, usdcWei).send({ from: accounts[0] });
-                
-                // Adicionar liquidez (deadline 20 minutos)
-                const deadline = Math.floor(Date.now() / 1000) + 1200;
-                await feeCollectorContract.methods.addLiquidity(
-                    usdtWei,
-                    usdcWei,
-                    0, // amountAMin
-                    0, // amountBMin
-                    accounts[0], // to
-                    deadline
-                ).send({ from: accounts[0] });
-                
-                showMessage("Liquidez adicionada com sucesso!", "success", "add");
-                document.getElementById('usdtAmount').value = "";
-                document.getElementById('usdcAmount').value = "";
-                loadPoolData();
-            } catch (error) {
-                console.error("Erro ao adicionar liquidez:", error);
-                showMessage("Erro: " + (error.message || "Transação falhou"), "error", "add");
-            }
-        }
-        
-        // Remover liquidez
-        async function removeLiquidity() {
-            const percentage = document.getElementById('removePercentage').value;
-            
-            if (!percentage || percentage < 1 || percentage > 100) {
-                showMessage("Insira uma porcentagem válida (1-100)", "error", "remove");
+            if (buyDex === sellDex) {
+                alert('Selecione DEXs diferentes!');
                 return;
             }
             
-            try {
-                showMessage("Processando...", "success", "remove");
-                
-                const lpBalance = await lpContract.methods.balanceOf(accounts[0]).call();
-                const amountToRemove = BigInt(lpBalance) * BigInt(percentage) / 100n;
-                
-                // Aprovar contrato para gastar tokens LP
-                await lpContract.methods.approve(CONTRACT_ADDRESS, amountToRemove.toString()).send({ from: accounts[0] });
-                
-                // Remover liquidez (deadline 20 minutos)
-                const deadline = Math.floor(Date.now() / 1000) + 1200;
-                await feeCollectorContract.methods.removeLiquidity(
-                    amountToRemove.toString(),
-                    0, // amountAMin
-                    0, // amountBMin
-                    accounts[0], // to
-                    deadline
-                ).send({ from: accounts[0] });
-                
-                showMessage(`Liquidez removida (${percentage}%) com sucesso!`, "success", "remove");
-                loadPoolData();
-            } catch (error) {
-                console.error("Erro ao remover liquidez:", error);
-                showMessage("Erro: " + (error.message || "Falha ao remover liquidez"), "error", "remove");
+            if (!web3.utils.isAddress(tokenAddress)) {
+                alert('Endereço do token inválido!');
+                return;
             }
-        }
-        
-        // Retirar taxas acumuladas
-        async function withdrawFees() {
+            
+            const executeBtn = document.getElementById('executeArbitrage');
+            const statusDiv = document.getElementById('transactionStatus');
+            
+            executeBtn.disabled = true;
+            statusDiv.textContent = "Enviando transação...";
+            statusDiv.style.color = "blue";
+            
             try {
-                showMessage("Processando retirada de taxas...", "success", "stats");
+                const amountWei = web3.utils.toWei(amount, 'ether');
+                const expectedProfitWei = web3.utils.toWei(expectedProfit, 'ether');
                 
-                // Chamar função de retirada no contrato
-                await feeCollectorContract.methods.withdrawFees().send({ from: accounts[0] });
+                const tx = await contract.methods.executeArbitrage(
+                    buyDex,
+                    sellDex,
+                    tokenAddress,
+                    amountWei,
+                    expectedProfitWei
+                ).send({
+                    from: account,
+                    value: amountWei
+                });
                 
-                showMessage("Taxas retiradas com sucesso!", "success", "stats");
-                loadStats();
+                statusDiv.textContent = `Sucesso! TX: ${tx.transactionHash}`;
+                statusDiv.style.color = "green";
+                
             } catch (error) {
-                console.error("Erro ao retirar taxas:", error);
-                showMessage("Erro: " + (error.message || "Falha ao retirar taxas"), "error", "stats");
+                console.error("Erro na arbitragem:", error);
+                statusDiv.textContent = `Erro: ${error.message}`;
+                statusDiv.style.color = "red";
+            } finally {
+                executeBtn.disabled = false;
             }
-        }
+        });
         
-        // Mostrar mensagem
-        function showMessage(text, type, section) {
-            const messageDiv = document.getElementById(`${section}Message`);
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
+        // Inicializar Web3 (fallback para quando não há MetaMask)
+        if (!window.ethereum) {
+            document.getElementById('connectWallet').textContent = "Instalar MetaMask";
+            document.getElementById('connectWallet').onclick = () => {
+                window.open('https://metamask.io/', '_blank');
+            };
         }
     </script>
 </body>
