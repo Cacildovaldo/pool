@@ -33,9 +33,13 @@
         <div id="networkInfo" class="status"></div>
         
         <h2 style="margin-top: 20px;">⚙️ Configuração do Contrato</h2>
-        <input type="text" id="contractAddress" placeholder="Cole o endereço do contrato" style="margin-bottom: 10px;">
+        <input type="text" id="contractAddress" placeholder="Cole o endereço do contrato (e.g., 0x5939F7300D749D71900b1159c6Bb9B58990041CA)" value="0x5939F7300D749D71900b1159c6Bb9B58990041CA" style="margin-bottom: 10px;">
         <button id="loadContract">Carregar Contrato</button>
         <div id="contractStatus" class="status"></div>
+        <p style="margin-top: 10px; font-size: 0.9em; color: #555;">
+            Lembre-se de configurar os endereços dos roteadores (Uniswap, SushiSwap, QuickSwap) no contrato após a implantação,
+            usando a função `updateRouter` do contrato.
+        </p>
     </div>
     
     <div class="container">
@@ -96,11 +100,21 @@
         // ABI do contrato (será preenchida automaticamente)
         const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"executor","type":"address"},{"indexed":false,"internalType":"string","name":"token","type":"string"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"ArbitrageExecuted","type":"event"},{"inputs":[],"name":"USDC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WMATIC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeMaticArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeUsdcArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"config","outputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"routers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"toggleArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateConfig","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"router","type":"address"}],"name":"updateRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
 
-        // Endereços dos routers
+        // Endereços dos routers para Polygon Mainnet.
+        // **IMPORTANTE**: Certifique-se de que esses endereços estão configurados no seu contrato AdvancedArbitrage
+        // usando a função `updateRouter()` APÓS a implantação do contrato.
+        //
+        // Nota sobre Uniswap: O roteador Uniswap V3 (Universal Router) na Polygon é o mais comum,
+        // mas seu contrato está chamando funções de swap no estilo V2. Se você usar o Uniswap V3,
+        // a transação reverterá, a menos que você adapte o contrato para o Uniswap V3.
+        // Para compatibilidade imediata com seu contrato atual (que usa funções V2-like),
+        // o ideal seria usar roteadores que são forks do V2.
         const ROUTERS = {
-            uniswap: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
-            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
+            uniswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", // Exemplo: Usando QuickSwap (V2) como "uniswap" para compatibilidade
+                                                                 // Alternativamente, se quiser o Uniswap V3 real: "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+                                                                 // Mas isso exigiria modificações no contrato.
+            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", // SushiSwap V2 Router (compatível)
+            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" // QuickSwap V2 Router (compatível)
         };
 
         let web3;
@@ -128,10 +142,27 @@
                     if (chainId !== 137) {
                         document.getElementById('networkInfo').textContent = "❌ Conecte-se à Polygon (ChainID: 137)";
                         document.getElementById('networkInfo').className = "status error";
+                        // Adicionar sugestão para trocar de rede
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: web3.utils.toHex(137) }],
+                            });
+                            // Se a troca for bem-sucedida, a página recarregará via 'chainChanged' listener
+                        } catch (switchError) {
+                            console.error("Erro ao tentar trocar de rede:", switchError);
+                            // O usuário pode ter recusado a troca ou a rede não está configurada
+                        }
                     } else {
                         document.getElementById('networkInfo').textContent = "✅ Conectado à Polygon Mainnet";
                         document.getElementById('networkInfo').className = "status success";
                         document.getElementById('arbitragePanel').style.display = 'block';
+                        
+                        // Tenta carregar o contrato automaticamente se o endereço estiver preenchido
+                        const contractAddressInput = document.getElementById('contractAddress');
+                        if (contractAddressInput.value && web3.utils.isAddress(contractAddressInput.value)) {
+                            await loadContractFunction(contractAddressInput.value);
+                        }
                     }
                     
                     btn.textContent = "✅ Carteira Conectada";
@@ -147,7 +178,29 @@
             }
         });
 
-        // Carregar contrato
+        // Função auxiliar para carregar contrato
+        async function loadContractFunction(address) {
+            const statusDiv = document.getElementById('contractStatus');
+            try {
+                statusDiv.textContent = "Carregando contrato...";
+                statusDiv.className = "status loading";
+                
+                contract = new web3.eth.Contract(CONTRACT_ABI, address);
+                
+                // Testar uma chamada simples
+                const owner = await contract.methods.owner().call();
+                
+                statusDiv.textContent = `✅ Contrato carregado (Owner: ${owner.substring(0, 6)}...)`;
+                statusDiv.className = "status success";
+                document.getElementById('arbitragePanel').style.display = 'block';
+            } catch (error) {
+                console.error("Erro ao carregar contrato:", error);
+                statusDiv.textContent = "Erro ao carregar contrato: " + error.message;
+                statusDiv.className = "status error";
+            }
+        }
+
+        // Carregar contrato (evento de clique)
         document.getElementById('loadContract').addEventListener('click', async () => {
             const contractAddress = document.getElementById('contractAddress').value.trim();
             const statusDiv = document.getElementById('contractStatus');
@@ -163,24 +216,7 @@
                 statusDiv.className = "status error";
                 return;
             }
-            
-            try {
-                statusDiv.textContent = "Carregando contrato...";
-                statusDiv.className = "status loading";
-                
-                contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
-                
-                // Testar uma chamada simples
-                const owner = await contract.methods.owner().call();
-                
-                statusDiv.textContent = `✅ Contrato carregado (Owner: ${owner.substring(0, 6)}...)`;
-                statusDiv.className = "status success";
-                document.getElementById('arbitragePanel').style.display = 'block';
-            } catch (error) {
-                console.error("Erro ao carregar contrato:", error);
-                statusDiv.textContent = "Erro ao carregar contrato: " + error.message;
-                statusDiv.className = "status error";
-            }
+            await loadContractFunction(contractAddress);
         });
 
         // Buscar preços (simulação)
@@ -236,12 +272,16 @@
             const buyDex = document.getElementById('buyDex').value;
             const sellDex = document.getElementById('sellDex').value;
             const amountIn = document.getElementById('amountIn').value;
-            const minProfit = document.getElementById('minProfit').value;
+            const minProfit = document.getElementById('minProfit').value; // Este é o expectedProfit para o contrato
             const statusDiv = document.getElementById('transactionStatus');
             
-            if (!amountIn || amountIn <= 0) {
+            if (!amountIn || parseFloat(amountIn) <= 0) { // Usar parseFloat para comparar
                 showError("Insira uma quantidade válida!");
                 return;
+            }
+            if (!minProfit || parseFloat(minProfit) < 0) {
+                 showError("Insira um lucro mínimo esperado válido (>= 0)!");
+                 return;
             }
             
             try {
@@ -251,7 +291,7 @@
                 statusDiv.className = "status loading";
                 
                 const amountWei = web3.utils.toWei(amountIn, 'ether');
-                const minProfitWei = web3.utils.toWei(minProfit, 'ether');
+                const minProfitWei = web3.utils.toWei(minProfit, 'ether'); // Convertendo para WEI
                 
                 let tx;
                 if (token === "WMATIC") {
@@ -259,17 +299,17 @@
                         buyDex,
                         sellDex,
                         amountWei,
-                        minProfitWei
+                        minProfitWei // Passando o lucro mínimo esperado
                     ).send({
                         from: account,
-                        value: amountWei
+                        value: amountWei // Valor de MATIC a ser enviado para o contrato
                     });
                 } else {
                     tx = await contract.methods.executeUsdcArbitrage(
                         buyDex,
                         sellDex,
                         amountWei,
-                        minProfitWei
+                        minProfitWei // Passando o lucro mínimo esperado
                     ).send({
                         from: account,
                         value: amountWei
@@ -280,7 +320,13 @@
                 statusDiv.className = "status success";
             } catch (error) {
                 console.error("Erro na arbitragem:", error);
-                statusDiv.textContent = "❌ Erro: " + error.message.split("\n")[0];
+                let errorMessage = "Ocorreu um erro desconhecido.";
+                if (error.message) {
+                    errorMessage = error.message.split("\n")[0];
+                } else if (error.data && error.data.message) {
+                    errorMessage = error.data.message;
+                }
+                statusDiv.textContent = "❌ Erro: " + errorMessage;
                 statusDiv.className = "status error";
             } finally {
                 document.getElementById('executeArbitrage').disabled = false;
@@ -308,6 +354,41 @@
                 }
             });
         }
+
+        // Carregar automaticamente o contrato se o endereço estiver preenchido e a carteira já estiver conectada
+        // Isso é executado quando a página carrega e a carteira já está conectada (e.g., depois de um refresh)
+        window.addEventListener('load', async () => {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                // Tentar conectar a carteira automaticamente
+                try {
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await web3.eth.getAccounts();
+                    if (accounts.length > 0) {
+                        account = accounts[0];
+                        document.getElementById('walletAddress').innerHTML = 
+                            `<strong>Conectado:</strong> ${account.substring(0, 6)}...${account.substring(38)}`;
+                        const chainId = await web3.eth.getChainId();
+                        if (chainId === 137) {
+                            document.getElementById('networkInfo').textContent = "✅ Conectado à Polygon Mainnet";
+                            document.getElementById('networkInfo').className = "status success";
+                            document.getElementById('arbitragePanel').style.display = 'block';
+                            
+                            const contractAddressInput = document.getElementById('contractAddress');
+                            if (contractAddressInput.value && web3.utils.isAddress(contractAddressInput.value)) {
+                                await loadContractFunction(contractAddressInput.value);
+                            }
+                        } else {
+                            document.getElementById('networkInfo').textContent = "❌ Conecte-se à Polygon (ChainID: 137)";
+                            document.getElementById('networkInfo').className = "status error";
+                        }
+                        document.getElementById('connectWallet').textContent = "✅ Carteira Conectada";
+                        document.getElementById('connectWallet').disabled = true;
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar automaticamente:", error);
+                }
+            }
+        });
     </script>
 </body>
 </html>
