@@ -37,8 +37,8 @@
         <button id="loadContract">Carregar Contrato</button>
         <div id="contractStatus" class="status"></div>
         <p style="margin-top: 10px; font-size: 0.9em; color: #555;">
-            Lembre-se de configurar os endereços dos roteadores (Uniswap, SushiSwap, QuickSwap) no contrato após a implantação,
-            usando a função `updateRouter` do contrato.
+            Este contrato já vem com os endereços dos roteadores (Uniswap, SushiSwap, QuickSwap) pré-configurados no construtor.
+            Não é necessário chamar `updateRouter` após a implantação.
         </p>
     </div>
     
@@ -101,20 +101,15 @@
         const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"executor","type":"address"},{"indexed":false,"internalType":"string","name":"token","type":"string"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"ArbitrageExecuted","type":"event"},{"inputs":[],"name":"USDC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WMATIC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeMaticArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeUsdcArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"config","outputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"routers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"toggleArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateConfig","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"router","type":"address"}],"name":"updateRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
 
         // Endereços dos routers para Polygon Mainnet.
-        // **IMPORTANTE**: Certifique-se de que esses endereços estão configurados no seu contrato AdvancedArbitrage
-        // usando a função `updateRouter()` APÓS a implantação do contrato.
-        //
-        // Nota sobre Uniswap: O roteador Uniswap V3 (Universal Router) na Polygon é o mais comum,
-        // mas seu contrato está chamando funções de swap no estilo V2. Se você usar o Uniswap V3,
-        // a transação reverterá, a menos que você adapte o contrato para o Uniswap V3.
-        // Para compatibilidade imediata com seu contrato atual (que usa funções V2-like),
-        // o ideal seria usar roteadores que são forks do V2.
+        // Estes endereços DEVEM corresponder aos hardcoded no construtor do seu contrato Solidity.
+        // Nota: O Uniswap V3 Universal Router (0xE592427A0AEce92De3Edee1F18E0157C05861564) NÃO é compatível
+        // com as chamadas de swapExactETHForTokens e swapExactTokensForETH do seu contrato.
+        // Para compatibilidade, estou usando o QuickSwap Router para a chave "uniswap"
+        // já que ele é um fork V2 e suas funções são compatíveis com seu contrato.
         const ROUTERS = {
-            uniswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", // Exemplo: Usando QuickSwap (V2) como "uniswap" para compatibilidade
-                                                                 // Alternativamente, se quiser o Uniswap V3 real: "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-                                                                 // Mas isso exigiria modificações no contrato.
-            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", // SushiSwap V2 Router (compatível)
-            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" // QuickSwap V2 Router (compatível)
+            uniswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", // QuickSwap Router (V2)
+            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", // SushiSwap Router (V2)
+            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" // QuickSwap Router (V2)
         };
 
         let web3;
