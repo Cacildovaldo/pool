@@ -25,7 +25,7 @@
         .token-address { font-family: monospace; font-size: 0.9em; }
         h1 { color: #2c3e50; }
         h2 { color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .owner-panel { border: 2px solid #3498db; }
+        .withdraw-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
@@ -36,7 +36,7 @@
         <button id="connectWallet">🔗 Conectar Carteira</button>
         <div id="walletAddress" style="margin-top: 10px;"></div>
         <div id="networkInfo" class="status" style="margin-top: 10px;"></div>
-        <div id="contractOwnerInfo" class="status" style="margin-top: 10px; display: none;"></div>
+        <div id="contractBalance" style="margin-top: 10px;"></div>
     </div>
     
     <div class="container">
@@ -105,42 +105,284 @@
                 
                 <button id="executeArbitrage" disabled>🚀 Executar Arbitragem</button>
                 <div id="transactionStatus" class="status" style="margin-top: 15px;"></div>
+                
+                <div class="withdraw-section">
+                    <h3>💸 Retirar Fundos</h3>
+                    <div>
+                        <label for="withdrawToken">Token:</label>
+                        <input type="text" id="withdrawToken" placeholder="0x... (deixe vazio para MATIC)" class="token-address">
+                    </div>
+                    <div>
+                        <label for="withdrawAmount">Quantidade:</label>
+                        <input type="text" id="withdrawAmount" placeholder="Deixe vazio para retirar tudo">
+                    </div>
+                    <button id="withdrawFunds">Retirar Fundos</button>
+                    <div id="withdrawStatus" class="status" style="margin-top: 15px;"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- NOVA SEÇÃO PARA RETIRADA DE FUNDOS -->
-    <div class="panel owner-panel" id="withdrawPanel" style="display: none; margin-top: 30px;">
-        <h2>💰 Retirar Fundos do Contrato</h2>
-        <p><strong>Somente o dono do contrato pode retirar fundos.</strong></p>
-        
-        <div>
-            <label for="withdrawToken">Token para retirar:</label>
-            <select id="withdrawToken">
-                <option value="0x0000000000000000000000000000000000000000">MATIC (nativo)</option>
-                <option value="0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270">WMATIC</option>
-                <option value="0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174">USDC</option>
-                <option value="custom">Outro token (insira endereço)</option>
-            </select>
-        </div>
-        
-        <div id="customTokenDiv" style="display: none;">
-            <label for="customTokenAddress">Endereço do token:</label>
-            <input type="text" id="customTokenAddress" placeholder="0x..." class="token-address">
-        </div>
-        
-        <div>
-            <label for="withdrawAmount">Quantidade (deixe em branco para retirar todo o saldo):</label>
-            <input type="number" id="withdrawAmount" min="0" step="0.0001" placeholder="Todo o saldo">
-        </div>
-        
-        <button id="withdrawFunds">💸 Retirar Fundos</button>
-        <div id="withdrawStatus" class="status" style="margin-top: 15px;"></div>
-    </div>
-
     <script>
-        // ABI do contrato (atualizada com função recoverFunds)
-        const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"executor","type":"address"},{"indexed":false,"internalType":"address","name":"buyRouter","type":"address"},{"indexed":false,"internalType":"address","name":"sellRouter","type":"address"},{"indexed":false,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"ArbitrageExecuted","type":"event"},{"anonymous":false,"inputs":[],"name":"ConfigUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsRecovered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"name","type":"string"},{"indexed":false,"internalType":"address","name":"router","type":"address"}],"name":"RouterUpdated","type":"event"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"config","outputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"routers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"toggleArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateConfig","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"router","type":"address"}],"name":"updateRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+        // ABI atualizada do contrato
+        const CONTRACT_ABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "executor",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "buyRouter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "sellRouter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "profit",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "ArbitrageExecuted",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [],
+                "name": "ConfigUpdated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "FundsRecovered",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [],
+                "name": "RouterUpdated",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "buyDex",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "sellDex",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "expectedProfit",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "executeArbitrage",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "config",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "minProfit",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maxSlippage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "feeReceiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "token",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "recoverFunds",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "name": "routers",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "toggleArbitrage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "minProfit",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maxSlippage",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fee",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "feeReceiver",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "updateConfig",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "router",
+                        "type": "address"
+                    }
+                ],
+                "name": "updateRouter",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "stateMutability": "payable",
+                "type": "receive"
+            }
+        ];
         
         // Endereços dos routers na Polygon
         const ROUTERS = {
@@ -153,7 +395,7 @@
         let web3;
         let contract;
         let account;
-        let contractAddress = "0xD34C3B64E13cd8796e5c8ec44c9EC9a51aED7511"; // Substitua pelo seu endereço de contrato
+        let contractAddress = "0xD34C3B64E13cd8796e5c8ec44c9EC9a51aED7511";
         
         // Conectar carteira
         document.getElementById('connectWallet').addEventListener('click', async () => {
@@ -179,24 +421,12 @@
                     // Inicializar contrato
                     contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
                     
-                    // Verificar se o usuário é o dono do contrato
-                    const owner = await contract.methods.owner().call();
-                    const isOwner = owner.toLowerCase() === account.toLowerCase();
-                    
-                    if (isOwner) {
-                        document.getElementById('contractOwnerInfo').style.display = 'block';
-                        document.getElementById('contractOwnerInfo').className = "status success";
-                        document.getElementById('contractOwnerInfo').textContent = "✅ Você é o dono deste contrato";
-                        document.getElementById('withdrawPanel').style.display = 'block';
-                    } else {
-                        document.getElementById('contractOwnerInfo').style.display = 'block';
-                        document.getElementById('contractOwnerInfo').className = "status error";
-                        document.getElementById('contractOwnerInfo').textContent = "❌ Você não é o dono deste contrato";
-                    }
-                    
                     // Habilitar painel de arbitragem
                     document.getElementById('arbitragePanel').style.display = 'block';
                     connectBtn.textContent = "✅ Carteira Conectada";
+                    
+                    // Atualizar saldo do contrato
+                    updateContractBalance();
                     
                 } catch (error) {
                     console.error("Erro ao conectar carteira:", error);
@@ -272,6 +502,18 @@
                     blockExplorerUrls: ['https://polygonscan.com/']
                 }]
             });
+        }
+        
+        // Atualizar saldo do contrato
+        async function updateContractBalance() {
+            try {
+                const balance = await web3.eth.getBalance(contractAddress);
+                const balanceFormatted = web3.utils.fromWei(balance, 'ether');
+                document.getElementById('contractBalance').innerHTML = 
+                    `<strong>Saldo no Contrato:</strong> ${parseFloat(balanceFormatted).toFixed(4)} MATIC`;
+            } catch (error) {
+                console.error("Erro ao obter saldo do contrato:", error);
+            }
         }
         
         // Configurar evento de mudança de rede
@@ -488,6 +730,9 @@
                 statusDiv.innerHTML = `✅ <strong>Sucesso!</strong> TX: <a href="https://polygonscan.com/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash.substring(0, 10)}...</a>`;
                 statusDiv.className = "status success";
                 
+                // Atualizar saldo após a transação
+                updateContractBalance();
+                
             } catch (error) {
                 console.error("Erro na arbitragem:", error);
                 statusDiv.textContent = `❌ Erro: ${error.message.split("\n")[0]}`;
@@ -497,77 +742,59 @@
             }
         });
         
-        // NOVA FUNÇÃO: Retirar fundos do contrato
+        // Retirar fundos do contrato
         document.getElementById('withdrawFunds').addEventListener('click', async () => {
-            if (!web3 || !contract) {
+            if (!web3) {
                 showError("Conecte sua carteira primeiro!");
                 return;
             }
             
+            const tokenAddress = document.getElementById('withdrawToken').value;
+            const amount = document.getElementById('withdrawAmount').value;
+            const withdrawBtn = document.getElementById('withdrawFunds');
+            const statusDiv = document.getElementById('withdrawStatus');
+            
+            withdrawBtn.disabled = true;
+            statusDiv.textContent = "⏳ Enviando transação...";
+            statusDiv.className = "status loading";
+            
             try {
-                // Verificar novamente se é o dono
-                const owner = await contract.methods.owner().call();
-                if (owner.toLowerCase() !== account.toLowerCase()) {
-                    showError("Somente o dono pode retirar fundos!");
-                    return;
-                }
+                let tx;
                 
-                // Obter token selecionado
-                let tokenAddress = document.getElementById('withdrawToken').value;
-                
-                if (tokenAddress === "custom") {
-                    tokenAddress = document.getElementById('customTokenAddress').value;
+                if (tokenAddress === "") {
+                    // Retirar MATIC nativo
+                    const amountWei = amount ? web3.utils.toWei(amount, 'ether') : await web3.eth.getBalance(contractAddress);
+                    
+                    tx = await contract.methods.recoverFunds(
+                        "0x0000000000000000000000000000000000000000", // Endereço zero para MATIC
+                        amountWei
+                    ).send({ from: account });
+                } else {
+                    // Retirar token ERC20
                     if (!web3.utils.isAddress(tokenAddress)) {
-                        showError("Endereço de token inválido!");
-                        return;
+                        throw new Error("Endereço do token inválido");
                     }
+                    
+                    const amountWei = amount ? web3.utils.toWei(amount, 'ether') : "0"; // 0 significa retirar tudo
+                    
+                    tx = await contract.methods.recoverFunds(
+                        tokenAddress,
+                        amountWei
+                    ).send({ from: account });
                 }
                 
-                // Obter quantidade
-                let amount = document.getElementById('withdrawAmount').value;
-                let amountWei = "0";
-                
-                // Converter para wei se for MATIC e quantidade especificada
-                if (tokenAddress === "0x0000000000000000000000000000000000000000" && amount && amount > 0) {
-                    amountWei = web3.utils.toWei(amount, 'ether');
-                } else if (amount && amount > 0) {
-                    // Para tokens ERC20, manter a quantidade como está
-                    amountWei = amount;
-                }
-                
-                const withdrawBtn = document.getElementById('withdrawFunds');
-                const statusDiv = document.getElementById('withdrawStatus');
-                
-                withdrawBtn.disabled = true;
-                statusDiv.textContent = "⏳ Enviando transação de retirada...";
-                statusDiv.className = "status loading";
-                
-                // Chamar função recoverFunds do contrato
-                const tx = await contract.methods.recoverFunds(
-                    tokenAddress,
-                    amountWei
-                ).send({
-                    from: account
-                });
-                
-                statusDiv.innerHTML = `✅ <strong>Fundos retirados!</strong> TX: <a href="https://polygonscan.com/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash.substring(0, 10)}...</a>`;
+                statusDiv.innerHTML = `✅ <strong>Sucesso!</strong> TX: <a href="https://polygonscan.com/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash.substring(0, 10)}...</a>`;
                 statusDiv.className = "status success";
                 
+                // Atualizar saldo após a retirada
+                updateContractBalance();
+                
             } catch (error) {
-                console.error("Erro na retirada:", error);
-                document.getElementById('withdrawStatus').textContent = `❌ Erro: ${error.message.split("\n")[0]}`;
-                document.getElementById('withdrawStatus').className = "status error";
+                console.error("Erro ao retirar fundos:", error);
+                statusDiv.textContent = `❌ Erro: ${error.message.split("\n")[0]}`;
+                statusDiv.className = "status error";
             } finally {
-                document.getElementById('withdrawFunds').disabled = false;
-            }
-        });
-        
-        // Alternar campo de token personalizado
-        document.getElementById('withdrawToken').addEventListener('change', function() {
-            if (this.value === "custom") {
-                document.getElementById('customTokenDiv').style.display = 'block';
-            } else {
-                document.getElementById('customTokenDiv').style.display = 'none';
+                withdrawBtn.disabled = false;
             }
         });
         
