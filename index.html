@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POL Price Proxy - Swap Fixo para 312k USDC</title>
+    <title>POL Price Proxy - Swap Automático</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@metamask/onboarding@1.0.1/dist/metamask-onboarding.bundle.js"></script>
     <style>
@@ -87,18 +87,42 @@
             font-weight: bold;
             color: #8247e5;
         }
+        .balance-info {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .auto-swap-section {
+            background-color: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            padding: 10px;
+            margin-top: 15px;
+        }
+        .progress-bar {
+            height: 5px;
+            background-color: #e0e0e0;
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #8247e5;
+            width: 0%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>POL Price Proxy</h1>
-        <p>Swap de POL para USDC com preço fixo de 312.000 USDC quando o preço de mercado for menor</p>
+        <p>Swap automático de POL para USDC com preço fixo de 312.000 USDC</p>
         
         <div class="section">
             <h2>Conexão com Carteira</h2>
             <button id="connectButton">Conectar MetaMask</button>
             <div id="accountInfo"></div>
             <div id="networkInfo"></div>
+            <div id="balanceInfo" class="balance-info"></div>
         </div>
         
         <div class="section">
@@ -115,16 +139,30 @@
                 <span>Status do preço fixo:</span>
                 <span id="priceStatus" class="price-value">-</span>
             </div>
-            <button id="checkPriceButton">Verificar Preço Atual</button>
-            <button id="toggleOverrideButton" disabled>Ativar/Desativar Preço Fixo</button>
+            <button id="checkPriceButton">Atualizar Preços</button>
             <div id="priceStatusMessage" class="status"></div>
+            
+            <div class="auto-swap-section">
+                <h3>Modo Automático</h3>
+                <p>Quando o preço de mercado estiver abaixo de 312.000 USDC, o sistema irá:</p>
+                <ul>
+                    <li>Ativar automaticamente o preço fixo</li>
+                    <li>Usar todo seu saldo de POL</li>
+                    <li>Executar o swap para USDC</li>
+                </ul>
+                <button id="autoSwapButton" disabled>Executar Swap Automático</button>
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div id="autoSwapStatus" class="status"></div>
+            </div>
         </div>
         
         <div class="section">
-            <h2>Swap de POL para USDC</h2>
+            <h2>Swap Manual</h2>
             <label for="polAmount">Quantidade de POL para swap:</label>
             <input type="number" id="polAmount" placeholder="Ex: 1.0" step="any">
-            <button id="swapButton" disabled>Executar Swap</button>
+            <button id="swapButton" disabled>Executar Swap Manual</button>
             <div id="swapStatus" class="status"></div>
         </div>
     </div>
@@ -217,6 +255,15 @@
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "owner", "type": "address"}, {"name": "spender", "type": "address"}],
+                "name": "allowance",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
             }
         ];
 
@@ -234,6 +281,13 @@
             }
         ];
 
+        // Endereços conhecidos na Polygon
+        const KNOWN_ADDRESSES = {
+            POL_TOKEN: "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6",
+            USDC_TOKEN: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+            QUICKSWAP_ROUTER: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
+        };
+
         let web3;
         let accounts = [];
         let contract;
@@ -242,19 +296,24 @@
         let quickSwapRouterContract;
         let isOverrideActive = false;
         let currentMarketPrice = 0;
+        let polBalance = 0;
+        let polDecimals = 18;
 
         // Elementos da página
         const connectButton = document.getElementById('connectButton');
         const accountInfo = document.getElementById('accountInfo');
         const networkInfo = document.getElementById('networkInfo');
+        const balanceInfo = document.getElementById('balanceInfo');
         const checkPriceButton = document.getElementById('checkPriceButton');
-        const toggleOverrideButton = document.getElementById('toggleOverrideButton');
         const swapButton = document.getElementById('swapButton');
+        const autoSwapButton = document.getElementById('autoSwapButton');
         const polAmountInput = document.getElementById('polAmount');
         const marketPriceDisplay = document.getElementById('marketPrice');
         const priceStatusDisplay = document.getElementById('priceStatus');
         const priceStatusMessage = document.getElementById('priceStatusMessage');
         const swapStatus = document.getElementById('swapStatus');
+        const autoSwapStatus = document.getElementById('autoSwapStatus');
+        const progressBar = document.getElementById('progressBar');
 
         // Inicialização
         window.addEventListener('load', async () => {
@@ -267,14 +326,17 @@
                     accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     updateAccountInfo();
                     
-                    // Inicializar contratos
-                    initializeContracts();
+                    // Inicializar contratos com endereços conhecidos
+                    initializeContractsWithKnownAddresses();
                     
                     // Verificar rede
                     checkNetwork();
                     
                     // Configurar listeners
                     setupEventListeners();
+                    
+                    // Carregar informações iniciais
+                    loadInitialData();
                     
                 } catch (error) {
                     console.error("Erro ao conectar à MetaMask:", error);
@@ -289,21 +351,23 @@
             }
         });
 
-        function initializeContracts() {
+        function initializeContractsWithKnownAddresses() {
             contract = new web3.eth.Contract(contractABI, contractAddress);
             
-            // Obter endereços dos tokens e router do contrato
-            contract.methods.POL_TOKEN().call().then(polTokenAddress => {
-                polTokenContract = new web3.eth.Contract(erc20ABI, polTokenAddress);
-            });
+            // Usar endereços conhecidos em vez de consultar o contrato
+            polTokenContract = new web3.eth.Contract(erc20ABI, KNOWN_ADDRESSES.POL_TOKEN);
+            usdcTokenContract = new web3.eth.Contract(erc20ABI, KNOWN_ADDRESSES.USDC_TOKEN);
+            quickSwapRouterContract = new web3.eth.Contract(quickSwapRouterABI, KNOWN_ADDRESSES.QUICKSWAP_ROUTER);
             
-            contract.methods.USDC_TOKEN().call().then(usdcTokenAddress => {
-                usdcTokenContract = new web3.eth.Contract(erc20ABI, usdcTokenAddress);
-            });
-            
-            contract.methods.QUICKSWAP_ROUTER().call().then(routerAddress => {
-                quickSwapRouterContract = new web3.eth.Contract(quickSwapRouterABI, routerAddress);
-            });
+            // Obter decimais do token POL
+            polTokenContract.methods.decimals().call()
+                .then(decimals => {
+                    polDecimals = parseInt(decimals);
+                })
+                .catch(() => {
+                    console.log("Não foi possível obter decimais do token, usando 18 como padrão");
+                    polDecimals = 18;
+                });
         }
 
         function setupEventListeners() {
@@ -311,7 +375,7 @@
             window.ethereum.on('accountsChanged', (newAccounts) => {
                 accounts = newAccounts;
                 updateAccountInfo();
-                checkPriceOverrideStatus();
+                loadInitialData();
             });
             
             // Listener para mudança de rede
@@ -324,21 +388,71 @@
                 try {
                     accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     updateAccountInfo();
-                    initializeContracts();
+                    initializeContractsWithKnownAddresses();
                     checkNetwork();
+                    loadInitialData();
                 } catch (error) {
                     showError(priceStatusMessage, "Erro ao conectar: " + error.message);
                 }
             });
             
             // Botão para verificar preço
-            checkPriceButton.addEventListener('click', checkMarketPrice);
+            checkPriceButton.addEventListener('click', loadInitialData);
             
-            // Botão para ativar/desativar preço fixo
-            toggleOverrideButton.addEventListener('click', togglePriceOverride);
+            // Botão para executar swap automático
+            autoSwapButton.addEventListener('click', executeAutoSwap);
             
-            // Botão para executar swap
-            swapButton.addEventListener('click', executeSwap);
+            // Botão para executar swap manual
+            swapButton.addEventListener('click', executeManualSwap);
+            
+            // Atualizar saldo quando o valor de entrada mudar
+            polAmountInput.addEventListener('input', () => {
+                const amount = parseFloat(polAmountInput.value);
+                if (amount && amount > 0) {
+                    const balance = parseFloat(web3.utils.fromWei(polBalance.toString(), 'ether'));
+                    if (amount > balance) {
+                        showError(swapStatus, `Saldo insuficiente. Você tem ${balance.toFixed(4)} POL.`);
+                    } else {
+                        clearStatus(swapStatus);
+                    }
+                }
+            });
+        }
+
+        async function loadInitialData() {
+            updateProgress(10);
+            await checkNetwork();
+            updateProgress(20);
+            await updateAccountBalance();
+            updateProgress(40);
+            await checkPriceOverrideStatus();
+            updateProgress(60);
+            await checkMarketPrice();
+            updateProgress(80);
+            updateAutoSwapButtonState();
+            updateProgress(100);
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+        }
+
+        async function updateAccountBalance() {
+            if (accounts.length === 0) return;
+            
+            try {
+                polBalance = await polTokenContract.methods.balanceOf(accounts[0]).call();
+                const balanceFormatted = web3.utils.fromWei(polBalance.toString(), 'ether');
+                balanceInfo.textContent = `Saldo de POL: ${parseFloat(balanceFormatted).toFixed(4)}`;
+                
+                // Definir o valor máximo no input
+                polAmountInput.max = balanceFormatted;
+                polAmountInput.placeholder = `Máximo: ${parseFloat(balanceFormatted).toFixed(4)} POL`;
+                
+            } catch (error) {
+                console.error("Erro ao obter saldo:", error);
+                balanceInfo.textContent = "Erro ao carregar saldo";
+            }
         }
 
         function updateAccountInfo() {
@@ -346,35 +460,38 @@
                 const shortAddress = `${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}`;
                 accountInfo.textContent = `Conectado como: ${shortAddress}`;
                 connectButton.textContent = "Desconectar";
-                checkPriceOverrideStatus();
             } else {
                 accountInfo.textContent = "Não conectado";
                 connectButton.textContent = "Conectar MetaMask";
+                balanceInfo.textContent = "";
             }
         }
 
         function checkNetwork() {
-            web3.eth.net.getNetworkType().then(networkType => {
-                web3.eth.getChainId().then(chainId => {
-                    // Polygon Mainnet chain ID is 137
-                    if (chainId === 137) {
-                        networkInfo.textContent = "Rede: Polygon Mainnet";
-                        networkInfo.style.color = "green";
-                        
-                        // Habilitar botões após verificação de rede
-                        checkPriceButton.disabled = false;
-                        toggleOverrideButton.disabled = false;
-                        swapButton.disabled = false;
-                    } else {
-                        networkInfo.textContent = "Por favor, conecte-se à Polygon Mainnet (ChainID: 137)";
-                        networkInfo.style.color = "red";
-                        
-                        // Desabilitar botões se não for Polygon
-                        checkPriceButton.disabled = true;
-                        toggleOverrideButton.disabled = true;
-                        swapButton.disabled = true;
-                    }
-                });
+            return new Promise((resolve) => {
+                web3.eth.net.getNetworkType().then(networkType => {
+                    web3.eth.getChainId().then(chainId => {
+                        // Polygon Mainnet chain ID is 137
+                        if (chainId === 137) {
+                            networkInfo.textContent = "Rede: Polygon Mainnet";
+                            networkInfo.style.color = "green";
+                            
+                            // Habilitar botões após verificação de rede
+                            checkPriceButton.disabled = false;
+                            autoSwapButton.disabled = false;
+                            swapButton.disabled = false;
+                        } else {
+                            networkInfo.textContent = "Por favor, conecte-se à Polygon Mainnet (ChainID: 137)";
+                            networkInfo.style.color = "red";
+                            
+                            // Desabilitar botões se não for Polygon
+                            checkPriceButton.disabled = true;
+                            autoSwapButton.disabled = true;
+                            swapButton.disabled = true;
+                        }
+                        resolve();
+                    });
+                }).catch(resolve);
             });
         }
 
@@ -387,8 +504,6 @@
                 priceStatusDisplay.textContent = status ? "ATIVO" : "INATIVO";
                 priceStatusDisplay.style.color = status ? "green" : "red";
                 
-                // Verificar o preço de mercado
-                await checkMarketPrice();
             } catch (error) {
                 console.error("Erro ao verificar status do preço fixo:", error);
                 showError(priceStatusMessage, "Erro ao verificar status: " + error.message);
@@ -396,18 +511,19 @@
         }
 
         async function checkMarketPrice() {
-            if (!quickSwapRouterContract || !contract) return;
+            if (!quickSwapRouterContract || !contract || accounts.length === 0) return;
             
             try {
-                // Obter endereços dos tokens do contrato
-                const polTokenAddress = await contract.methods.POL_TOKEN().call();
-                const usdcTokenAddress = await contract.methods.USDC_TOKEN().call();
+                showInfo(priceStatusMessage, "Consultando preço de mercado...");
                 
                 // Configurar o path para o swap (POL -> USDC)
-                const path = [polTokenAddress, usdcTokenAddress];
+                const path = [KNOWN_ADDRESSES.POL_TOKEN, KNOWN_ADDRESSES.USDC_TOKEN];
                 
                 // Verificar preço para 1 POL (em USDC)
-                const amounts = await quickSwapRouterContract.methods.getAmountsOut(web3.utils.toWei('1', 'ether'), path).call();
+                const amounts = await quickSwapRouterContract.methods.getAmountsOut(
+                    web3.utils.toWei('1', 'ether'), 
+                    path
+                ).call();
                 
                 // USDC tem 6 decimais
                 const usdcAmount = amounts[1] / 10**6;
@@ -421,54 +537,99 @@
                 
                 // Verificar se o preço de mercado é menor que o fixo
                 if (usdcAmount < fixedPriceInUSDC) {
-                    priceStatusMessage.textContent = `Preço de mercado (${usdcAmount.toFixed(6)} USDC) está abaixo do preço fixo (${fixedPriceInUSDC} USDC). Você pode ativar o preço fixo.`;
+                    priceStatusMessage.textContent = `Preço de mercado (${usdcAmount.toFixed(6)} USDC) está abaixo do preço fixo (${fixedPriceInUSDC} USDC).`;
                     priceStatusMessage.className = "status info";
-                    toggleOverrideButton.disabled = false;
+                    
+                    // Se o preço fixo não estiver ativado, sugerir ativação
+                    if (!isOverrideActive) {
+                        showInfo(priceStatusMessage, `${priceStatusMessage.textContent} Recomendado ativar o preço fixo.`);
+                    }
                 } else {
-                    priceStatusMessage.textContent = `Preço de mercado (${usdcAmount.toFixed(6)} USDC) está acima do preço fixo (${fixedPriceInUSDC} USDC). Não é recomendado ativar o preço fixo.`;
+                    priceStatusMessage.textContent = `Preço de mercado (${usdcAmount.toFixed(6)} USDC) está acima do preço fixo (${fixedPriceInUSDC} USDC).`;
                     priceStatusMessage.className = "status info";
-                    toggleOverrideButton.disabled = false;
                 }
                 
             } catch (error) {
                 console.error("Erro ao verificar preço de mercado:", error);
-                showError(priceStatusMessage, "Erro ao verificar preço: " + error.message);
+                
+                // Tentar fallback caso o router não responda
+                marketPriceDisplay.textContent = "Erro ao consultar";
+                showError(priceStatusMessage, "Não foi possível verificar o preço de mercado. Você pode tentar executar o swap diretamente.");
             }
         }
 
-        async function togglePriceOverride() {
-            if (accounts.length === 0) return;
+        function updateAutoSwapButtonState() {
+            if (accounts.length === 0 || polBalance <= 0) {
+                autoSwapButton.disabled = true;
+                return;
+            }
+            
+            // Habilitar botão se o preço de mercado não estiver disponível ou estiver abaixo do fixo
+            if (currentMarketPrice === 0 || currentMarketPrice < 312000) {
+                autoSwapButton.disabled = false;
+                autoSwapButton.textContent = "Executar Swap Automático";
+            } else {
+                autoSwapButton.disabled = true;
+                autoSwapButton.textContent = "Preço de mercado acima do fixo";
+            }
+        }
+
+        async function executeAutoSwap() {
+            if (accounts.length === 0 || polBalance <= 0) return;
             
             try {
-                toggleOverrideButton.disabled = true;
-                showInfo(priceStatusMessage, "Processando transação...");
+                autoSwapButton.disabled = true;
+                updateProgress(10);
+                showInfo(autoSwapStatus, "Iniciando processo automático...");
                 
-                await contract.methods.togglePriceOverride().send({ from: accounts[0] });
+                // 1. Verificar e ativar preço fixo se necessário
+                if (!isOverrideActive) {
+                    showInfo(autoSwapStatus, "Ativando preço fixo...");
+                    await contract.methods.togglePriceOverride().send({ from: accounts[0] });
+                    await checkPriceOverrideStatus();
+                    updateProgress(30);
+                }
                 
-                // Atualizar status após a transação
-                await checkPriceOverrideStatus();
-                showSuccess(priceStatusMessage, `Preço fixo ${isOverrideActive ? 'ativado' : 'desativado'} com sucesso!`);
+                // 2. Verificar aprovação
+                const allowance = await polTokenContract.methods.allowance(accounts[0], contractAddress).call();
+                if (BigInt(allowance) < BigInt(polBalance)) {
+                    showInfo(autoSwapStatus, "Aprovando tokens POL para o contrato...");
+                    await polTokenContract.methods.approve(contractAddress, polBalance).send({ from: accounts[0] });
+                    updateProgress(60);
+                }
+                
+                // 3. Executar swap com todo o saldo
+                showInfo(autoSwapStatus, "Executando swap com todo saldo de POL...");
+                await contract.methods.swapPOLForUSDC(polBalance).send({ from: accounts[0] });
+                updateProgress(90);
+                
+                showSuccess(autoSwapStatus, `Swap automático concluído com sucesso! Todo seu saldo de POL foi convertido para USDC.`);
+                updateProgress(100);
+                
+                // Atualizar saldo após o swap
+                await updateAccountBalance();
                 
             } catch (error) {
-                console.error("Erro ao alternar preço fixo:", error);
-                showError(priceStatusMessage, "Erro ao alternar preço fixo: " + error.message);
+                console.error("Erro no swap automático:", error);
+                showError(autoSwapStatus, "Erro no processo automático: " + (error.message || error));
+                updateProgress(0);
             } finally {
-                toggleOverrideButton.disabled = false;
+                autoSwapButton.disabled = false;
+                updateAutoSwapButtonState();
             }
         }
 
-        async function executeSwap() {
+        async function executeManualSwap() {
             if (accounts.length === 0 || !polAmountInput.value) return;
             
             try {
                 swapButton.disabled = true;
-                showInfo(swapStatus, "Iniciando swap...");
+                showInfo(swapStatus, "Iniciando swap manual...");
                 
                 const polAmount = polAmountInput.value;
                 const polAmountInWei = web3.utils.toWei(polAmount, 'ether');
                 
                 // Verificar saldo
-                const polBalance = await polTokenContract.methods.balanceOf(accounts[0]).call();
                 if (BigInt(polBalance) < BigInt(polAmountInWei)) {
                     throw new Error("Saldo insuficiente de POL");
                 }
@@ -485,6 +646,9 @@
                 await contract.methods.swapPOLForUSDC(polAmountInWei).send({ from: accounts[0] });
                 
                 showSuccess(swapStatus, `Swap de ${polAmount} POL para USDC executado com sucesso!`);
+                
+                // Atualizar saldo após o swap
+                await updateAccountBalance();
                 
             } catch (error) {
                 console.error("Erro ao executar swap:", error);
@@ -508,6 +672,11 @@
         function showInfo(element, message) {
             element.textContent = message;
             element.className = "status info";
+        }
+
+        function clearStatus(element) {
+            element.textContent = "";
+            element.className = "status";
         }
     </script>
 </body>
