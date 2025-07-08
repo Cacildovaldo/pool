@@ -3,340 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbitrage Bot - Polygon</title>
+    <title>Arbitrage Bot - Polygon DEXs</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
         .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { padding: 10px 15px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        button { padding: 10px 15px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #45a049; }
         button:disabled { background: #cccccc; cursor: not-allowed; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .arbitrage-opportunity { background-color: #e6f7ff; }
         input, select { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
         .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
         .success { background-color: #dff0d8; color: #3c763d; }
         .error { background-color: #f2dede; color: #a94442; }
         .loading { color: #31708f; }
+        .token-address { font-family: monospace; font-size: 0.9em; }
         h1 { color: #2c3e50; }
         h2 { color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h1>🔄 Arbitrage Bot - Polygon</h1>
+    <h1>🔄 Arbitrage Bot - Polygon DEXs</h1>
     
-    <div class="panel">
+    <div class="panel wallet-section">
         <h2>🔐 Carteira</h2>
         <button id="connectWallet">🔗 Conectar Carteira</button>
         <div id="walletAddress" style="margin-top: 10px;"></div>
-        <div id="networkInfo" class="status"></div>
-        
-        <h2 style="margin-top: 20px;">⚙️ Configuração do Contrato</h2>
-        <input type="text" id="contractAddress" placeholder="Cole o endereço do contrato (e.g., 0x5939F7300D749D71900b1159c6Bb9B58990041CA)" value="0x5939F7300D749D71900b1159c6Bb9B58990041CA" style="margin-bottom: 10px;">
-        <button id="loadContract">Carregar Contrato</button>
-        <div id="contractStatus" class="status"></div>
-        <p style="margin-top: 10px; font-size: 0.9em; color: #555;">
-            Este contrato já vem com os endereços dos roteadores (Uniswap, SushiSwap, QuickSwap) pré-configurados no construtor.
-            Não é necessário chamar `updateRouter` após a implantação.
-        </p>
+        <div id="networkInfo" class="status" style="margin-top: 10px;"></div>
     </div>
     
     <div class="container">
         <div class="panel">
             <h2>🔍 Buscar Oportunidades</h2>
-            <div>
-                <label>Token:</label>
-                <select id="tokenSelect">
-                    <option value="WMATIC">WMATIC</option>
-                    <option value="USDC">USDC</option>
-                </select>
+            <button id="searchTokens">🔎 Buscar em todas as DEXs</button>
+            <div style="margin-top: 15px;">
+                <label for="tokenFilter">Filtrar por token:</label>
+                <input type="text" id="tokenFilter" placeholder="Digite o símbolo ou endereço (0x...)">
             </div>
-            <button id="searchPrices" style="margin-top: 10px;">Buscar Preços</button>
-            <div id="priceResults" style="margin-top: 15px;"></div>
+            
+            <div style="overflow-x: auto;">
+                <table id="pricesTable">
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Uniswap</th>
+                            <th>SushiSwap</th>
+                            <th>QuickSwap</th>
+                            <th>Diferença</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pricesTableBody">
+                        <!-- Resultados serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <div class="panel">
             <h2>⚡ Executar Arbitragem</h2>
             <div id="arbitragePanel" style="display: none;">
                 <div>
-                    <label>Token:</label>
-                    <select id="arbTokenSelect">
-                        <option value="WMATIC">WMATIC</option>
-                        <option value="USDC">USDC</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Comprar em:</label>
+                    <label for="buyDex">Comprar em:</label>
                     <select id="buyDex">
                         <option value="uniswap">Uniswap</option>
                         <option value="sushiswap">SushiSwap</option>
                         <option value="quickswap">QuickSwap</option>
                     </select>
                 </div>
+                
                 <div>
-                    <label>Vender em:</label>
+                    <label for="sellDex">Vender em:</label>
                     <select id="sellDex">
                         <option value="uniswap">Uniswap</option>
                         <option value="sushiswap">SushiSwap</option>
                         <option value="quickswap">QuickSwap</option>
                     </select>
                 </div>
+                
                 <div>
-                    <label>Quantidade (MATIC):</label>
-                    <input type="number" id="amountIn" min="0.01" step="0.01" value="1.0">
+                    <label for="tokenAddress">Token:</label>
+                    <input type="text" id="tokenAddress" placeholder="0x..." class="token-address">
                 </div>
+                
                 <div>
-                    <label>Lucro mínimo esperado (MATIC):</label>
-                    <input type="number" id="minProfit" min="0" step="0.01" value="0.01">
+                    <label for="tokenAmount">Quantidade (MATIC):</label>
+                    <input type="number" id="tokenAmount" min="0.01" step="0.01" value="1.0">
                 </div>
-                <button id="executeArbitrage">Executar Arbitragem</button>
+                
+                <div style="margin: 15px 0;">
+                    <label>Lucro estimado:</label>
+                    <div style="font-size: 1.2em; font-weight: bold;" id="expectedProfit">--</div>
+                </div>
+                
+                <button id="executeArbitrage" disabled>🚀 Executar Arbitragem</button>
                 <div id="transactionStatus" class="status" style="margin-top: 15px;"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // ABI do contrato (será preenchida automaticamente)
-        const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"executor","type":"address"},{"indexed":false,"internalType":"string","name":"token","type":"string"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"ArbitrageExecuted","type":"event"},{"inputs":[],"name":"USDC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"WMATIC","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeMaticArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeUsdcArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"config","outputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"routers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"toggleArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateConfig","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"router","type":"address"}],"name":"updateRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
-
-        // Endereços dos routers para Polygon Mainnet.
-        // Estes endereços DEVEM corresponder aos hardcoded no construtor do seu contrato Solidity.
-        // Nota: O Uniswap V3 Universal Router (0xE592427A0AEce92De3Edee1F18E0157C05861564) NÃO é compatível
-        // com as chamadas de swapExactETHForTokens e swapExactTokensForETH do seu contrato.
-        // Para compatibilidade, estou usando o QuickSwap Router para a chave "uniswap"
-        // já que ele é um fork V2 e suas funções são compatíveis com seu contrato.
+        // ABI do contrato (substitua pela ABI do seu contrato)
+        const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"executor","type":"address"},{"indexed":false,"internalType":"address","name":"buyRouter","type":"address"},{"indexed":false,"internalType":"address","name":"sellRouter","type":"address"},{"indexed":false,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"ArbitrageExecuted","type":"event"},{"anonymous":false,"inputs":[],"name":"ConfigUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsRecovered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"name","type":"string"},{"indexed":false,"internalType":"address","name":"router","type":"address"}],"name":"RouterUpdated","type":"event"},{"inputs":[{"internalType":"string","name":"buyDex","type":"string"},{"internalType":"string","name":"sellDex","type":"string"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"expectedProfit","type":"uint256"}],"name":"executeArbitrage","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"config","outputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"routers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"enabled","type":"bool"}],"name":"toggleArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"minProfit","type":"uint256"},{"internalType":"uint256","name":"maxSlippage","type":"uint256"},{"internalType":"uint256","name":"fee","type":"uint256"},{"internalType":"address","name":"feeReceiver","type":"address"},{"internalType":"bool","name":"enabled","type":"bool"}],"name":"updateConfig","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"router","type":"address"}],"name":"updateRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+        
+        // Endereços dos routers na Polygon
         const ROUTERS = {
-            uniswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", // QuickSwap Router (V2)
-            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506", // SushiSwap Router (V2)
-            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" // QuickSwap Router (V2)
+            uniswap: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+            sushiswap: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+            quickswap: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
         };
-
+        
+        const WMATIC = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270";
         let web3;
         let contract;
         let account;
-
+        let contractAddress = "0xD34C3B64E13cd8796e5c8ec44c9EC9a51aED7511"; // Substitua pelo seu endereço de contrato
+        
         // Conectar carteira
         document.getElementById('connectWallet').addEventListener('click', async () => {
             if (window.ethereum) {
                 try {
-                    const btn = document.getElementById('connectWallet');
-                    btn.disabled = true;
-                    btn.textContent = "Conectando...";
+                    const connectBtn = document.getElementById('connectWallet');
+                    connectBtn.disabled = true;
+                    connectBtn.textContent = "Conectando...";
                     
+                    // Solicitar conexão da carteira
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
                     web3 = new Web3(window.ethereum);
                     
+                    // Obter conta
                     const accounts = await web3.eth.getAccounts();
                     account = accounts[0];
                     document.getElementById('walletAddress').innerHTML = 
                         `<strong>Conectado:</strong> ${account.substring(0, 6)}...${account.substring(38)}`;
                     
-                    // Verificar rede
-                    const chainId = await web3.eth.getChainId();
-                    if (chainId !== 137) {
-                        document.getElementById('networkInfo').textContent = "❌ Conecte-se à Polygon (ChainID: 137)";
-                        document.getElementById('networkInfo').className = "status error";
-                        // Adicionar sugestão para trocar de rede
-                        try {
-                            await window.ethereum.request({
-                                method: 'wallet_switchEthereumChain',
-                                params: [{ chainId: web3.utils.toHex(137) }],
-                            });
-                            // Se a troca for bem-sucedida, a página recarregará via 'chainChanged' listener
-                        } catch (switchError) {
-                            console.error("Erro ao tentar trocar de rede:", switchError);
-                            // O usuário pode ter recusado a troca ou a rede não está configurada
-                        }
-                    } else {
-                        document.getElementById('networkInfo').textContent = "✅ Conectado à Polygon Mainnet";
-                        document.getElementById('networkInfo').className = "status success";
-                        document.getElementById('arbitragePanel').style.display = 'block';
-                        
-                        // Tenta carregar o contrato automaticamente se o endereço estiver preenchido
-                        const contractAddressInput = document.getElementById('contractAddress');
-                        if (contractAddressInput.value && web3.utils.isAddress(contractAddressInput.value)) {
-                            await loadContractFunction(contractAddressInput.value);
-                        }
-                    }
+                    // Verificar e configurar a rede Polygon
+                    await checkAndSwitchToPolygon();
                     
-                    btn.textContent = "✅ Carteira Conectada";
+                    // Inicializar contrato
+                    contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
+                    
+                    // Habilitar painel de arbitragem
+                    document.getElementById('arbitragePanel').style.display = 'block';
+                    connectBtn.textContent = "✅ Carteira Conectada";
+                    
                 } catch (error) {
-                    console.error("Erro ao conectar:", error);
+                    console.error("Erro ao conectar carteira:", error);
+                    document.getElementById('networkInfo').textContent = "Erro: " + (error.message || error);
+                    document.getElementById('networkInfo').className = "status error";
                     document.getElementById('connectWallet').textContent = "🔗 Conectar Carteira";
                     document.getElementById('connectWallet').disabled = false;
-                    document.getElementById('networkInfo').textContent = "Erro: " + error.message;
-                    document.getElementById('networkInfo').className = "status error";
                 }
             } else {
                 alert('Por favor, instale MetaMask!');
             }
         });
-
-        // Função auxiliar para carregar contrato
-        async function loadContractFunction(address) {
-            const statusDiv = document.getElementById('contractStatus');
-            try {
-                statusDiv.textContent = "Carregando contrato...";
-                statusDiv.className = "status loading";
-                
-                contract = new web3.eth.Contract(CONTRACT_ABI, address);
-                
-                // Testar uma chamada simples
-                const owner = await contract.methods.owner().call();
-                
-                statusDiv.textContent = `✅ Contrato carregado (Owner: ${owner.substring(0, 6)}...)`;
-                statusDiv.className = "status success";
-                document.getElementById('arbitragePanel').style.display = 'block';
-            } catch (error) {
-                console.error("Erro ao carregar contrato:", error);
-                statusDiv.textContent = "Erro ao carregar contrato: " + error.message;
-                statusDiv.className = "status error";
-            }
-        }
-
-        // Carregar contrato (evento de clique)
-        document.getElementById('loadContract').addEventListener('click', async () => {
-            const contractAddress = document.getElementById('contractAddress').value.trim();
-            const statusDiv = document.getElementById('contractStatus');
+        
+        // Função para verificar e mudar para Polygon
+        async function checkAndSwitchToPolygon() {
+            const chainId = await web3.eth.getChainId();
+            const networkInfo = document.getElementById('networkInfo');
             
-            if (!web3) {
-                statusDiv.textContent = "Conecte sua carteira primeiro!";
-                statusDiv.className = "status error";
-                return;
-            }
-            
-            if (!web3.utils.isAddress(contractAddress)) {
-                statusDiv.textContent = "Endereço do contrato inválido!";
-                statusDiv.className = "status error";
-                return;
-            }
-            await loadContractFunction(contractAddress);
-        });
-
-        // Buscar preços (simulação)
-        document.getElementById('searchPrices').addEventListener('click', async () => {
-            if (!contract) {
-                showError("Carregue o contrato primeiro!");
-                return;
-            }
-            
-            const token = document.getElementById('tokenSelect').value;
-            const resultsDiv = document.getElementById('priceResults');
-            resultsDiv.innerHTML = "<p>Buscando preços...</p>";
-            
-            // Simulação - em produção você chamaria oráculos ou APIs
-            setTimeout(() => {
-                const prices = {
-                    WMATIC: {
-                        uniswap: (1 + Math.random() * 0.02).toFixed(4),
-                        sushiswap: (0.99 + Math.random() * 0.02).toFixed(4),
-                        quickswap: (1.01 + Math.random() * 0.02).toFixed(4)
-                    },
-                    USDC: {
-                        uniswap: (1.001 + Math.random() * 0.001).toFixed(4),
-                        sushiswap: (0.999 + Math.random() * 0.001).toFixed(4),
-                        quickswap: (1.002 + Math.random() * 0.001).toFixed(4)
+            if (chainId !== 137) { // Polygon Mainnet chainId
+                try {
+                    networkInfo.textContent = "Mudando para Polygon...";
+                    networkInfo.className = "status loading";
+                    
+                    // Tentar mudar para Polygon
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x89' }], // 0x89 é 137 em hexadecimal
+                    });
+                    
+                    // Atualizar status
+                    networkInfo.textContent = "✅ Conectado à Polygon Mainnet";
+                    networkInfo.className = "status success";
+                    
+                } catch (switchError) {
+                    // Se a rede não estiver adicionada na carteira
+                    if (switchError.code === 4902) {
+                        try {
+                            await addPolygonNetwork();
+                            networkInfo.textContent = "✅ Conectado à Polygon Mainnet";
+                            networkInfo.className = "status success";
+                        } catch (addError) {
+                            console.error("Erro ao adicionar Polygon:", addError);
+                            networkInfo.textContent = "❌ Adicione a rede Polygon manualmente";
+                            networkInfo.className = "status error";
+                            throw new Error("Por favor, adicione a rede Polygon manualmente em sua carteira");
+                        }
+                    } else {
+                        console.error("Erro ao mudar para Polygon:", switchError);
+                        networkInfo.textContent = "❌ Conecte-se à Polygon (ChainID: 137)";
+                        networkInfo.className = "status error";
+                        throw new Error("Por favor, mude para a rede Polygon manualmente");
                     }
-                };
-                
-                const tokenPrices = prices[token];
-                const minPrice = Math.min(...Object.values(tokenPrices));
-                const maxPrice = Math.max(...Object.values(tokenPrices));
-                const difference = ((maxPrice - minPrice) / minPrice * 100).toFixed(2);
-                
-                resultsDiv.innerHTML = `
-                    <h3>Preços para ${token}</h3>
-                    <p>Uniswap: ${tokenPrices.uniswap}</p>
-                    <p>SushiSwap: ${tokenPrices.sushiswap}</p>
-                    <p>QuickSwap: ${tokenPrices.quickswap}</p>
-                    <p><strong>Diferença: ${difference}%</strong></p>
-                    ${difference > 1 ? '<p style="color:green;">Oportunidade de arbitragem detectada!</p>' : ''}
-                `;
-            }, 1000);
-        });
-
-        // Executar arbitragem
-        document.getElementById('executeArbitrage').addEventListener('click', async () => {
-            if (!contract || !account) {
-                showError("Conecte sua carteira e carregue o contrato!");
-                return;
-            }
-            
-            const token = document.getElementById('arbTokenSelect').value;
-            const buyDex = document.getElementById('buyDex').value;
-            const sellDex = document.getElementById('sellDex').value;
-            const amountIn = document.getElementById('amountIn').value;
-            const minProfit = document.getElementById('minProfit').value; // Este é o expectedProfit para o contrato
-            const statusDiv = document.getElementById('transactionStatus');
-            
-            if (!amountIn || parseFloat(amountIn) <= 0) { // Usar parseFloat para comparar
-                showError("Insira uma quantidade válida!");
-                return;
-            }
-            if (!minProfit || parseFloat(minProfit) < 0) {
-                 showError("Insira um lucro mínimo esperado válido (>= 0)!");
-                 return;
-            }
-            
-            try {
-                const btn = document.getElementById('executeArbitrage');
-                btn.disabled = true;
-                statusDiv.textContent = "Preparando transação...";
-                statusDiv.className = "status loading";
-                
-                const amountWei = web3.utils.toWei(amountIn, 'ether');
-                const minProfitWei = web3.utils.toWei(minProfit, 'ether'); // Convertendo para WEI
-                
-                let tx;
-                if (token === "WMATIC") {
-                    tx = await contract.methods.executeMaticArbitrage(
-                        buyDex,
-                        sellDex,
-                        amountWei,
-                        minProfitWei // Passando o lucro mínimo esperado
-                    ).send({
-                        from: account,
-                        value: amountWei // Valor de MATIC a ser enviado para o contrato
-                    });
-                } else {
-                    tx = await contract.methods.executeUsdcArbitrage(
-                        buyDex,
-                        sellDex,
-                        amountWei,
-                        minProfitWei // Passando o lucro mínimo esperado
-                    ).send({
-                        from: account,
-                        value: amountWei
-                    });
                 }
-                
-                statusDiv.innerHTML = `✅ <strong>Sucesso!</strong> TX: <a href="https://polygonscan.com/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash.substring(0, 10)}...</a>`;
-                statusDiv.className = "status success";
-            } catch (error) {
-                console.error("Erro na arbitragem:", error);
-                let errorMessage = "Ocorreu um erro desconhecido.";
-                if (error.message) {
-                    errorMessage = error.message.split("\n")[0];
-                } else if (error.data && error.data.message) {
-                    errorMessage = error.data.message;
-                }
-                statusDiv.textContent = "❌ Erro: " + errorMessage;
-                statusDiv.className = "status error";
-            } finally {
-                document.getElementById('executeArbitrage').disabled = false;
+            } else {
+                networkInfo.textContent = "✅ Conectado à Polygon Mainnet";
+                networkInfo.className = "status success";
             }
-        });
-
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = "status error";
-            errorDiv.textContent = message;
-            document.body.appendChild(errorDiv);
-            setTimeout(() => errorDiv.remove(), 3000);
         }
-
-        // Configurar mudança de rede
+        
+        // Função para adicionar Polygon à carteira se não estiver configurada
+        async function addPolygonNetwork() {
+            await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                    chainId: '0x89',
+                    chainName: 'Polygon Mainnet',
+                    nativeCurrency: {
+                        name: 'MATIC',
+                        symbol: 'MATIC',
+                        decimals: 18
+                    },
+                    rpcUrls: ['https://polygon-rpc.com/'],
+                    blockExplorerUrls: ['https://polygonscan.com/']
+                }]
+            });
+        }
+        
+        // Configurar evento de mudança de rede
         if (window.ethereum) {
             window.ethereum.on('chainChanged', () => window.location.reload());
             window.ethereum.on('accountsChanged', (accounts) => {
@@ -349,41 +241,231 @@
                 }
             });
         }
-
-        // Carregar automaticamente o contrato se o endereço estiver preenchido e a carteira já estiver conectada
-        // Isso é executado quando a página carrega e a carteira já está conectada (e.g., depois de um refresh)
-        window.addEventListener('load', async () => {
-            if (window.ethereum && window.ethereum.selectedAddress) {
-                // Tentar conectar a carteira automaticamente
-                try {
-                    web3 = new Web3(window.ethereum);
-                    const accounts = await web3.eth.getAccounts();
-                    if (accounts.length > 0) {
-                        account = accounts[0];
-                        document.getElementById('walletAddress').innerHTML = 
-                            `<strong>Conectado:</strong> ${account.substring(0, 6)}...${account.substring(38)}`;
-                        const chainId = await web3.eth.getChainId();
-                        if (chainId === 137) {
-                            document.getElementById('networkInfo').textContent = "✅ Conectado à Polygon Mainnet";
-                            document.getElementById('networkInfo').className = "status success";
-                            document.getElementById('arbitragePanel').style.display = 'block';
-                            
-                            const contractAddressInput = document.getElementById('contractAddress');
-                            if (contractAddressInput.value && web3.utils.isAddress(contractAddressInput.value)) {
-                                await loadContractFunction(contractAddressInput.value);
+        
+        // Buscar tokens (simulação)
+        document.getElementById('searchTokens').addEventListener('click', async () => {
+            if (!web3) {
+                showError("Conecte sua carteira primeiro!");
+                return;
+            }
+            
+            try {
+                const searchBtn = document.getElementById('searchTokens');
+                searchBtn.disabled = true;
+                searchBtn.textContent = "Buscando...";
+                
+                // Simulação de busca (em produção, você chamaria um backend)
+                setTimeout(() => {
+                    const mockData = [
+                        { 
+                            token: 'WMATIC', 
+                            address: WMATIC,
+                            prices: {
+                                uniswap: (1.02 + Math.random() * 0.02).toFixed(4),
+                                sushiswap: (1.01 + Math.random() * 0.02).toFixed(4),
+                                quickswap: (1.03 + Math.random() * 0.02).toFixed(4)
                             }
-                        } else {
-                            document.getElementById('networkInfo').textContent = "❌ Conecte-se à Polygon (ChainID: 137)";
-                            document.getElementById('networkInfo').className = "status error";
+                        },
+                        { 
+                            token: 'USDC', 
+                            address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                            prices: {
+                                uniswap: (1.001 + Math.random() * 0.001).toFixed(4),
+                                sushiswap: (0.999 + Math.random() * 0.001).toFixed(4),
+                                quickswap: (1.002 + Math.random() * 0.001).toFixed(4)
+                            }
                         }
-                        document.getElementById('connectWallet').textContent = "✅ Carteira Conectada";
-                        document.getElementById('connectWallet').disabled = true;
-                    }
-                } catch (error) {
-                    console.error("Erro ao carregar automaticamente:", error);
-                }
+                    ];
+                    
+                    updatePriceTable(mockData);
+                    
+                    searchBtn.disabled = false;
+                    searchBtn.textContent = "🔎 Buscar em todas as DEXs";
+                }, 1500);
+            } catch (error) {
+                showError("Erro na busca: " + error.message);
             }
         });
+        
+        function updatePriceTable(tokenData) {
+            const tableBody = document.getElementById('pricesTableBody');
+            tableBody.innerHTML = '';
+            
+            const filter = document.getElementById('tokenFilter').value.toLowerCase();
+            
+            tokenData.forEach(token => {
+                // Aplicar filtro
+                if (filter && !token.token.toLowerCase().includes(filter) && 
+                    !token.address.toLowerCase().includes(filter)) {
+                    return;
+                }
+                
+                const prices = token.prices;
+                const minPrice = Math.min(...Object.values(prices));
+                const maxPrice = Math.max(...Object.values(prices));
+                const difference = ((maxPrice - minPrice) / minPrice * 100).toFixed(2);
+                
+                const row = document.createElement('tr');
+                if (difference > 1) row.classList.add('arbitrage-opportunity');
+                
+                row.innerHTML = `
+                    <td>
+                        <strong>${token.token}</strong><br>
+                        <span class="token-address">${token.address.substring(0, 6)}...${token.address.substring(38)}</span>
+                    </td>
+                    <td>${prices.uniswap}</td>
+                    <td>${prices.sushiswap}</td>
+                    <td>${prices.quickswap}</td>
+                    <td><strong>${difference}%</strong></td>
+                    <td><button class="setupArbitrage" data-token="${token.token}" data-address="${token.address}">⚡ Configurar</button></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Adicionar listeners aos botões de configuração
+            document.querySelectorAll('.setupArbitrage').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const token = e.target.getAttribute('data-token');
+                    const address = e.target.getAttribute('data-address');
+                    setupArbitrage(token, address);
+                });
+            });
+        }
+        
+        function setupArbitrage(token, tokenAddress) {
+            document.getElementById('tokenAddress').value = tokenAddress;
+            
+            // Atualizar estimativa de lucro quando a quantidade mudar
+            document.getElementById('tokenAmount').addEventListener('input', updateProfitEstimate);
+            
+            // Habilitar botão de execução
+            document.getElementById('executeArbitrage').disabled = false;
+            
+            // Atualizar estimativa inicial
+            updateProfitEstimate();
+        }
+        
+        async function updateProfitEstimate() {
+            const buyDex = document.getElementById('buyDex').value;
+            const sellDex = document.getElementById('sellDex').value;
+            const tokenAddress = document.getElementById('tokenAddress').value;
+            const amount = document.getElementById('tokenAmount').value;
+            
+            if (!tokenAddress || !amount || amount <= 0) return;
+            
+            try {
+                document.getElementById('expectedProfit').textContent = "Calculando...";
+                
+                // Simulação de cálculo de lucro (em produção, você chamaria o contrato)
+                const buyPrice = parseFloat(await simulateGetPrice(buyDex, WMATIC, tokenAddress, amount));
+                const sellPrice = parseFloat(await simulateGetPrice(sellDex, tokenAddress, WMATIC, buyPrice));
+                
+                const profit = sellPrice - amount;
+                const fee = profit * 0.005; // 0.5%
+                const netProfit = profit - fee;
+                
+                document.getElementById('expectedProfit').textContent = netProfit.toFixed(6) + " MATIC";
+                document.getElementById('expectedProfit').style.color = netProfit > 0 ? "green" : "red";
+                
+            } catch (error) {
+                console.error("Erro ao estimar lucro:", error);
+                document.getElementById('expectedProfit').textContent = "Erro";
+                document.getElementById('expectedProfit').style.color = "red";
+            }
+        }
+        
+        // Simular obtenção de preço
+        async function simulateGetPrice(dex, tokenIn, tokenOut, amountIn) {
+            // Em produção, substituir por chamada real ao contrato
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const basePrices = {
+                        "WMATIC": 1.0,
+                        "USDC": 1.0
+                    };
+                    
+                    const tokenInSym = tokenIn === WMATIC ? "WMATIC" : "USDC";
+                    const tokenOutSym = tokenOut === WMATIC ? "WMATIC" : "USDC";
+                    
+                    const price = (basePrices[tokenOutSym] / basePrices[tokenInSym]) * (0.98 + Math.random() * 0.04);
+                    resolve((amountIn * price).toFixed(6));
+                }, 500);
+            });
+        }
+        
+        // Executar arbitragem
+        document.getElementById('executeArbitrage').addEventListener('click', async () => {
+            const buyDex = document.getElementById('buyDex').value;
+            const sellDex = document.getElementById('sellDex').value;
+            const tokenAddress = document.getElementById('tokenAddress').value;
+            const amount = document.getElementById('tokenAmount').value;
+            const expectedProfit = document.getElementById('expectedProfit').textContent.split(" ")[0];
+            
+            if (!buyDex || !sellDex || !tokenAddress || !amount || amount <= 0) {
+                showError('Preencha todos os campos!');
+                return;
+            }
+            
+            if (buyDex === sellDex) {
+                showError('Selecione DEXs diferentes!');
+                return;
+            }
+            
+            if (!web3.utils.isAddress(tokenAddress)) {
+                showError('Endereço do token inválido!');
+                return;
+            }
+            
+            const executeBtn = document.getElementById('executeArbitrage');
+            const statusDiv = document.getElementById('transactionStatus');
+            
+            executeBtn.disabled = true;
+            statusDiv.textContent = "⏳ Enviando transação...";
+            statusDiv.className = "status loading";
+            
+            try {
+                const amountWei = web3.utils.toWei(amount, 'ether');
+                const expectedProfitWei = web3.utils.toWei(expectedProfit, 'ether');
+                
+                const tx = await contract.methods.executeArbitrage(
+                    buyDex,
+                    sellDex,
+                    tokenAddress,
+                    amountWei,
+                    expectedProfitWei
+                ).send({
+                    from: account,
+                    value: amountWei
+                });
+                
+                statusDiv.innerHTML = `✅ <strong>Sucesso!</strong> TX: <a href="https://polygonscan.com/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash.substring(0, 10)}...</a>`;
+                statusDiv.className = "status success";
+                
+            } catch (error) {
+                console.error("Erro na arbitragem:", error);
+                statusDiv.textContent = `❌ Erro: ${error.message.split("\n")[0]}`;
+                statusDiv.className = "status error";
+            } finally {
+                executeBtn.disabled = false;
+            }
+        });
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = "status error";
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
+        
+        // Inicializar Web3 (fallback para quando não há MetaMask)
+        if (!window.ethereum) {
+            document.getElementById('connectWallet').textContent = "Instalar MetaMask";
+            document.getElementById('connectWallet').onclick = () => {
+                window.open('https://metamask.io/', '_blank');
+            };
+        }
     </script>
 </body>
 </html>
