@@ -119,17 +119,41 @@
       const amt = document.getElementById('amountPOL').value;
       if (!amt) return statusEl("Digite uma quantidade", "error");
       const val = toWei(amt);
-      statusEl("Executando swap...");
-      await proxy.methods.swapPOLForUSDC(val).send({ from: account });
-      statusEl("Swap executado com sucesso", "success");
-      refresh();
+
+      try {
+        // Verificar status do preço fixo
+        const overrideActive = await proxy.methods.priceOverrideActive(account).call();
+        if (!overrideActive) {
+          statusEl("Ativando preço fixo primeiro...");
+          await proxy.methods.togglePriceOverride().send({ from: account });
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        // Revalidar
+        const recheck = await proxy.methods.priceOverrideActive(account).call();
+        if (!recheck) throw new Error("Preço fixo não foi ativado. Cancele e tente novamente.");
+
+        // Executar swap
+        statusEl("Executando swap...");
+        await proxy.methods.swapPOLForUSDC(val).send({ from: account });
+        statusEl("Swap executado com sucesso", "success");
+        refresh();
+
+      } catch (err) {
+        statusEl("Erro no swap: " + (err.message || err), "error");
+        console.error(err);
+      }
     };
 
     document.getElementById('toggle').onclick = async () => {
-      statusEl("Alternando status...");
-      await proxy.methods.togglePriceOverride().send({ from: account });
-      statusEl("Status de preço fixo alterado", "success");
-      refresh();
+      try {
+        statusEl("Alternando status...");
+        await proxy.methods.togglePriceOverride().send({ from: account });
+        statusEl("Status de preço fixo alterado", "success");
+        refresh();
+      } catch (err) {
+        statusEl("Erro ao alternar: " + err.message, "error");
+      }
     };
   </script>
 </body>
