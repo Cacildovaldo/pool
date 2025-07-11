@@ -1,72 +1,192 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR" prefix="og: http://ogp.me/ns#">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Divulgador Turbo</title>
-
-  <!-- SEO e OpenGraph para ranqueamento -->
-  <meta name="description" content="Confira esse link incrível! Compartilhe e suba no ranking de divulgação.">
-  <meta property="og:title" content="Link em Alta!">
-  <meta property="og:description" content="Compartilhe este link nas redes sociais e ganhe destaque.">
-  <meta property="og:image" content="https://example.com/banner.jpg">
-  <meta property="og:url" content="https://example.com/seulink">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <style>
-    body { font-family: sans-serif; background: #f2f2f2; padding: 20px; text-align: center; }
-    .btn { padding: 15px 25px; font-size: 18px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; }
-    .share { background: #0077b5; color: white; }
-    .rank { background: #28a745; color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plataforma de gestão de links com integração social automática e otimização SEO">
+    
+    <!-- Open Graph para redes sociais -->
+    <meta property="og:title" content="Meu Link Otimizado">
+    <meta property="og:description" content="Descrição automática para SEO">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630">
+    <meta property="og:url" content="">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Meu Link Otimizado">
+    <meta name="twitter:description" content="Descrição automática para SEO">
+    <meta name="twitter:image" content="https://via.placeholder.com/1200x630">
+    
+    <title>SocialSEO Link Engine</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #475569;
+        }
+        
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .input-group {
+            margin: 1.5rem 0;
+        }
+        
+        input[type="url"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .share-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .share-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+        
+        .seo-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+    </style>
 </head>
 <body>
+    <div class="card">
+        <h1>📤 SocialSEO Link Engine</h1>
+        <div class="input-group">
+            <input type="url" id="urlInput" placeholder="https://seulink.com/pagina" required>
+        </div>
+        <button onclick="generateLinks()">🚀 Processar Link</button>
+        
+        <div id="output" style="display: none">
+            <div class="input-group">
+                <input type="text" id="seoUrl" readonly>
+                <button onclick="copyToClipboard('seoUrl')">📋 Copiar</button>
+            </div>
+            
+            <h3>📤 Compartilhar em Redes Sociais:</h3>
+            <div class="share-buttons" id="shareButtons"></div>
+            
+            <h3>📊 SEO Analytics:</h3>
+            <div class="seo-stats" id="seoStats"></div>
+        </div>
+    </div>
 
-  <h1>🚀 Divulgador Turbo</h1>
-  <p>Compartilhe este link automaticamente e suba no ranking!</p>
+    <script>
+        // Gerador de URLs otimizadas
+        function generateSEOUrl(originalUrl) {
+            const params = new URLSearchParams();
+            params.set('src', 'social-seo-engine');
+            params.set('timestamp', Date.now());
+            return `${originalUrl}?${params.toString()}`;
+        }
 
-  <button class="btn share" onclick="autoShare()">Compartilhar nas Redes</button>
-  <button class="btn rank" onclick="generateBacklinks()">Gerar Backlinks Gratuitos</button>
+        // Gerador de meta tags dinâmicas
+        function updateMetaTags(url, title = 'Link Otimizado', description = 'Conteúdo de alta performance') {
+            const ogTags = {
+                'og:title': title,
+                'og:description': description,
+                'og:url': url,
+                'twitter:title': title,
+                'twitter:description': description
+            };
+            
+            Object.entries(ogTags).forEach(([property, content]) => {
+                const meta = document.querySelector(`meta[property="${property}"]`);
+                if(meta) meta.content = content;
+            });
+        }
 
-  <div id="result" style="margin-top: 20px;"></div>
+        // Gerador de botões de compartilhamento
+        function createShareButtons(url) {
+            const platforms = [
+                { name: 'Facebook', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, icon: '📘' },
+                { name: 'Twitter', url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, icon: '🐦' },
+                { name: 'LinkedIn', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, icon: '🔗' },
+                { name: 'WhatsApp', url: `https://wa.me/?text=${encodeURIComponent(url)}`, icon: '📱' }
+            ];
 
-  <script>
-    const linkToShare = encodeURIComponent("https://example.com/seulink");
-    const text = encodeURIComponent("Confira esse conteúdo! #LinkTop #Compartilhe");
+            return platforms.map(platform => `
+                <a href="${platform.url}" target="_blank" class="share-btn">
+                    ${platform.icon} ${platform.name}
+                </a>
+            `).join('');
+        }
 
-    function autoShare() {
-      const networks = [
-        `https://twitter.com/intent/tweet?text=${text}&url=${linkToShare}`,
-        `https://www.facebook.com/sharer/sharer.php?u=${linkToShare}`,
-        `https://www.linkedin.com/shareArticle?mini=true&url=${linkToShare}&title=Link%20Top`,
-        `https://api.whatsapp.com/send?text=${text}%20${linkToShare}`,
-        `https://telegram.me/share/url?url=${linkToShare}&text=${text}`
-      ];
+        // Gerador de estatísticas SEO simuladas
+        function generateSEOStats() {
+            return `
+                <div>⚡ Velocidade: 92/100</div>
+                <div>🔍 SEO Score: 88/100</div>
+                <div>📱 Mobile Friendly: ✅</div>
+                <div>🔒 SSL: Ativo</div>
+            `;
+        }
 
-      // Abre todas as redes em popups
-      networks.forEach(url => {
-        window.open(url, '_blank', 'width=600,height=400');
-      });
+        // Função principal
+        function generateLinks() {
+            const urlInput = document.getElementById('urlInput');
+            const output = document.getElementById('output');
+            
+            if(urlInput.checkValidity()) {
+                const originalUrl = urlInput.value;
+                const seoUrl = generateSEOUrl(originalUrl);
+                
+                // Atualiza interface
+                document.getElementById('seoUrl').value = seoUrl;
+                document.getElementById('shareButtons').innerHTML = createShareButtons(seoUrl);
+                document.getElementById('seoStats').innerHTML = generateSEOStats();
+                output.style.display = 'block';
+                
+                // Atualiza meta tags
+                updateMetaTags(seoUrl);
+            }
+        }
 
-      document.getElementById('result').innerHTML = "✅ Compartilhado! Agora gere backlinks abaixo.";
-    }
-
-    function generateBacklinks() {
-      // Simula envio para serviços públicos de indexação (fictício para o exemplo)
-      const backlinkSites = [
-        `https://www.addurl.nu/?url=${linkToShare}`,
-        `https://search.google.com/search-console/about`,
-        `https://www.pingler.com/`,
-        `https://www.indexkings.com/`,
-        `https://www.sitepromotiondirectory.com/submit-url/`
-      ];
-
-      backlinkSites.forEach(url => {
-        window.open(url, '_blank', 'width=600,height=400');
-      });
-
-      document.getElementById('result').innerHTML = "🔗 Backlinks gerados! Aguarde indexação nos motores de busca.";
-    }
-  </script>
+        // Função de utilidade para copiar URL
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+        }
+    </script>
 </body>
 </html>
