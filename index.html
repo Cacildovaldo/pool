@@ -1,160 +1,129 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>POL → USDC - Swap Manual</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.9.0/dist/web3.min.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f0f0f5;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      color: #6c5ce7;
-      text-align: center;
-    }
-    button, input {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px 0;
-      width: 100%;
-    }
-    .section {
-      background: white;
-      padding: 20px;
-      margin: 10px 0;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .status {
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-    }
-    .success { background: #d4edda; color: #155724; }
-    .error { background: #f8d7da; color: #721c24; }
-    .info { background: #d1ecf1; color: #0c5460; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Optimizer - Ranqueamento Gratuito</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #results {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .suggestion {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Swap Manual POL → USDC</h1>
+    <h1>SEO Optimizer - Melhore seu Ranqueamento Gratuitamente</h1>
+    <input type="text" id="urlInput" placeholder="Digite a URL do site (ex.: https://example.com)" style="width: 100%;">
+    <button onclick="analyzeSEO()">Analisar e Otimizar</button>
+    <div id="results"></div>
 
-  <div class="section">
-    <button id="connectWallet">Conectar Carteira</button>
-    <p id="account">Carteira: não conectada</p>
-    <p id="network">Rede: -</p>
-  </div>
+    <script>
+        // Simulação de palavras-chave populares (substituir por API real se disponível)
+        const trendingKeywords = ["tecnologia", "notícias", "saúde", "educação", "sustentabilidade"];
 
-  <div class="section">
-    <p>Saldo de POL: <span id="polBalance">-</span></p>
-    <p>Status Preço Fixo: <span id="overrideStatus">-</span></p>
-    <input id="amountPOL" type="number" placeholder="Quantidade de POL" step="0.0001" />
-    <button id="approve">1️⃣ Aprovar POL</button>
-    <button id="swap">2️⃣ Executar Swap</button>
-    <button id="toggle">🔁 Alternar Preço Fixo</button>
-    <div id="status" class="status"></div>
-  </div>
+        // Função para analisar a URL
+        async function analyzeSEO() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url || !url.match(/^https?:\/\/.+/)) {
+                displayResults('<p style="color: red;">Por favor, insira uma URL válida (ex.: https://example.com).</p>');
+                return;
+            }
 
-  <script>
-    const CONTRACT = "0x6Cc8B4a08be3D8e0C7Ef0F4C9eF1cD336f6DDc4d";
-    const POL_TOKEN = "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6";
-    const DECIMALS = 18;
+            try {
+                // Simulação de análise (substituir por chamada real à API ou fetch do site)
+                const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
 
-    const POL_ABI = [
-      { constant: true, name: "balanceOf", inputs: [{ name: "_owner", type: "address" }], outputs: [{ name: "balance", type: "uint256" }], type: "function" },
-      { constant: false, name: "approve", inputs: [{ name: "_spender", type: "address" }, { name: "_value", type: "uint256" }], outputs: [{ name: "success", type: "bool" }], type: "function" }
-    ];
+                // Análise do título
+                const title = doc.title || 'Sem título';
+                const titleSuggestion = title.length > 60 || title.length < 50
+                    ? `Título ideal: entre 50-60 caracteres, inclua palavras-chave (ex.: ${trendingKeywords[0]}).`
+                    : 'Título está bem otimizado.';
 
-    const PROXY_ABI = [
-      { name: "swapPOLForUSDC", type: "function", stateMutability: "nonpayable", inputs: [{ name: "amountPOL", type: "uint256" }], outputs: [] },
-      { name: "togglePriceOverride", type: "function", stateMutability: "nonpayable", inputs: [], outputs: [] },
-      { name: "priceOverrideActive", type: "function", stateMutability: "view", inputs: [{ name: "", type: "address" }], outputs: [{ name: "", type: "bool" }] }
-    ];
+                // Análise da meta descrição
+                const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || 'Sem meta descrição';
+                const metaSuggestion = metaDesc === 'Sem meta descrição'
+                    ? 'Adicione uma meta descrição de 150-160 caracteres com palavras-chave.'
+                    : 'Meta descrição está presente. Considere otimizá-la com palavras-chave.';
 
-    let web3, account, pol, proxy;
+                // Análise de palavras-chave no conteúdo
+                const content = doc.body.textContent.toLowerCase();
+                const keywordUsage = {};
+                trendingKeywords.forEach(kw => {
+                    const count = (content.match(new RegExp(`\\b${kw}\\b`, 'g')) || []).length;
+                    keywordUsage[kw] = count;
+                });
 
-    const statusEl = (msg, cls = 'info') => {
-      const el = document.getElementById('status');
-      el.className = `status ${cls}`;
-      el.innerText = msg;
-    };
+                // Sugestões de backlinks
+                const domain = new URL(url).hostname;
+                const backlinkSuggestions = [
+                    `Participe de fóruns como Reddit (ex.: r/${domain.split('.')[0]}) e compartilhe seu conteúdo de forma relevante.`,
+                    `Publique no X mencionando tópicos relacionados às palavras-chave do seu site (ex.: ${trendingKeywords[0]}).`,
+                    'Contribua com artigos em blogs gratuitos como Medium, linkando seu site no conteúdo.',
+                    'Comente em blogs relacionados ao seu nicho, incluindo seu link de forma natural.'
+                ];
 
-    const toWei = (amount) => web3.utils.toBN(amount * 10 ** DECIMALS);
-    const fromWei = (amount) => (Number(amount) / 10 ** DECIMALS).toFixed(4);
-
-    document.getElementById('connectWallet').onclick = async () => {
-      if (!window.ethereum) return alert("MetaMask não encontrado");
-      web3 = new Web3(window.ethereum);
-      await ethereum.request({ method: 'eth_requestAccounts' });
-      const chainId = await web3.eth.getChainId();
-      if (chainId !== 137) return statusEl("Conecte à rede Polygon (ChainID 137)", "error");
-      account = (await web3.eth.getAccounts())[0];
-      document.getElementById('account').innerText = `Carteira: ${account}`;
-      document.getElementById('network').innerText = "Rede: Polygon";
-      pol = new web3.eth.Contract(POL_ABI, POL_TOKEN);
-      proxy = new web3.eth.Contract(PROXY_ABI, CONTRACT);
-      refresh();
-    };
-
-    async function refresh() {
-      const bal = await pol.methods.balanceOf(account).call();
-      document.getElementById('polBalance').innerText = fromWei(bal);
-      const override = await proxy.methods.priceOverrideActive(account).call();
-      document.getElementById('overrideStatus').innerText = override ? "Ativado" : "Desativado";
-    }
-
-    document.getElementById('approve').onclick = async () => {
-      const amt = document.getElementById('amountPOL').value;
-      if (!amt) return statusEl("Digite uma quantidade", "error");
-      const val = toWei(amt);
-      statusEl("Aprovando tokens...");
-      await pol.methods.approve(CONTRACT, val).send({ from: account });
-      statusEl("Tokens aprovados", "success");
-    };
-
-    document.getElementById('swap').onclick = async () => {
-      const amt = document.getElementById('amountPOL').value;
-      if (!amt) return statusEl("Digite uma quantidade", "error");
-      const val = toWei(amt);
-
-      try {
-        // Verificar status do preço fixo
-        const overrideActive = await proxy.methods.priceOverrideActive(account).call();
-        if (!overrideActive) {
-          statusEl("Ativando preço fixo primeiro...");
-          await proxy.methods.togglePriceOverride().send({ from: account });
-          await new Promise(resolve => setTimeout(resolve, 1500));
+                // Exibir resultados
+                let resultHTML = `
+                    <h2>Análise do site: ${url}</h2>
+                    <p><strong>Título:</strong> ${title}</p>
+                    <p class="suggestion"><strong>Sugestão para o título:</strong> ${titleSuggestion}</p>
+                    <p><strong>Meta descrição:</strong> ${metaDesc}</p>
+                    <p class="suggestion"><strong>Sugestão para meta descrição:</strong> ${metaSuggestion}</p>
+                    <h3>Uso de palavras-chave no conteúdo:</h3>
+                    <ul>
+                        ${trendingKeywords.map(kw => `<li>${kw}: ${keywordUsage[kw]} ocorrências</li>`).join('')}
+                    </ul>
+                    <h3>Oportunidades de backlinks:</h3>
+                    <ul>
+                        ${backlinkSuggestions.map(s => `<li class="suggestion">${s}</li>`).join('')}
+                    </ul>
+                `;
+                displayResults(resultHTML);
+            } catch (error) {
+                displayResults(`<p style="color: red;">Erro ao analisar o site: ${error.message}</p>`);
+            }
         }
 
-        // Revalidar
-        const recheck = await proxy.methods.priceOverrideActive(account).call();
-        if (!recheck) throw new Error("Preço fixo não foi ativado. Cancele e tente novamente.");
-
-        // Executar swap
-        statusEl("Executando swap...");
-        await proxy.methods.swapPOLForUSDC(val).send({ from: account });
-        statusEl("Swap executado com sucesso", "success");
-        refresh();
-
-      } catch (err) {
-        statusEl("Erro no swap: " + (err.message || err), "error");
-        console.error(err);
-      }
-    };
-
-    document.getElementById('toggle').onclick = async () => {
-      try {
-        statusEl("Alternando status...");
-        await proxy.methods.togglePriceOverride().send({ from: account });
-        statusEl("Status de preço fixo alterado", "success");
-        refresh();
-      } catch (err) {
-        statusEl("Erro ao alternar: " + err.message, "error");
-      }
-    };
-  </script>
+        // Função para exibir resultados
+        function displayResults(html) {
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
 </body>
 </html>
