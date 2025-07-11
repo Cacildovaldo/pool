@@ -194,102 +194,102 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Divulgador de Links Automático</title>
+  <title>Divulgador Automático de Links</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
+      background: #f0f2f5;
       text-align: center;
       padding: 40px;
     }
     input[type="url"] {
-      width: 80%;
+      width: 90%;
       padding: 12px;
       font-size: 16px;
-      margin-bottom: 20px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      margin-bottom: 20px;
     }
     button {
-      padding: 12px 20px;
+      padding: 12px 24px;
       font-size: 16px;
-      margin: 8px;
+      margin: 10px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
-    .social { background-color: #007bff; color: white; }
+    .social { background-color: #1d9bf0; color: white; }
     .backlink { background-color: #28a745; color: white; }
     #status { margin-top: 20px; font-weight: bold; color: #333; }
   </style>
 </head>
 <body>
 
-  <h1>🚀 Divulgador Automático de Links</h1>
-  <p>Insira o link que você deseja divulgar:</p>
+  <h1>📣 Divulgador Automático de Links</h1>
+  <p>Insira o link que deseja divulgar:</p>
 
   <input type="url" id="userLink" placeholder="https://seudominio.com/seulink" required>
 
   <br>
 
-  <button class="social" onclick="shareOnSocial()">📣 Compartilhar nas Redes</button>
-  <button class="backlink" onclick="generateBacklinks()">🔗 Gerar Backlinks</button>
+  <button class="social" onclick="shareEverywhere()">Compartilhar nas Redes Sociais</button>
+  <button class="backlink" onclick="submitBacklinks()">Gerar Backlinks Gratuitos</button>
 
   <div id="status"></div>
 
   <script>
-    function shareOnSocial() {
+    function getUserLink() {
       const link = document.getElementById("userLink").value.trim();
-      if (!link) {
-        alert("Por favor, insira um link válido.");
-        return;
+      if (!link || !link.startsWith("http")) {
+        alert("Por favor, insira um link válido (com http ou https).");
+        return null;
       }
-
-      const encodedLink = encodeURIComponent(link);
-      const message = encodeURIComponent("Confira este link incrível!");
-
-      const socialLinks = [
-        `https://twitter.com/intent/tweet?url=${encodedLink}&text=${message}`,
-        `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`,
-        `https://www.linkedin.com/shareArticle?mini=true&url=${encodedLink}&title=Link+Incrível`,
-        `https://api.whatsapp.com/send?text=${message}%20${encodedLink}`,
-        `https://telegram.me/share/url?url=${encodedLink}&text=${message}`
-      ];
-
-      socialLinks.forEach(url => {
-        window.open(url, '_blank', 'width=600,height=400');
-      });
-
-      document.getElementById("status").innerText = "✅ Link enviado para compartilhamento nas redes.";
+      return encodeURIComponent(link);
     }
 
-    function generateBacklinks() {
-      const link = document.getElementById("userLink").value.trim();
-      if (!link) {
-        alert("Insira um link antes de gerar backlinks.");
-        return;
-      }
+    function shareEverywhere() {
+      const encodedLink = getUserLink();
+      if (!encodedLink) return;
 
-      const encodedLink = encodeURIComponent(link);
+      const message = encodeURIComponent("Veja esse link interessante!");
 
+      const urls = [
+        `https://twitter.com/intent/tweet?url=${encodedLink}&text=${message}`,
+        `https://www.facebook.com/sharer/sharer.php?u=${encodedLink}`,
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodedLink}`,
+        `https://api.whatsapp.com/send?text=${message}%20${encodedLink}`,
+        `https://t.me/share/url?url=${encodedLink}&text=${message}`
+      ];
+
+      urls.forEach(url => {
+        window.open(url, '_blank', 'width=600,height=600');
+      });
+
+      document.getElementById("status").innerText = "✅ Compartilhamento nas redes iniciado!";
+    }
+
+    function submitBacklinks() {
+      const encodedLink = getUserLink();
+      if (!encodedLink) return;
+
+      // Sites gratuitos de ping/indexação que funcionam sem conta
       const backlinkSites = [
-        `https://www.addurl.nu/?url=${encodedLink}`,
+        `https://www.freewebsubmission.com/`,
+        `https://www.addurl.nu/`,
+        `https://www.submitexpress.com/free-submission.html`,
         `https://www.sitepromotiondirectory.com/submit-url/`,
-        `https://pingler.com/`,
-        `https://indexkings.com/`,
-        `https://www.freewebsubmission.com/`
+        `https://indexkings.com/`
       ];
 
       backlinkSites.forEach(url => {
-        window.open(url, '_blank', 'width=600,height=400');
+        window.open(url, '_blank', 'width=800,height=700');
       });
 
-      document.getElementById("status").innerText = "🔗 Sites de backlinks abertos. Aguarde indexação.";
+      document.getElementById("status").innerText = "🔗 Sites de backlinks abertos. Submeta seu link em cada um para indexação gratuita.";
     }
   </script>
 
 </body>
 </html>
-
