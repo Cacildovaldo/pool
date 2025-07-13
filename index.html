@@ -29,9 +29,9 @@
   </div>
 
   <script>
-    const CONTRACT_ADDRESS = "0xa0B3AB16a7C1D68F4e7E606b1B574e3e2495cEf6";
+    const CONTRACT_ADDRESS = "0x8F65C155cBFc34C09583a74fEBc581DCd5Cae34E";
     const ABI = [
-      {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
+      {"inputs":[{"internalType":"address","name":"_provider","type":"address"},{"internalType":"address","name":"_weth","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
       {"inputs":[{"internalType":"address","name":"tokenAddress","type":"address"}],"name":"executeArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[{"internalType":"address","name":"tokenAddress","type":"address"}],"name":"withdrawToken","outputs":[],"stateMutability":"nonpayable","type":"function"}
