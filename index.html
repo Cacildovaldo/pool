@@ -2,78 +2,357 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Aave Flash Arbitrage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aave V3 Flash Arbitrage - Base Network</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2em; background: #f3f4f6; }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; }
-    button { background: #2563eb; color: white; font-weight: bold; }
-    button:hover { background: #1e40af; }
-    .status { margin-top: 1em; padding: 1em; border-radius: 6px; display: none; }
-    .success { background: #d1fae5; color: #065f46; display: block; }
-    .error { background: #fee2e2; color: #991b1b; display: block; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    h1 {
+      color: #2563eb;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: background 0.2s;
+      margin-bottom: 1rem;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .status {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: none;
+    }
+    .success {
+      background: #dcfce7;
+      color: #166534;
+      display: block;
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      display: block;
+    }
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+      display: block;
+    }
+    .wallet-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .wallet-address {
+      font-family: monospace;
+      background: #f1f5f9;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+    .network-info {
+      background: #e0f2fe;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .balance-info {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
-  <h2>Aave Flash Arbitrage (ape.store)</h2>
-  <button id="connectBtn">Connect Wallet</button>
-  <div id="app" style="display:none">
-    <p><strong>Wallet:</strong> <span id="wallet"></span></p>
-    <label>Token Address</label>
-    <input type="text" id="token" placeholder="0x...">
-    <button id="executeBtn">Execute Arbitrage</button>
-    <button id="withdrawBtn">Withdraw Profits</button>
-    <div id="status" class="status"></div>
+  <div class="card">
+    <h1>Aave V3 Flash Arbitrage</h1>
+    <p style="text-align: center; margin-bottom: 2rem;">Execute flash loans for arbitrage opportunities on Base Network</p>
+    
+    <div id="connect-section">
+      <button id="connectBtn">Connect Wallet</button>
+    </div>
+    
+    <div id="app" style="display: none;">
+      <div class="wallet-info">
+        <span>Connected wallet:</span>
+        <span id="wallet" class="wallet-address"></span>
+      </div>
+      
+      <div class="network-info">
+        Network: <span id="network">Base</span>
+      </div>
+      
+      <label for="token">Token Address for Arbitrage</label>
+      <input type="text" id="token" placeholder="0x...">
+      
+      <button id="executeBtn">Execute Flash Loan Arbitrage</button>
+      <button id="withdrawBtn">Withdraw Profits</button>
+      
+      <div class="balance-info">
+        <div>Contract ETH Balance: <span id="ethBalance">0</span></div>
+        <div>Contract Token Balance: <span id="tokenBalance">0</span></div>
+      </div>
+      
+      <div id="status" class="status"></div>
+    </div>
   </div>
+
   <script>
+    // Contract details
     const CONTRACT_ADDRESS = "0x269f5290F70ed7F26903cd7614f8beCBF35D25cf";
     const ABI = [
-      {"inputs":[{"internalType":"address","name":"_provider","type":"address"},{"internalType":"address","name":"_weth","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
-      {"inputs":[{"internalType":"address","name":"tokenAddress","type":"address"}],"name":"executeArbitrage","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"withdrawToken","outputs":[],"stateMutability":"nonpayable","type":"function"}
+      {
+        "inputs": [{"internalType":"address","name":"_poolAddressesProvider","type":"address"}],
+        "stateMutability":"nonpayable","type":"constructor"
+      },
+      {
+        "inputs": [
+          {"internalType":"address","name":"asset","type":"address"},
+          {"internalType":"uint256","name":"amount","type":"uint256"},
+          {"internalType":"uint256","name":"premium","type":"uint256"},
+          {"internalType":"address","name":"initiator","type":"address"},
+          {"internalType":"bytes","name":"params","type":"bytes"}
+        ],
+        "name":"executeOperation",
+        "outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"_token","type":"address"}],
+        "name":"getBalance",
+        "outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"_tokenAddress","type":"address"}],
+        "name":"requestFlashLoan",
+        "outputs":[],
+        "stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"address","name":"_token","type":"address"}],
+        "name":"withdrawProfits",
+        "outputs":[],
+        "stateMutability":"nonpayable","type":"function"
+      }
     ];
 
-    let web3, account, contract;
+    // Global variables
+    let web3, account, contract, chainId;
 
-    document.getElementById("connectBtn").onclick = async () => {
+    // Initialize
+    window.addEventListener('load', async () => {
       if (window.ethereum) {
+        try {
+          web3 = new Web3(window.ethereum);
+          await checkConnection();
+          
+          // Listen for account changes
+          window.ethereum.on('accountsChanged', (accounts) => {
+            account = accounts[0];
+            document.getElementById("wallet").textContent = shortenAddress(account);
+            updateBalances();
+          });
+          
+          // Listen for chain changes
+          window.ethereum.on('chainChanged', () => {
+            window.location.reload();
+          });
+        } catch (error) {
+          showError("Error initializing Web3: " + error.message);
+        }
+      } else {
+        showError("Please install MetaMask or another Web3 provider");
+      }
+    });
+
+    // Connect wallet handler
+    document.getElementById("connectBtn").onclick = async () => {
+      try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
-        web3 = new Web3(window.ethereum);
-        const accounts = await web3.eth.getAccounts();
-        account = accounts[0];
-        document.getElementById("wallet").textContent = account;
-        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-        document.getElementById("app").style.display = 'block';
+        await checkConnection();
+      } catch (error) {
+        showError("Connection failed: " + error.message);
       }
     };
 
+    // Execute arbitrage handler
     document.getElementById("executeBtn").onclick = async () => {
       const token = document.getElementById("token").value.trim();
-      if (!web3.utils.isAddress(token)) return show("Invalid token address", "error");
+      
+      if (!web3.utils.isAddress(token)) {
+        return showError("Please enter a valid token address");
+      }
+      
       try {
-        show("Executing arbitrage...", "info");
-        await contract.methods.executeArbitrage(token).send({ from: account });
-        show("Arbitrage completed!", "success");
-      } catch (err) {
-        console.error(err);
-        show("Arbitrage failed: " + err.message, "error");
+        showInfo("Initiating flash loan arbitrage...");
+        
+        // Estimate gas first
+        const gasEstimate = await contract.methods.requestFlashLoan(token)
+          .estimateGas({ from: account });
+          
+        // Execute with 20% more gas than estimate
+        await contract.methods.requestFlashLoan(token)
+          .send({ 
+            from: account,
+            gas: Math.floor(gasEstimate * 1.2)
+          });
+          
+        showSuccess("Arbitrage executed successfully!");
+        updateBalances();
+      } catch (error) {
+        const revertReason = parseRevertReason(error);
+        showError(`Arbitrage failed: ${revertReason}`);
+        console.error(error);
       }
     };
 
+    // Withdraw profits handler
     document.getElementById("withdrawBtn").onclick = async () => {
+      const token = document.getElementById("token").value.trim();
+      
+      if (!token || !web3.utils.isAddress(token)) {
+        return showError("Please enter a valid token address first");
+      }
+      
       try {
-        await contract.methods.withdraw().send({ from: account });
-        show("Withdraw successful!", "success");
-      } catch (err) {
-        show("Withdraw failed: " + err.message, "error");
+        showInfo("Withdrawing profits...");
+        
+        await contract.methods.withdrawProfits(token)
+          .send({ from: account });
+          
+        showSuccess("Profits withdrawn successfully!");
+        updateBalances();
+      } catch (error) {
+        const revertReason = parseRevertReason(error);
+        showError(`Withdraw failed: ${revertReason}`);
+        console.error(error);
       }
     };
 
-    function show(msg, type) {
-      const el = document.getElementById("status");
-      el.className = 'status ' + type;
-      el.textContent = msg;
+    // Token input change handler
+    document.getElementById("token").addEventListener("input", () => {
+      updateBalances();
+    });
+
+    // Helper functions
+    async function checkConnection() {
+      const accounts = await web3.eth.getAccounts();
+      if (accounts.length > 0) {
+        account = accounts[0];
+        chainId = await web3.eth.getChainId();
+        
+        // Verify we're on Base network (Chain ID 8453)
+        if (chainId !== 8453) {
+          showError("Please switch to Base Network (Chain ID 8453)");
+          return;
+        }
+        
+        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+        
+        document.getElementById("wallet").textContent = shortenAddress(account);
+        document.getElementById("connect-section").style.display = 'none';
+        document.getElementById("app").style.display = 'block';
+        
+        updateBalances();
+      }
+    }
+    
+    async function updateBalances() {
+      if (!contract || !account) return;
+      
+      try {
+        // Get ETH balance
+        const ethBalance = await contract.methods.getBalance("0x0000000000000000000000000000000000000000")
+          .call({ from: account });
+        document.getElementById("ethBalance").textContent = web3.utils.fromWei(ethBalance, 'ether');
+        
+        // Get token balance if address is valid
+        const tokenAddress = document.getElementById("token").value.trim();
+        if (web3.utils.isAddress(tokenAddress)) {
+          const tokenBalance = await contract.methods.getBalance(tokenAddress)
+            .call({ from: account });
+          document.getElementById("tokenBalance").textContent = web3.utils.fromWei(tokenBalance);
+        } else {
+          document.getElementById("tokenBalance").textContent = "0";
+        }
+      } catch (error) {
+        console.error("Error updating balances:", error);
+      }
+    }
+    
+    function shortenAddress(address) {
+      return address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '';
+    }
+    
+    function parseRevertReason(error) {
+      if (error.message.includes("revert")) {
+        return error.message.split("revert ")[1] || "Transaction reverted";
+      }
+      return error.message;
+    }
+    
+    function showInfo(message) {
+      const statusEl = document.getElementById("status");
+      statusEl.className = "status info";
+      statusEl.textContent = message;
+    }
+    
+    function showSuccess(message) {
+      const statusEl = document.getElementById("status");
+      statusEl.className = "status success";
+      statusEl.textContent = message;
+    }
+    
+    function showError(message) {
+      const statusEl = document.getElementById("status");
+      statusEl.className = "status error";
+      statusEl.textContent = message;
     }
   </script>
 </body>
