@@ -2,28 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Aave Flash Arbitrage - Final</title>
+  <title>Flash Arbitrage Final</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 2em; max-width: 600px; margin: auto; }
-    h2 { color: #333; }
-    input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
-    button { background-color: #1d4ed8; color: white; font-weight: bold; cursor: pointer; }
-    button:hover { background-color: #1e40af; }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 2em; background: #f3f4f6; }
+    h2 { color: #111827; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+    button { background: #1f2937; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background: #111827; }
     .status { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; }
-    .success { background-color: #dcfce7; color: #166534; display: block; }
-    .error { background-color: #fee2e2; color: #991b1b; display: block; }
+    .success { background: #dcfce7; color: #166534; display: block; }
+    .error { background: #fee2e2; color: #991b1b; display: block; }
   </style>
 </head>
 <body>
-  <h2>Aave Flash Arbitrage (ape.store)</h2>
+  <h2>Flash Arbitrage via Aave (Final)</h2>
   <button id="connectBtn">Connect Wallet</button>
   <div id="app" style="display:none">
     <p><strong>Wallet:</strong> <span id="wallet"></span></p>
-    <label for="token">Token Address:</label>
+    <label>Token Address:</label>
     <input type="text" id="token" placeholder="0x...">
     <button id="executeBtn">Execute Arbitrage</button>
-    <button id="withdrawBtn">Withdraw Profits</button>
+    <button id="withdrawBtn">Withdraw</button>
     <div id="status" class="status"></div>
   </div>
 
@@ -48,7 +48,7 @@
         contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
         document.getElementById("app").style.display = 'block';
       } else {
-        alert("Please install MetaMask to use this app.");
+        alert("Please install MetaMask.");
       }
     };
 
@@ -56,21 +56,20 @@
       const token = document.getElementById("token").value.trim();
       if (!web3.utils.isAddress(token)) return show("Invalid token address", "error");
       try {
-        show("Executing arbitrage...", "info");
+        show("Executing flash loan arbitrage...", "info");
         await contract.methods.executeArbitrage(token).send({ from: account });
-        show("Arbitrage executed successfully!", "success");
+        show("Arbitrage executed!", "success");
       } catch (err) {
-        console.error(err);
-        show("Error: " + err.message, "error");
+        show("Error: " + (err.message || "Transaction failed"), "error");
       }
     };
 
     document.getElementById("withdrawBtn").onclick = async () => {
       try {
         await contract.methods.withdraw().send({ from: account });
-        show("Withdrawn successfully!", "success");
+        show("Withdraw successful!", "success");
       } catch (err) {
-        show("Withdraw failed: " + err.message, "error");
+        show("Withdraw failed: " + (err.message || "error"), "error");
       }
     };
 
