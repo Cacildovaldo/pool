@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base Flash Arbitrage Bot</title>
+    <title>Base Flash Arbitrage Bot V2</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@metamask/onboarding@1.0.1/dist/metamask-onboarding.bundle.js"></script>
     <style>
@@ -154,11 +154,17 @@
         .transaction a:hover {
             text-decoration: underline;
         }
+        .token-check {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Base Flash Arbitrage Bot</h1>
+        <h1>Base Flash Arbitrage Bot V2</h1>
         
         <div class="card">
             <h2>Wallet Connection</h2>
@@ -187,6 +193,10 @@
                     <label for="tokenAddress"><strong>Token Address:</strong></label>
                     <input type="text" id="tokenAddress" placeholder="0x...">
                     
+                    <div id="tokenCheck" class="token-check" style="display: none;">
+                        <p><strong>Token Verification:</strong> <span id="tokenVerification"></span></p>
+                    </div>
+                    
                     <label for="loanAmount"><strong>Flash Loan Amount:</strong></label>
                     <input type="text" id="loanAmount" value="1 ETH" disabled>
                     
@@ -200,6 +210,7 @@
                     <h3>Token Information</h3>
                     <p><strong>Name:</strong> <span id="tokenName"></span></p>
                     <p><strong>Symbol:</strong> <span id="tokenSymbol"></span></p>
+                    <p><strong>Decimals:</strong> <span id="tokenDecimals"></span></p>
                     <p><strong>Total Supply:</strong> <span id="tokenSupply"></span></p>
                 </div>
             </div>
@@ -214,7 +225,7 @@
     </div>
 
     <script>
-        // Contract ABI
+        // Contract ABI - BaseFlashArbitrageV2
         const contractABI = [
             {
                 "inputs": [],
@@ -364,7 +375,7 @@
             }
         ];
 
-        // ERC20 ABI (partial)
+        // ERC20 ABI (extended)
         const erc20ABI = [
             {
                 "constant": true,
@@ -410,6 +421,15 @@
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ];
 
@@ -429,13 +449,13 @@
         let web3;
         let contract;
         let account;
-        let contractAddress = "0x131b01D9a8A5a41a88E847e7CEaF896c4053C05f"; // Replace with your deployed contract address
+        let contractAddress = "0xB31b6D6B4a5F0ea25652185403ba2Da83CEaC827"; // Replace with your deployed contract address
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('connectWallet').addEventListener('click', connectWallet);
             document.getElementById('executeArbitrage').addEventListener('click', executeArbitrage);
             document.getElementById('withdrawFunds').addEventListener('click', withdrawFunds);
-            document.getElementById('tokenAddress').addEventListener('blur', getTokenInfo);
+            document.getElementById('tokenAddress').addEventListener('input', checkToken);
 
             // Check if already connected
             if (window.ethereum && window.ethereum.selectedAddress) {
@@ -537,49 +557,77 @@
             }
         }
 
-        async function getTokenInfo() {
+        async function checkToken() {
             const tokenAddress = document.getElementById('tokenAddress').value.trim();
             
             if (!tokenAddress || !web3.utils.isAddress(tokenAddress)) {
                 document.getElementById('tokenInfo').style.display = 'none';
+                document.getElementById('tokenCheck').style.display = 'none';
                 return;
             }
+            
+            document.getElementById('tokenCheck').style.display = 'block';
+            document.getElementById('tokenVerification').textContent = 'Checking...';
             
             try {
                 const tokenContract = new web3.eth.Contract(erc20ABI, tokenAddress);
                 
+                // Check if token is valid
                 const [name, symbol, decimals, totalSupply] = await Promise.all([
-                    tokenContract.methods.name().call(),
-                    tokenContract.methods.symbol().call(),
-                    tokenContract.methods.decimals().call(),
-                    tokenContract.methods.totalSupply().call()
+                    tokenContract.methods.name().call().catch(() => "Unknown"),
+                    tokenContract.methods.symbol().call().catch(() => "UNKNOWN"),
+                    tokenContract.methods.decimals().call().catch(() => 18),
+                    tokenContract.methods.totalSupply().call().catch(() => "0")
                 ]);
+                
+                // Update verification status
+                document.getElementById('tokenVerification').textContent = 'Valid Token';
+                document.getElementById('tokenVerification').style.color = 'green';
+                
+                // Update token info
+                document.getElementById('tokenName').textContent = name;
+                document.getElementById('tokenSymbol').textContent = symbol;
+                document.getElementById('tokenDecimals').textContent = decimals;
                 
                 // Format supply
                 const formattedSupply = (totalSupply / (10 ** decimals)).toLocaleString(undefined, {
                     maximumFractionDigits: decimals
                 });
-                
-                // Update UI
-                document.getElementById('tokenName').textContent = name;
-                document.getElementById('tokenSymbol').textContent = symbol;
                 document.getElementById('tokenSupply').textContent = formattedSupply + ' ' + symbol;
                 
                 document.getElementById('tokenInfo').style.display = 'block';
                 
             } catch (error) {
-                showStatus('Error loading token info: ' + error.message, 'error');
+                document.getElementById('tokenVerification').textContent = 'Invalid Token';
+                document.getElementById('tokenVerification').style.color = 'red';
                 document.getElementById('tokenInfo').style.display = 'none';
+            }
+        }
+
+        async function checkArbitrage() {
+            const tokenAddress = document.getElementById('tokenAddress').value.trim();
+            
+            if (!tokenAddress || !web3.utils.isAddress(tokenAddress)) {
+                showStatus('Please enter a valid token address', 'error');
+                return false;
+            }
+
+            try {
+                // Check if token is valid
+                const tokenContract = new web3.eth.Contract(erc20ABI, tokenAddress);
+                await tokenContract.methods.decimals().call();
+                
+                return true;
+            } catch (error) {
+                showStatus('Invalid token contract: ' + error.message, 'error');
+                return false;
             }
         }
 
         async function executeArbitrage() {
             const tokenAddress = document.getElementById('tokenAddress').value.trim();
             
-            if (!tokenAddress || !web3.utils.isAddress(tokenAddress)) {
-                showStatus('Please enter a valid token address', 'error');
-                return;
-            }
+            if (!await checkArbitrage()) return;
             
             try {
                 const button = document.getElementById('executeArbitrage');
@@ -588,21 +636,33 @@
                 
                 showStatus('Executing arbitrage...', 'info');
                 
-                // Execute arbitrage
+                // Execute arbitrage with higher gas limit
                 const tx = await contract.methods.executeArbitrage(tokenAddress).send({
                     from: account,
-                    gas: 500000
+                    gas: 800000,
+                    gasPrice: await web3.eth.getGasPrice()
                 });
                 
                 addTransactionToHistory('Arbitrage Executed', tx.transactionHash);
                 showStatus('Arbitrage executed successfully!', 'success');
                 
-                // Update balances
                 await updateWalletInfo();
                 
             } catch (error) {
                 showStatus('Arbitrage failed: ' + error.message, 'error');
                 addTransactionToHistory('Arbitrage Failed', error.message);
+                
+                // Check if it's a revert with a reason
+                if (error.message.includes("revert")) {
+                    try {
+                        const txHash = error.receipt.transactionHash;
+                        const tx = await web3.eth.getTransaction(txHash);
+                        const result = await web3.eth.call(tx, tx.blockNumber);
+                        showStatus('Revert reason: ' + result, 'error');
+                    } catch (e) {
+                        console.error('Could not decode revert reason:', e);
+                    }
+                }
             } finally {
                 const button = document.getElementById('executeArbitrage');
                 button.disabled = false;
