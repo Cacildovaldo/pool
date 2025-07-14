@@ -1,61 +1,263 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash Loan Arbitrage</title>
+    <title>Flash Loan Arbitrage - Base</title>
     <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
     <style>
-        /* (Mantido igual ao anterior) */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0052ff;
+            text-align: center;
+        }
+        button {
+            background-color: #0052ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin: 8px 0;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #003ad6;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .success {
+            background-color: #e6ffed;
+            color: #0a6f3c;
+            border: 1px solid #79d1a1;
+            display: block;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #f44336;
+            display: block;
+        }
+        #walletAddress {
+            font-family: monospace;
+            word-break: break-all;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Flash Loan Arbitrage (Base)</h1>
+        <h1>Flash Loan Arbitrage</h1>
+        <p>Execute empréstimos flash na Base para arbitragem automática</p>
         
-        <button id="connectWallet">Connect Wallet</button>
-        <p id="walletAddress">Not connected</p>
+        <button id="connectWallet">🔗 Conectar Carteira</button>
+        <p><strong>Endereço:</strong> <span id="walletAddress">Não conectado</span></p>
 
-        <h3>Trade Parameters</h3>
-        <label for="tokenAddress">Token Address:</label>
-        <input type="text" id="tokenAddress" placeholder="0x...">
+        <h3>Configuração do Trade</h3>
+        <label for="tokenAddress">Token para Arbitrar:</label>
+        <input type="text" id="tokenAddress" placeholder="0x..." value="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913">
         
-        <label for="poolFee">Uniswap Pool Fee (500 = 0.05%):</label>
-        <input type="number" id="poolFee" placeholder="500">
+        <label for="poolFee">Taxa do Pool Uniswap:</label>
+        <select id="poolFee">
+            <option value="100">0.01% (Pool VIP)</option>
+            <option value="500" selected>0.05% (Mais comum)</option>
+            <option value="3000">0.3% (Pools menos líquidos)</option>
+            <option value="10000">1% (Pools especiais)</option>
+        </select>
         
-        <label for="minProfit">Minimum Profit (ETH):</label>
-        <input type="number" id="minProfit" placeholder="0.01" step="0.001">
+        <label for="minProfit">Lucro Mínimo (ETH):</label>
+        <input type="number" id="minProfit" placeholder="0.01" step="0.001" value="0.01">
 
-        <button id="executeTrade">Execute Flash Loan Trade</button>
+        <button id="executeTrade" disabled>⚡ Executar Flash Loan (1 ETH)</button>
 
         <div id="status" class="status"></div>
     </div>
 
     <script>
+        // ABI do contrato (simplificada)
         const contractABI = [
-            {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
-            {"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"uint24","name":"_poolFee","type":"uint24"},{"internalType":"uint256","name":"_minProfit","type":"uint256"}],"name":"executeTrade","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}
+            {
+                "inputs": [
+                    {"internalType":"address","name":"_token","type":"address"},
+                    {"internalType":"uint24","name":"_poolFee","type":"uint24"},
+                    {"internalType":"uint256","name":"_minProfit","type":"uint256"}
+                ],
+                "name":"executeTrade",
+                "outputs":[],
+                "stateMutability":"nonpayable",
+                "type":"function"
+            },
+            {
+                "inputs":[],
+                "name":"owner",
+                "outputs":[{"internalType":"address","name":"","type":"address"}],
+                "stateMutability":"view",
+                "type":"function"
+            }
         ];
 
-        let provider, signer, contract;
+        // Endereço do seu contrato
         const contractAddress = "0x6568Fd502C604157C433BdA98D5668f3Ad50533E";
 
-        document.getElementById("executeTrade").onclick = async () => {
-            const token = document.getElementById("tokenAddress").value;
-            const fee = parseInt(document.getElementById("poolFee").value);
-            const minProfit = ethers.utils.parseEther(document.getElementById("minProfit").value || "0");
+        // Variáveis globais
+        let provider, signer, contract, userAddress;
 
-            try {
-                const tx = await contract.executeTrade(token, fee, minProfit);
-                await tx.wait();
-                updateStatus("Trade executed successfully! Profit sent to your wallet", "success");
-            } catch (err) {
-                updateStatus(`Error: ${err.message}`, "error");
+        // Elementos da página
+        const connectBtn = document.getElementById("connectWallet");
+        const walletEl = document.getElementById("walletAddress");
+        const executeBtn = document.getElementById("executeTrade");
+        const statusEl = document.getElementById("status");
+
+        // Conectar carteira
+        connectBtn.onclick = async () => {
+            if (window.ethereum) {
+                try {
+                    // Solicitar conexão
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Configurar ethers.js
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    userAddress = await signer.getAddress();
+                    
+                    // Atualizar UI
+                    walletEl.textContent = userAddress;
+                    connectBtn.textContent = "✅ Conectado";
+                    executeBtn.disabled = false;
+                    
+                    // Carregar contrato
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+                    
+                    // Verificar se é o owner
+                    const owner = await contract.owner();
+                    if (owner.toLowerCase() !== userAddress.toLowerCase()) {
+                        updateStatus("Atenção: Você não é o dono deste contrato!", "error");
+                        executeBtn.disabled = true;
+                    } else {
+                        updateStatus("Carteira conectada com sucesso!", "success");
+                    }
+                    
+                    // Ouvir por mudanças de conta
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        if (accounts.length === 0) {
+                            walletEl.textContent = "Não conectado";
+                            connectBtn.textContent = "🔗 Conectar Carteira";
+                            executeBtn.disabled = true;
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error(error);
+                    updateStatus(`Erro: ${error.message}`, "error");
+                }
+            } else {
+                updateStatus("MetaMask não instalado!", "error");
             }
         };
 
-        // (Restante do código JS igual ao anterior)
+        // Executar trade
+        executeBtn.onclick = async () => {
+            const tokenAddress = document.getElementById("tokenAddress").value;
+            const poolFee = parseInt(document.getElementById("poolFee").value);
+            const minProfit = document.getElementById("minProfit").value;
+            
+            // Validar entradas
+            if (!ethers.utils.isAddress(tokenAddress)) {
+                updateStatus("Endereço do token inválido!", "error");
+                return;
+            }
+            
+            if (isNaN(poolFee) || poolFee <= 0) {
+                updateStatus("Taxa do pool inválida!", "error");
+                return;
+            }
+            
+            try {
+                executeBtn.disabled = true;
+                executeBtn.textContent = "⏳ Processando...";
+                
+                updateStatus("Enviando transação...", "success");
+                
+                // Converter para wei
+                const minProfitWei = ethers.utils.parseEther(minProfit);
+                
+                // Chamar contrato
+                const tx = await contract.executeTrade(
+                    tokenAddress,
+                    poolFee,
+                    minProfitWei
+                );
+                
+                updateStatus(`Transação enviada: ${tx.hash}`, "success");
+                
+                // Esperar confirmação
+                await tx.wait();
+                
+                updateStatus("✅ Trade executado com sucesso! Lucro enviado para sua carteira.", "success");
+                
+            } catch (error) {
+                console.error(error);
+                updateStatus(`Erro: ${error.message}`, "error");
+            } finally {
+                executeBtn.disabled = false;
+                executeBtn.textContent = "⚡ Executar Flash Loan (1 ETH)";
+            }
+        };
+
+        // Atualizar status
+        function updateStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            
+            // Auto-esconder após 10 segundos
+            if (type === "success") {
+                setTimeout(() => {
+                    statusEl.style.display = "none";
+                }, 10000);
+            }
+        }
+
+        // Verificar se já está conectado ao carregar a página
+        window.addEventListener('load', async () => {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                connectBtn.click();
+            }
+        });
     </script>
 </body>
 </html>
