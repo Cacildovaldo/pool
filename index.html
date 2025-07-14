@@ -76,6 +76,12 @@
             padding: 10px;
             border-radius: 6px;
         }
+        #networkInfo {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +91,7 @@
         
         <button id="connectWallet">🔗 Conectar Carteira</button>
         <p><strong>Endereço:</strong> <span id="walletAddress">Não conectado</span></p>
+        <div id="networkInfo">Rede: Não conectado</div>
 
         <h3>Configuração do Trade</h3>
         <label for="tokenAddress">Token para Arbitrar:</label>
@@ -107,6 +114,16 @@
     </div>
 
     <script>
+        // Configurações da rede Base
+        const BASE_CHAIN_ID = '0x2105'; // 8453 em decimal
+        const BASE_RPC_URL = 'https://mainnet.base.org';
+        const BASE_EXPLORER_URL = 'https://basescan.org';
+        const BASE_CURRENCY = {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18
+        };
+
         // ABI do contrato (simplificada)
         const contractABI = [
             {
@@ -138,57 +155,116 @@
         // Elementos da página
         const connectBtn = document.getElementById("connectWallet");
         const walletEl = document.getElementById("walletAddress");
+        const networkEl = document.getElementById("networkInfo");
         const executeBtn = document.getElementById("executeTrade");
         const statusEl = document.getElementById("status");
 
-        // Conectar carteira
-        connectBtn.onclick = async () => {
-            if (window.ethereum) {
-                try {
-                    // Solicitar conexão
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    // Configurar ethers.js
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-                    userAddress = await signer.getAddress();
-                    
-                    // Atualizar UI
-                    walletEl.textContent = userAddress;
-                    connectBtn.textContent = "✅ Conectado";
-                    executeBtn.disabled = false;
-                    
-                    // Carregar contrato
-                    contract = new ethers.Contract(contractAddress, contractABI, signer);
-                    
-                    // Verificar se é o owner
-                    const owner = await contract.owner();
-                    if (owner.toLowerCase() !== userAddress.toLowerCase()) {
-                        updateStatus("Atenção: Você não é o dono deste contrato!", "error");
-                        executeBtn.disabled = true;
-                    } else {
-                        updateStatus("Carteira conectada com sucesso!", "success");
-                    }
-                    
-                    // Ouvir por mudanças de conta
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        if (accounts.length === 0) {
-                            walletEl.textContent = "Não conectado";
-                            connectBtn.textContent = "🔗 Conectar Carteira";
-                            executeBtn.disabled = true;
-                        } else {
-                            window.location.reload();
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error(error);
-                    updateStatus(`Erro: ${error.message}`, "error");
-                }
-            } else {
+        // Verificar e adicionar a rede Base se necessário
+        async function setupBaseNetwork() {
+            if (!window.ethereum) {
                 updateStatus("MetaMask não instalado!", "error");
+                return false;
+            }
+
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                
+                if (chainId !== BASE_CHAIN_ID) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: BASE_CHAIN_ID,
+                                chainName: 'Base Mainnet',
+                                nativeCurrency: BASE_CURRENCY,
+                                rpcUrls: [BASE_RPC_URL],
+                                blockExplorerUrls: [BASE_EXPLORER_URL]
+                            }]
+                        });
+                    } catch (addError) {
+                        updateStatus(`Erro ao adicionar a rede Base: ${addError.message}`, "error");
+                        return false;
+                    }
+                }
+                return true;
+            } catch (error) {
+                updateStatus(`Erro ao verificar a rede: ${error.message}`, "error");
+                return false;
+            }
+        }
+
+        // Conectar carteira e verificar rede
+        connectBtn.onclick = async () => {
+            if (!window.ethereum) {
+                updateStatus("MetaMask não instalado!", "error");
+                return;
+            }
+
+            try {
+                // Verificar/Configurar rede Base
+                const networkReady = await setupBaseNetwork();
+                if (!networkReady) return;
+
+                // Solicitar conexão
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // Configurar ethers.js
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                // Verificar se estamos na rede Base
+                const network = await provider.getNetwork();
+                if (network.chainId !== parseInt(BASE_CHAIN_ID, 16)) {
+                    updateStatus("Por favor, conecte-se à rede Base!", "error");
+                    return;
+                }
+                
+                // Atualizar UI
+                walletEl.textContent = userAddress;
+                networkEl.textContent = `Rede: Base (${BASE_CHAIN_ID})`;
+                connectBtn.textContent = "✅ Conectado";
+                executeBtn.disabled = false;
+                
+                // Carregar contrato
+                contract = new ethers.Contract(contractAddress, contractABI, signer);
+                
+                // Verificar se é o owner
+                const owner = await contract.owner();
+                if (owner.toLowerCase() !== userAddress.toLowerCase()) {
+                    updateStatus("Atenção: Você não é o dono deste contrato!", "error");
+                    executeBtn.disabled = true;
+                } else {
+                    updateStatus("Carteira conectada com sucesso à rede Base!", "success");
+                }
+                
+                // Ouvir por mudanças de conta/rede
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    if (accounts.length === 0) {
+                        disconnectWallet();
+                    } else {
+                        window.location.reload();
+                    }
+                });
+
+                window.ethereum.on('chainChanged', () => {
+                    window.location.reload();
+                });
+                
+            } catch (error) {
+                console.error(error);
+                updateStatus(`Erro: ${error.message}`, "error");
             }
         };
+
+        // Desconectar carteira
+        function disconnectWallet() {
+            walletEl.textContent = "Não conectado";
+            networkEl.textContent = "Rede: Não conectado";
+            connectBtn.textContent = "🔗 Conectar Carteira";
+            executeBtn.disabled = true;
+            statusEl.style.display = "none";
+        }
 
         // Executar trade
         executeBtn.onclick = async () => {
@@ -243,8 +319,9 @@
         function updateStatus(message, type) {
             statusEl.textContent = message;
             statusEl.className = `status ${type}`;
+            statusEl.style.display = "block";
             
-            // Auto-esconder após 10 segundos
+            // Auto-esconder após 10 segundos (apenas para sucesso)
             if (type === "success") {
                 setTimeout(() => {
                     statusEl.style.display = "none";
