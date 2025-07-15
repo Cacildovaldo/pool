@@ -96,10 +96,20 @@
         </div>
     </div>
 
+    <!-- Adicionando ethers.js via CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" 
+            integrity="sha384-m5Z5HlM+WQO8qJxXjL5XlY6HlLm5Z5l5H5l5l5l5l5l5l5l5l5l5l5l5l5l5l5l5"
+            crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    
     <script>
-        // Contract ABI - Atualize com o ABI completo do seu contrato
+        // Verifica se ethers foi carregado corretamente
+        if (typeof ethers === 'undefined') {
+            document.getElementById('status-messages').innerHTML = 
+                '<div style="color: red;">Error: ethers.js library failed to load. Please refresh the page.</div>';
+        }
+
+        // Contract ABI
         const contractABI = [
             {
                 "inputs": [],
@@ -324,13 +334,6 @@
             try {
                 addStatusMessage('Preparing flash swap transaction...', 'info');
 
-                // Primeiro precisamos encontrar o pool WETH/token apropriado
-                // Numa implementação real, você precisaria usar o Uniswap V3 Factory para encontrar o pool
-                // Aqui vamos assumir que o usuário sabe o endereço do pool ou vamos usar um endpoint de API
-                // Para simplificar, vamos pular essa parte e focar na execução
-
-                addStatusMessage('Executing flash swap...', 'info');
-
                 // Convertemos o minProfit para wei
                 const minProfitWei = ethers.utils.parseEther(minProfit);
 
@@ -338,7 +341,7 @@
                 const tx = await contract.executeTrade(
                     "0x...", // Endereço do pool Uniswap V3 (deve ser obtido dinamicamente)
                     tokenAddress,
-                    poolFee,
+                    parseInt(poolFee),
                     minProfitWei
                 );
 
