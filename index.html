@@ -1,508 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flash Loan Arbitrage - Base Network</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #0052FF;
-            --secondary-color: #0B0D17;
-            --accent-color: #00FF85;
-        }
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-        }
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            padding: 10px 20px;
-        }
-        .btn-primary:hover {
-            background-color: #0041cc;
-        }
-        .btn-success {
-            background-color: var(--accent-color);
-            border: none;
-            color: var(--secondary-color);
-            padding: 10px 20px;
-        }
-        .btn-success:hover {
-            background-color: #00e676;
-        }
-        .token-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-        }
-        .network-indicator {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: inline-flex;
-            align-items: center;
-        }
-        .network-indicator i {
-            margin-right: 5px;
-            color: var(--primary-color);
-        }
-        .form-control {
-            border-radius: 10px;
-            padding: 12px 15px;
-        }
-        .status-box {
-            background-color: #f0f5ff;
-            border-left: 4px solid var(--primary-color);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .contract-link {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-        .contract-link:hover {
-            text-decoration: underline;
-        }
-        .wallet-info {
-            background-color: #e9ecef;
-            border-radius: 10px;
-            padding: 10px 15px;
-            margin-bottom: 20px;
-        }
-        .tab-content {
-            padding: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flash Swap Arbitrage - Base</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial; background: #f4f4f4; padding: 40px; }
+    .container { background: white; padding: 20px; max-width: 500px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, select, button { width: 100%; margin-bottom: 15px; padding: 10px; font-size: 1rem; }
+    button { background: #0052ff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #003bb3; }
+    .status { margin-top: 10px; font-size: 0.9rem; color: #333; }
+  </style>
 </head>
 <body>
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header text-center py-3">
-                        <h2><i class="fas fa-bolt"></i> Flash Loan Arbitrage</h2>
-                        <div class="network-indicator mt-2">
-                            <i class="fas fa-link"></i> Base Network
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="wallet-info d-flex justify-content-between align-items-center" id="walletInfo" style="display: none !important;">
-                            <div>
-                                <strong>Connected:</strong> 
-                                <span id="walletAddress"></span>
-                            </div>
-                            <button class="btn btn-sm btn-outline-secondary" id="disconnectWallet">
-                                <i class="fas fa-sign-out-alt"></i> Disconnect
-                            </button>
-                        </div>
+  <div class="container">
+    <h2>Flash Swap Arbitrage</h2>
+    
+    <label for="pool">Endereço do Pool (Uniswap V3)</label>
+    <input type="text" id="pool" placeholder="0x..."/>
 
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="trade-tab" data-bs-toggle="tab" data-bs-target="#trade" type="button" role="tab">Execute Trade</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">Contract Info</button>
-                            </li>
-                        </ul>
+    <label for="token">Token a ser Arbitrado</label>
+    <input type="text" id="token" placeholder="0x..."/>
 
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="trade" role="tabpanel">
-                                <div class="status-box" id="statusMessage">
-                                    <i class="fas fa-info-circle"></i> Connect your wallet to start
-                                </div>
+    <label for="fee">Taxa do Pool (Fee Tier)</label>
+    <select id="fee">
+      <option value="100">0.01%</option>
+      <option value="500">0.05%</option>
+      <option value="3000" selected>0.3%</option>
+      <option value="10000">1%</option>
+    </select>
 
-                                <div class="mb-4" id="connectSection">
-                                    <button class="btn btn-primary w-100" id="connectWallet">
-                                        <i class="fas fa-wallet"></i> Connect MetaMask
-                                    </button>
-                                </div>
+    <label for="minProfit">Lucro Mínimo (em ETH)</label>
+    <input type="number" id="minProfit" step="0.001" value="0.01" />
 
-                                <div id="tradeForm" style="display: none;">
-                                    <div class="mb-3">
-                                        <label for="tokenAddress" class="form-label">Token Address (Base Network)</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="tokenAddress" placeholder="0x...">
-                                            <button class="btn btn-outline-secondary" type="button" id="addTokenToWallet">
-                                                <i class="fas fa-plus"></i> Add to Wallet
-                                            </button>
-                                        </div>
-                                    </div>
+    <button id="connectBtn">Conectar MetaMask</button>
+    <button id="executeBtn" disabled>Operar Flash Swap</button>
 
-                                    <div class="mb-3">
-                                        <label for="poolFee" class="form-label">Uniswap Pool Fee Tier</label>
-                                        <select class="form-select" id="poolFee">
-                                            <option value="100">0.01%</option>
-                                            <option value="500">0.05%</option>
-                                            <option value="3000" selected>0.3%</option>
-                                            <option value="10000">1%</option>
-                                        </select>
-                                    </div>
+    <div class="status" id="status">Status: Desconectado</div>
+  </div>
 
-                                    <div class="mb-3">
-                                        <label for="minProfit" class="form-label">Minimum Profit (ETH)</label>
-                                        <input type="number" class="form-control" id="minProfit" step="0.001" min="0.001" value="0.01">
-                                    </div>
+  <script>
+    const contractAddress = "0xc2787256933BF935FB167CA8C0F65aEAeCd34C46"; // ex: 0x123...
+    const contractABI = [
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_pool", "type": "address" },
+          { "internalType": "address", "name": "_token", "type": "address" },
+          { "internalType": "uint24", "name": "_fee", "type": "uint24" },
+          { "internalType": "uint256", "name": "_minProfit", "type": "uint256" }
+        ],
+        "name": "executeTrade",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
 
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle"></i> Flash loan amount: <strong>4 ETH</strong>
-                                    </div>
+    let web3;
+    let contract;
+    let userAccount;
 
-                                    <button class="btn btn-success w-100 py-3" id="executeTrade">
-                                        <i class="fas fa-rocket"></i> Execute Flash Loan Arbitrage
-                                    </button>
-                                </div>
-                            </div>
+    const connectBtn = document.getElementById("connectBtn");
+    const executeBtn = document.getElementById("executeBtn");
+    const status = document.getElementById("status");
 
-                            <div class="tab-pane fade" id="info" role="tabpanel">
-                                <h5><i class="fas fa-file-contract"></i> Contract Details</h5>
-                                <p>
-                                    <strong>Contract Address:</strong> 
-                                    <a href="https://basescan.org/address/0x253CDbBf54C4DC87a0d5257b862F18b4B81a930a" target="_blank" class="contract-link">
-                                        0x253CDbBf54C4DC87a0d5257b862F18b4B81a930a
-                                    </a>
-                                </p>
-                                <p>
-                                    <strong>Network:</strong> Base Mainnet (ChainID: 8453)
-                                </p>
-                                <p>
-                                    <strong>Owner:</strong> <span id="contractOwner"></span>
-                                </p>
-                                <p>
-                                    <strong>Flash Loan Provider:</strong> dYdX
-                                </p>
-                                <p>
-                                    <strong>DEX:</strong> Uniswap V3
-                                </p>
-                                <hr>
-                                <h5><i class="fas fa-info-circle"></i> How it works</h5>
-                                <ol>
-                                    <li>Borrow 4 ETH via flash loan from dYdX</li>
-                                    <li>Swap ETH for target token on Uniswap V3</li>
-                                    <li>Swap token back to ETH on Uniswap V3</li>
-                                    <li>Repay 4 ETH flash loan</li>
-                                    <li>Profit is sent to developer wallet</li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    connectBtn.onclick = async () => {
+      if (typeof window.ethereum === "undefined") {
+        alert("MetaMask não encontrada!");
+        return;
+      }
 
-    <!-- Transaction Modal -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="transactionModalTitle">Transaction in Progress</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p id="transactionModalText">Waiting for transaction confirmation...</p>
-                    <a href="#" id="transactionLink" target="_blank" style="display: none;">View on Explorer</a>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+      web3 = new Web3(window.ethereum);
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <script>
-        // Contract ABI
-        const contractABI = [
-            {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "_token",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint24",
-                        "name": "_poolFee",
-                        "type": "uint24"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "_minProfit",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "executeTrade",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            }
-        ];
-
-        // Contract address
-        const contractAddress = "0x253CDbBf54C4DC87a0d5257b862F18b4B81a930a";
-
-        // Base Network configuration
-        const baseNetwork = {
-            chainId: "0x2105",
-            chainName: "Base Mainnet",
-            nativeCurrency: {
-                name: "Ethereum",
-                symbol: "ETH",
-                decimals: 18
-            },
-            rpcUrls: ["https://mainnet.base.org"],
-            blockExplorerUrls: ["https://basescan.org/"]
-        };
-
-        // DOM elements
-        const connectWalletBtn = document.getElementById('connectWallet');
-        const disconnectWalletBtn = document.getElementById('disconnectWallet');
-        const walletInfo = document.getElementById('walletInfo');
-        const walletAddress = document.getElementById('walletAddress');
-        const tradeForm = document.getElementById('tradeForm');
-        const executeTradeBtn = document.getElementById('executeTrade');
-        const addTokenToWalletBtn = document.getElementById('addTokenToWallet');
-        const statusMessage = document.getElementById('statusMessage');
-        const contractOwner = document.getElementById('contractOwner');
-        const transactionModal = new bootstrap.Modal(document.getElementById('transactionModal'));
-        const transactionModalText = document.getElementById('transactionModalText');
-        const transactionLink = document.getElementById('transactionLink');
-
-        // Web3 and contract instance
-        let web3;
-        let contract;
-        let accounts = [];
-
-        // Initialize the application
-        async function init() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                contract = new web3.eth.Contract(contractABI, contractAddress);
-                
-                try {
-                    // Check if already connected
-                    accounts = await web3.eth.getAccounts();
-                    if (accounts.length > 0) {
-                        onWalletConnected(accounts[0]);
-                    }
-                    
-                    // Get contract owner
-                    const owner = await contract.methods.owner().call();
-                    contractOwner.textContent = owner;
-                    
-                    // Listen for account changes
-                    window.ethereum.on('accountsChanged', (newAccounts) => {
-                        if (newAccounts.length === 0) {
-                            onWalletDisconnected();
-                        } else {
-                            onWalletConnected(newAccounts[0]);
-                        }
-                    });
-                    
-                    // Listen for chain changes
-                    window.ethereum.on('chainChanged', (chainId) => {
-                        if (parseInt(chainId) !== parseInt(baseNetwork.chainId)) {
-                            statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Please switch to Base Network`;
-                            tradeForm.style.display = 'none';
-                        } else {
-                            statusMessage.innerHTML = `<i class="fas fa-check-circle"></i> Connected to Base Network`;
-                            tradeForm.style.display = 'block';
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error("Error initializing:", error);
-                }
-            } else {
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> MetaMask not detected. Please install MetaMask to use this dApp.`;
-                connectWalletBtn.style.display = 'none';
-            }
+      try {
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== "0x2105") {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x2105" }] // Base Mainnet
+          });
         }
 
-        // Connect wallet handler
-        connectWalletBtn.addEventListener('click', async () => {
-            if (!window.ethereum) {
-                alert('MetaMask is not installed. Please install it to use this dApp.');
-                return;
-            }
-            
-            try {
-                // Request account access
-                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                
-                // Check if connected to Base Network
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                
-                if (parseInt(chainId) !== parseInt(baseNetwork.chainId)) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: baseNetwork.chainId }],
-                        });
-                    } catch (switchError) {
-                        // This error code indicates that the chain has not been added to MetaMask
-                        if (switchError.code === 4902) {
-                            try {
-                                await window.ethereum.request({
-                                    method: 'wallet_addEthereumChain',
-                                    params: [baseNetwork],
-                                });
-                            } catch (addError) {
-                                console.error("Error adding Base Network:", addError);
-                                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to add Base Network to MetaMask`;
-                                return;
-                            }
-                        } else {
-                            console.error("Error switching to Base Network:", switchError);
-                            statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to switch to Base Network`;
-                            return;
-                        }
-                    }
-                }
-                
-                onWalletConnected(accounts[0]);
-            } catch (error) {
-                console.error("Error connecting wallet:", error);
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to connect wallet`;
-            }
-        });
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        userAccount = accounts[0];
+        status.textContent = `Conectado: ${userAccount}`;
+        executeBtn.disabled = false;
 
-        // Disconnect wallet handler
-        disconnectWalletBtn.addEventListener('click', () => {
-            onWalletDisconnected();
-        });
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+      } catch (err) {
+        console.error(err);
+        status.textContent = "Erro ao conectar.";
+      }
+    };
 
-        // Execute trade handler
-        executeTradeBtn.addEventListener('click', async () => {
-            const tokenAddress = document.getElementById('tokenAddress').value;
-            const poolFee = document.getElementById('poolFee').value;
-            const minProfit = document.getElementById('minProfit').value;
-            
-            if (!web3.utils.isAddress(tokenAddress)) {
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Invalid token address`;
-                return;
-            }
-            
-            if (!minProfit || parseFloat(minProfit) <= 0) {
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Please enter a valid minimum profit`;
-                return;
-            }
-            
-            try {
-                transactionModal.show();
-                transactionModalText.textContent = "Waiting for transaction confirmation...";
-                transactionLink.style.display = 'none';
-                
-                // Convert minProfit from ETH to wei
-                const minProfitWei = web3.utils.toWei(minProfit, 'ether');
-                
-                // Execute the trade
-                const tx = await contract.methods.executeTrade(
-                    tokenAddress,
-                    poolFee,
-                    minProfitWei
-                ).send({ from: accounts[0] });
-                
-                transactionLink.href = `https://basescan.org/tx/${tx.transactionHash}`;
-                transactionLink.style.display = 'block';
-                transactionModalText.textContent = "Transaction confirmed!";
-                
-                statusMessage.innerHTML = `<i class="fas fa-check-circle"></i> Trade executed successfully!`;
-            } catch (error) {
-                console.error("Error executing trade:", error);
-                transactionModalText.textContent = "Transaction failed";
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Trade failed: ${error.message}`;
-            }
-        });
+    executeBtn.onclick = async () => {
+      const pool = document.getElementById("pool").value;
+      const token = document.getElementById("token").value;
+      const fee = document.getElementById("fee").value;
+      const minProfit = document.getElementById("minProfit").value;
 
-        // Add token to wallet handler
-        addTokenToWalletBtn.addEventListener('click', async () => {
-            const tokenAddress = document.getElementById('tokenAddress').value;
-            
-            if (!web3.utils.isAddress(tokenAddress)) {
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Invalid token address`;
-                return;
-            }
-            
-            try {
-                // This is a simplified version - in a real app you might want to fetch token details
-                await window.ethereum.request({
-                    method: 'wallet_watchAsset',
-                    params: {
-                        type: 'ERC20',
-                        options: {
-                            address: tokenAddress,
-                            symbol: 'TOKEN', // You might want to fetch the actual symbol
-                            decimals: 18, // You might want to fetch the actual decimals
-                            image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', // Default image
-                        },
-                    },
-                });
-                
-                statusMessage.innerHTML = `<i class="fas fa-check-circle"></i> Token added to wallet`;
-            } catch (error) {
-                console.error("Error adding token to wallet:", error);
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to add token to wallet`;
-            }
-        });
+      if (!web3.utils.isAddress(pool) || !web3.utils.isAddress(token)) {
+        alert("Endereços inválidos.");
+        return;
+      }
 
-        // Wallet connected handler
-        function onWalletConnected(account) {
-            walletAddress.textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
-            walletInfo.style.display = 'flex';
-            connectWalletBtn.style.display = 'none';
-            tradeForm.style.display = 'block';
-            statusMessage.innerHTML = `<i class="fas fa-check-circle"></i> Connected to Base Network`;
-        }
+      const minProfitWei = web3.utils.toWei(minProfit, "ether");
 
-        // Wallet disconnected handler
-        function onWalletDisconnected() {
-            walletInfo.style.display = 'none';
-            connectWalletBtn.style.display = 'block';
-            tradeForm.style.display = 'none';
-            statusMessage.innerHTML = `<i class="fas fa-info-circle"></i> Connect your wallet to start`;
-        }
+      status.textContent = "Enviando transação...";
 
-        // Initialize the app when the page loads
-        window.addEventListener('load', init);
-    </script>
+      try {
+        const tx = await contract.methods.executeTrade(pool, token, fee, minProfitWei)
+          .send({ from: userAccount });
+
+        status.innerHTML = `✅ Transação enviada: <a href="https://basescan.org/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash}</a>`;
+      } catch (err) {
+        console.error(err);
+        status.textContent = "❌ Transação falhou: " + err.message;
+      }
+    };
+  </script>
 </body>
 </html>
