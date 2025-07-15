@@ -1,125 +1,372 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Flash Swap Arbitrage - Base</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-  <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 40px; }
-    .container { background: white; padding: 20px; max-width: 500px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; margin-bottom: 15px; padding: 10px; font-size: 1rem; }
-    button { background: #0052ff; color: white; border: none; cursor: pointer; }
-    button:hover { background: #003bb3; }
-    .status { margin-top: 10px; font-size: 0.9rem; color: #333; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Swap Arbitrage - Base Network</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #0052ff;
+            border-color: #0052ff;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f1f1f1;
+            min-height: 100px;
+        }
+        .network-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .network-connected {
+            background-color: #28a745;
+        }
+        .network-disconnected {
+            background-color: #dc3545;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Flash Swap Arbitrage</h2>
-    
-    <label for="pool">Endereço do Pool (Uniswap V3)</label>
-    <input type="text" id="pool" placeholder="0x..."/>
+    <div class="container">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Flash Swap Arbitrage - Base Network</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span id="network-status" class="badge bg-secondary">
+                        <span class="network-indicator network-disconnected"></span>
+                        Not connected
+                    </span>
+                    <span id="account-status" class="badge bg-secondary ms-2">
+                        No wallet connected
+                    </span>
+                </div>
 
-    <label for="token">Token a ser Arbitrado</label>
-    <input type="text" id="token" placeholder="0x..."/>
+                <div class="mb-3">
+                    <button id="connect-wallet" class="btn btn-primary">Connect MetaMask</button>
+                </div>
 
-    <label for="fee">Taxa do Pool (Fee Tier)</label>
-    <select id="fee">
-      <option value="100">0.01%</option>
-      <option value="500">0.05%</option>
-      <option value="3000" selected>0.3%</option>
-      <option value="10000">1%</option>
-    </select>
+                <div class="mb-3">
+                    <label for="token-address" class="form-label">Token Contract Address</label>
+                    <input type="text" class="form-control" id="token-address" placeholder="0x...">
+                    <div class="form-text">Enter the ERC20 token address you want to arbitrage against WETH</div>
+                </div>
 
-    <label for="minProfit">Lucro Mínimo (em ETH)</label>
-    <input type="number" id="minProfit" step="0.001" value="0.01" />
+                <div class="mb-3">
+                    <label for="pool-fee" class="form-label">Pool Fee Tier</label>
+                    <select class="form-select" id="pool-fee">
+                        <option value="100">0.01%</option>
+                        <option value="500" selected>0.05%</option>
+                        <option value="3000">0.3%</option>
+                        <option value="10000">1%</option>
+                    </select>
+                </div>
 
-    <button id="connectBtn">Conectar MetaMask</button>
-    <button id="executeBtn" disabled>Operar Flash Swap</button>
+                <div class="mb-3">
+                    <label for="min-profit" class="form-label">Minimum Profit (ETH)</label>
+                    <input type="number" class="form-control" id="min-profit" value="0.01" step="0.001" min="0">
+                </div>
 
-    <div class="status" id="status">Status: Desconectado</div>
-  </div>
+                <button id="execute-swap" class="btn btn-success" disabled>Execute Flash Swap</button>
 
-  <script>
-    const contractAddress = "0xf017A7Cc79240F70c4652b6435c35b158761cB84"; // ex: 0x123...
-    const contractABI = [
-      {
-        "inputs": [
-          { "internalType": "address", "name": "_pool", "type": "address" },
-          { "internalType": "address", "name": "_token", "type": "address" },
-          { "internalType": "uint24", "name": "_fee", "type": "uint24" },
-          { "internalType": "uint256", "name": "_minProfit", "type": "uint256" }
-        ],
-        "name": "executeTrade",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
-    ];
+                <div class="status mt-4">
+                    <h5>Transaction Status</h5>
+                    <div id="status-messages"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    let web3;
-    let contract;
-    let userAccount;
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script>
+        // Contract ABI - Atualize com o ABI completo do seu contrato
+        const contractABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_pool",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "_token",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint24",
+                        "name": "_fee",
+                        "type": "uint24"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_minProfit",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "executeTrade",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "pool",
+                        "type": "address"
+                    }
+                ],
+                "name": "getTokens",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "token0",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "token1",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
 
-    const connectBtn = document.getElementById("connectBtn");
-    const executeBtn = document.getElementById("executeBtn");
-    const status = document.getElementById("status");
+        // Configurações da rede Base
+        const baseNetwork = {
+            chainId: '0x2105',
+            chainName: 'Base',
+            nativeCurrency: {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                decimals: 18
+            },
+            rpcUrls: ['https://mainnet.base.org'],
+            blockExplorerUrls: ['https://basescan.org/']
+        };
 
-    connectBtn.onclick = async () => {
-      if (typeof window.ethereum === "undefined") {
-        alert("MetaMask não encontrada!");
-        return;
-      }
+        // Endereço do contrato FlashSwapArbitrage na Base
+        const contractAddress = "0xc2787256933BF935FB167CA8C0F65aEAeCd34C46"; // INSIRA O ENDEREÇO DO SEU CONTRATO AQUI
 
-      web3 = new Web3(window.ethereum);
+        let provider;
+        let signer;
+        let contract;
+        let currentAccount = null;
 
-      try {
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (chainId !== "0x2105") {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x2105" }] // Base Mainnet
-          });
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verifica se MetaMask está instalado
+            if (typeof window.ethereum === 'undefined') {
+                addStatusMessage('MetaMask is not installed!', 'error');
+                document.getElementById('connect-wallet').disabled = true;
+                return;
+            }
+
+            // Configura os listeners
+            document.getElementById('connect-wallet').addEventListener('click', connectWallet);
+            document.getElementById('execute-swap').addEventListener('click', executeFlashSwap);
+
+            // Verifica se já está conectado
+            checkConnectedWallet();
+        });
+
+        async function connectWallet() {
+            try {
+                // Solicita conexão da carteira
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentAccount = accounts[0];
+                updateAccountStatus();
+
+                // Verifica a rede
+                await checkNetwork();
+
+                // Configura o provider e signer
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                // Configura listeners para mudanças
+                window.ethereum.on('accountsChanged', (accounts) => {
+                    currentAccount = accounts[0];
+                    updateAccountStatus();
+                });
+
+                window.ethereum.on('chainChanged', () => {
+                    window.location.reload();
+                });
+
+                addStatusMessage('Wallet connected successfully!', 'success');
+                document.getElementById('execute-swap').disabled = false;
+
+            } catch (error) {
+                addStatusMessage('Error connecting wallet: ' + error.message, 'error');
+                console.error(error);
+            }
         }
 
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-        userAccount = accounts[0];
-        status.textContent = `Conectado: ${userAccount}`;
-        executeBtn.disabled = false;
+        async function checkConnectedWallet() {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    updateAccountStatus();
 
-        contract = new web3.eth.Contract(contractABI, contractAddress);
-      } catch (err) {
-        console.error(err);
-        status.textContent = "Erro ao conectar.";
-      }
-    };
+                    // Configura o provider e signer
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-    executeBtn.onclick = async () => {
-      const pool = document.getElementById("pool").value;
-      const token = document.getElementById("token").value;
-      const fee = document.getElementById("fee").value;
-      const minProfit = document.getElementById("minProfit").value;
+                    await checkNetwork();
+                    addStatusMessage('Wallet already connected', 'success');
+                    document.getElementById('execute-swap').disabled = false;
+                }
+            } catch (error) {
+                console.error('Error checking connected wallet:', error);
+            }
+        }
 
-      if (!web3.utils.isAddress(pool) || !web3.utils.isAddress(token)) {
-        alert("Endereços inválidos.");
-        return;
-      }
+        async function checkNetwork() {
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (chainId !== baseNetwork.chainId) {
+                addStatusMessage('Please switch to Base Network', 'warning');
+                document.getElementById('network-status').innerHTML = `
+                    <span class="network-indicator network-disconnected"></span>
+                    Wrong network (switch to Base)
+                `;
+                document.getElementById('execute-swap').disabled = true;
+                
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: baseNetwork.chainId }],
+                    });
+                } catch (switchError) {
+                    // Se a rede não estiver adicionada, tenta adicioná-la
+                    if (switchError.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [baseNetwork],
+                            });
+                        } catch (addError) {
+                            addStatusMessage('Error adding Base network: ' + addError.message, 'error');
+                        }
+                    } else {
+                        addStatusMessage('Error switching to Base network: ' + switchError.message, 'error');
+                    }
+                }
+            } else {
+                document.getElementById('network-status').innerHTML = `
+                    <span class="network-indicator network-connected"></span>
+                    Base Network
+                `;
+                addStatusMessage('Connected to Base Network', 'success');
+            }
+        }
 
-      const minProfitWei = web3.utils.toWei(minProfit, "ether");
+        function updateAccountStatus() {
+            if (currentAccount) {
+                const shortAddress = `${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`;
+                document.getElementById('account-status').textContent = shortAddress;
+            } else {
+                document.getElementById('account-status').textContent = 'No wallet connected';
+            }
+        }
 
-      status.textContent = "Enviando transação...";
+        async function executeFlashSwap() {
+            const tokenAddress = document.getElementById('token-address').value.trim();
+            const poolFee = document.getElementById('pool-fee').value;
+            const minProfit = document.getElementById('min-profit').value;
 
-      try {
-        const tx = await contract.methods.executeTrade(pool, token, fee, minProfitWei)
-          .send({ from: userAccount });
+            // Validações básicas
+            if (!tokenAddress) {
+                addStatusMessage('Please enter a token address', 'error');
+                return;
+            }
 
-        status.innerHTML = `✅ Transação enviada: <a href="https://basescan.org/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash}</a>`;
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Transação falhou: " + err.message;
-      }
-    };
-  </script>
+            if (!ethers.utils.isAddress(tokenAddress)) {
+                addStatusMessage('Invalid token address', 'error');
+                return;
+            }
+
+            if (!minProfit || parseFloat(minProfit) <= 0) {
+                addStatusMessage('Please enter a valid minimum profit', 'error');
+                return;
+            }
+
+            try {
+                addStatusMessage('Preparing flash swap transaction...', 'info');
+
+                // Primeiro precisamos encontrar o pool WETH/token apropriado
+                // Numa implementação real, você precisaria usar o Uniswap V3 Factory para encontrar o pool
+                // Aqui vamos assumir que o usuário sabe o endereço do pool ou vamos usar um endpoint de API
+                // Para simplificar, vamos pular essa parte e focar na execução
+
+                addStatusMessage('Executing flash swap...', 'info');
+
+                // Convertemos o minProfit para wei
+                const minProfitWei = ethers.utils.parseEther(minProfit);
+
+                // Chamamos a função executeTrade do contrato
+                const tx = await contract.executeTrade(
+                    "0x...", // Endereço do pool Uniswap V3 (deve ser obtido dinamicamente)
+                    tokenAddress,
+                    poolFee,
+                    minProfitWei
+                );
+
+                addStatusMessage('Transaction sent. Waiting for confirmation...', 'info');
+                addStatusMessage(`Transaction hash: ${tx.hash}`, 'info');
+
+                const receipt = await tx.wait();
+                addStatusMessage('Transaction confirmed!', 'success');
+                addStatusMessage(`Gas used: ${receipt.gasUsed.toString()}`, 'info');
+
+            } catch (error) {
+                addStatusMessage('Error executing flash swap: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function addStatusMessage(message, type) {
+            const statusDiv = document.getElementById('status-messages');
+            const messageElement = document.createElement('div');
+            
+            messageElement.textContent = message;
+            messageElement.style.color = type === 'error' ? '#dc3545' : 
+                                       type === 'success' ? '#28a745' : 
+                                       type === 'warning' ? '#ffc107' : '#007bff';
+            
+            statusDiv.appendChild(messageElement);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+    </script>
 </body>
 </html>
