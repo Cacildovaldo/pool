@@ -1,144 +1,150 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bot de Compra e Venda - Uniswap V3 Base</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <title>ApeStore Token Trade - Base Network</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial; background: #f8f8f8; padding: 40px; }
-    .container { background: #fff; padding: 20px; max-width: 500px; margin: auto; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select, button { width: 100%; margin-bottom: 15px; padding: 10px; font-size: 1rem; }
-    button { background: #007bff; color: white; border: none; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .status { font-size: 0.9rem; margin-top: 10px; color: #333; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0a0a23;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      background: linear-gradient(45deg, #4fc3f7, #00e676);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    input, button {
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      width: 100%;
+    }
+    input {
+      background: #1f1f3a;
+      color: white;
+    }
+    button {
+      background-color: #4fc3f7;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00e676;
+    }
+    .container {
+      max-width: 400px;
+      width: 100%;
+      background: #151531;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(79, 195, 247, 0.2);
+    }
+    label {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+  <h1>Negociar Token ApeStore (Base)</h1>
   <div class="container">
-    <h2>Operador de Compra/Venda Automática</h2>
+    <button onclick="connectWallet()">🔌 Conectar Carteira</button>
+    <label>Endereço do Token:</label>
+    <input id="tokenAddress" placeholder="0x..." />
+    
+    <label>Comprar com ETH</label>
+    <input id="ethAmount" type="number" step="0.001" placeholder="Quantidade em ETH" />
+    <button onclick="buyToken()">🛒 Comprar Token</button>
+    
+    <label>Vender Token</label>
+    <input id="tokenAmount" type="number" step="0.001" placeholder="Quantidade a vender" />
+    <button onclick="sellToken()">💸 Vender Token</button>
 
-    <label for="contract">Endereço do Contrato</label>
-    <input type="text" id="contract" placeholder="0xe2600f67728EC87932a4A97D866232D39a662076">
-
-    <label for="token">Token Alvo (ERC20)</label>
-    <input type="text" id="token" placeholder="0x...">
-
-    <label for="fee">Fee Tier da Pool (Uniswap V3)</label>
-    <select id="fee">
-      <option value="100">0.01%</option>
-      <option value="500" selected>0.05%</option>
-      <option value="3000">0.3%</option>
-      <option value="10000">1%</option>
-    </select>
-
-    <label for="ethValue">Valor em ETH para operar</label>
-    <input type="number" id="ethValue" placeholder="0.01" step="0.001">
-
-    <label for="minOut">Valor mínimo de retorno (ETH)</label>
-    <input type="number" id="minOut" placeholder="0.005" step="0.001">
-
-    <button id="connectBtn">Conectar MetaMask</button>
-    <button id="executeBtn" disabled>Operar</button>
-
-    <div class="status" id="status">Status: Aguardando...</div>
+    <div id="status" style="margin-top:20px;"></div>
   </div>
 
-  <script>
-    const abi = [
-      {
-        "inputs": [
-          {"internalType": "address", "name": "_weth", "type": "address"},
-          {"internalType": "address", "name": "_router", "type": "address"}
-        ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-      },
-      {
-        "inputs": [
-          {"internalType": "address", "name": "token", "type": "address"},
-          {"internalType": "uint24", "name": "fee", "type": "uint24"},
-          {"internalType": "uint256", "name": "minOut", "type": "uint256"}
-        ],
-        "name": "buyAndSellToken",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "owner",
-        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {"indexed": false, "internalType": "uint256", "name": "ethIn", "type": "uint256"},
-          {"indexed": false, "internalType": "uint256", "name": "ethOut", "type": "uint256"},
-          {"indexed": false, "internalType": "int256", "name": "profitPercent", "type": "int256"}
-        ],
-        "name": "OperationComplete",
-        "type": "event"
-      }
-    ];
+<script>
+  let web3;
+  let contract;
+  let selectedTokenAddress = "";
+  let account = "";
 
-    let web3;
-    let user;
-    let contractInstance;
+  const ABI = [
+    { "inputs": [], "name": "buy", "outputs": [], "stateMutability": "payable", "type": "function" },
+    { "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "sell", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+    { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+    { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+  ];
 
-    const connectBtn = document.getElementById("connectBtn");
-    const executeBtn = document.getElementById("executeBtn");
-    const status = document.getElementById("status");
-
-    connectBtn.onclick = async () => {
-      if (!window.ethereum) return alert("MetaMask não encontrada.");
-      web3 = new Web3(window.ethereum);
-
+  async function connectWallet() {
+    if (window.ethereum) {
       try {
-        await ethereum.request({ method: "eth_requestAccounts" });
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        web3 = new Web3(window.ethereum);
+        const chainId = await web3.eth.getChainId();
+        if (chainId !== 8453) {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x2105" }] // Base mainnet
+          });
+        }
         const accounts = await web3.eth.getAccounts();
-        user = accounts[0];
-        status.textContent = "✅ Conectado: " + user;
-        executeBtn.disabled = false;
+        account = accounts[0];
+        document.getElementById("status").innerText = "Carteira conectada: " + account;
       } catch (err) {
-        status.textContent = "❌ Falha ao conectar.";
-        console.error(err);
+        document.getElementById("status").innerText = "Erro ao conectar: " + err.message;
       }
-    };
+    } else {
+      alert("Instale o MetaMask para continuar.");
+    }
+  }
 
-    executeBtn.onclick = async () => {
-      const contractAddress = document.getElementById("contract").value.trim();
-      const token = document.getElementById("token").value.trim();
-      const fee = parseInt(document.getElementById("fee").value);
-      const ethValue = parseFloat(document.getElementById("ethValue").value);
-      const minOut = parseFloat(document.getElementById("minOut").value);
+  async function loadContract() {
+    selectedTokenAddress = document.getElementById("tokenAddress").value;
+    if (!selectedTokenAddress || selectedTokenAddress.length !== 42) {
+      alert("Endereço inválido do contrato!");
+      return null;
+    }
+    return new web3.eth.Contract(ABI, selectedTokenAddress);
+  }
 
-      if (!web3.utils.isAddress(contractAddress) || !web3.utils.isAddress(token)) {
-        return alert("Endereços inválidos.");
-      }
-      if (ethValue <= 0 || minOut <= 0) {
-        return alert("Preencha os valores de ETH corretamente.");
-      }
+  async function buyToken() {
+    const value = document.getElementById("ethAmount").value;
+    if (!value || parseFloat(value) <= 0) return alert("Digite uma quantidade válida.");
+    try {
+      contract = await loadContract();
+      await contract.methods.buy().send({
+        from: account,
+        value: web3.utils.toWei(value, "ether")
+      });
+      document.getElementById("status").innerText = "✅ Compra realizada com sucesso!";
+    } catch (e) {
+      document.getElementById("status").innerText = "Erro ao comprar: " + e.message;
+    }
+  }
 
-      contractInstance = new web3.eth.Contract(abi, contractAddress);
-
-      status.textContent = "⏳ Enviando transação...";
-
-      try {
-        const tx = await contractInstance.methods.buyAndSellToken(
-          token,
-          fee,
-          web3.utils.toWei(minOut.toString(), "ether")
-        ).send({ from: user, value: web3.utils.toWei(ethValue.toString(), "ether") });
-
-        status.innerHTML = `✅ Operação enviada! <a href="https://basescan.org/tx/${tx.transactionHash}" target="_blank">Ver transação</a>`;
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Erro: " + err.message;
-      }
-    };
-  </script>
+  async function sellToken() {
+    const amount = document.getElementById("tokenAmount").value;
+    if (!amount || parseFloat(amount) <= 0) return alert("Digite uma quantidade válida.");
+    try {
+      contract = await loadContract();
+      const amountWei = web3.utils.toWei(amount, "ether");
+      await contract.methods.sell(amountWei).send({ from: account });
+      document.getElementById("status").innerText = "✅ Venda realizada com sucesso!";
+    } catch (e) {
+      document.getElementById("status").innerText = "Erro ao vender: " + e.message;
+    }
+  }
+</script>
 </body>
 </html>
