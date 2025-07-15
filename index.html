@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Flash Swap Braba - Base</title>
+  <title>Flash Swap Arbitrage - Base</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body { font-family: Arial; background: #f0f0f0; padding: 40px; }
@@ -39,7 +39,7 @@
   </div>
 
   <script>
-    const CONTRACT_ADDRESS = "0xc2787256933BF935FB167CA8C0F65aEAeCd34C46";
+    const CONTRACT_ADDRESS = "0xBDD3BfAf8a379a7d1518990D0A8697E05875B81D";
     const UNISWAP_FACTORY = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
     const WETH = "0x4200000000000000000000000000000000000006";
 
@@ -59,11 +59,6 @@
 
     const contractABI = [
       {
-        "inputs": [],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-      },
-      {
         "inputs": [
           { "internalType": "address", "name": "_pool", "type": "address" },
           { "internalType": "address", "name": "_token", "type": "address" },
@@ -76,15 +71,6 @@
         "type": "function"
       },
       {
-        "inputs": [],
-        "name": "owner",
-        "outputs": [
-          { "internalType": "address", "name": "", "type": "address" }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
         "inputs": [
           { "internalType": "address", "name": "pool", "type": "address" }
         ],
@@ -92,6 +78,15 @@
         "outputs": [
           { "internalType": "address", "name": "token0", "type": "address" },
           { "internalType": "address", "name": "token1", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
         ],
         "stateMutability": "view",
         "type": "function"
