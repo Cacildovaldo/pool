@@ -85,6 +85,7 @@
     <input id="minProfit" type="number" step="0.001" value="0.01">
 
     <button id="executeTrade" disabled>⚡ Executar Flash Loan</button>
+    <button id="withdrawProfit" style="display: none;">💸 Sacar Lucro</button>
 
     <div id="status" class="status" style="display: none;"></div>
   </div>
@@ -109,15 +110,23 @@
         "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
         "stateMutability": "view",
         "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
       }
     ];
 
     const connectWalletBtn = document.getElementById('connectWallet');
     const executeBtn = document.getElementById('executeTrade');
+    const withdrawBtn = document.getElementById('withdrawProfit');
     const statusBox = document.getElementById('status');
     const walletDisplay = document.getElementById('wallet');
 
-    let provider, signer, contract;
+    let provider, signer, contract, userAddress;
 
     function showStatus(msg, type = "success") {
       statusBox.textContent = msg;
@@ -133,7 +142,8 @@
 
       try {
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-        walletDisplay.textContent = accounts[0];
+        userAddress = accounts[0];
+        walletDisplay.textContent = userAddress;
 
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
@@ -147,8 +157,18 @@
           });
         }
 
-        showStatus("Carteira conectada com sucesso!", "success");
+        // Verifica se é o dono
+        const owner = await contract.owner();
+        if (owner.toLowerCase() === userAddress.toLowerCase()) {
+          showStatus("Carteira conectada (Owner).", "success");
+          withdrawBtn.style.display = "block";
+        } else {
+          showStatus("Carteira conectada, mas não é o dono do contrato.", "success");
+          withdrawBtn.style.display = "none";
+        }
+
         executeBtn.disabled = false;
+
       } catch (err) {
         showStatus("Erro ao conectar: " + err.message, "error");
       }
@@ -182,6 +202,17 @@
         showStatus("Transação confirmada com sucesso!", "success");
       } catch (err) {
         showStatus("Erro na execução: " + (err?.reason || err.message), "error");
+      }
+    };
+
+    withdrawBtn.onclick = async () => {
+      try {
+        const tx = await contract.withdraw();
+        showStatus("Solicitando saque: " + tx.hash, "success");
+        await tx.wait();
+        showStatus("💸 Lucro sacado com sucesso!", "success");
+      } catch (err) {
+        showStatus("Erro ao sacar: " + (err?.reason || err.message), "error");
       }
     };
   </script>
