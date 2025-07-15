@@ -18,7 +18,7 @@
   <div class="container">
     <h2>Flash Swap Arbitrage</h2>
 
-    <label for="token">Token a ser Arbitrado (ERC20)</label>
+    <label for="token">Token para Arbitragem (ERC20)</label>
     <input type="text" id="token" placeholder="0x..."/>
 
     <label for="fee">Taxa da Pool (Fee Tier)</label>
@@ -119,22 +119,26 @@
 
       const minProfit = web3.utils.toWei(minProfitEth, "ether");
 
-      status.textContent = "🔍 Buscando pool na Uniswap...";
+      status.textContent = "🔍 Procurando pool...";
 
       try {
-        // Sempre ordena os tokens corretamente
         const [tokenA, tokenB] = token.toLowerCase() < WETH.toLowerCase()
-          ? [token, WETH]
-          : [WETH, token];
+          ? [token, WETH] : [WETH, token];
 
         const pool = await factory.methods.getPool(tokenA, tokenB, fee).call();
         if (pool === "0x0000000000000000000000000000000000000000") {
-          return status.textContent = "❌ Pool não encontrada com essa taxa.";
+          return status.textContent = "❌ Pool não encontrada para esse token e taxa.";
+        }
+
+        const code = await web3.eth.getCode(pool);
+        if (code === '0x') {
+          return status.textContent = "❌ Endereço da pool inválido.";
         }
 
         status.textContent = "🚀 Enviando transação...";
+
         const tx = await contract.methods.executeTrade(pool, token, fee, minProfit)
-          .send({ from: user });
+          .send({ from: user, gas: 1500000 });
 
         status.innerHTML = `✅ Flash swap executado! <a href="https://basescan.org/tx/${tx.transactionHash}" target="_blank">Ver transação</a>`;
       } catch (err) {
