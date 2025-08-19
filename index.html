@@ -1,150 +1,586 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ApeStore Token Trade - Base Network</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #0a0a23;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
-    h1 {
-      background: linear-gradient(45deg, #4fc3f7, #00e676);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    input, button {
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      width: 100%;
-    }
-    input {
-      background: #1f1f3a;
-      color: white;
-    }
-    button {
-      background-color: #4fc3f7;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #00e676;
-    }
-    .container {
-      max-width: 400px;
-      width: 100%;
-      background: #151531;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(79, 195, 247, 0.2);
-    }
-    label {
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legitimate Yield Pool - Investimento Inteligente</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2d3748;
+            border-left: 4px solid #667eea;
+            padding-left: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .info-panel {
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: 500;
+        }
+        
+        .notification {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification.success {
+            background-color: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #047857;
+        }
+        
+        .notification.error {
+            background-color: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .connect-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .wallet-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .wallet-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 15px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Negociar Token ApeStore (Base)</h1>
-  <div class="container">
-    <button onclick="connectWallet()">🔌 Conectar Carteira</button>
-    <label>Endereço do Token:</label>
-    <input id="tokenAddress" placeholder="0x..." />
-    
-    <label>Comprar com ETH</label>
-    <input id="ethAmount" type="number" step="0.001" placeholder="Quantidade em ETH" />
-    <button onclick="buyToken()">🛒 Comprar Token</button>
-    
-    <label>Vender Token</label>
-    <input id="tokenAmount" type="number" step="0.001" placeholder="Quantidade a vender" />
-    <button onclick="sellToken()">💸 Vender Token</button>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Legitimate Yield Pool</h1>
+            <p>Investimento Inteligente com APY Variável</p>
+        </header>
+        
+        <div id="notification" class="notification" style="display: none;"></div>
+        
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-wallet"></i> Minha Carteira</h2>
+            <div class="connect-section">
+                <div class="wallet-info">
+                    <div class="wallet-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div>
+                        <p><strong>Status:</strong> <span id="connection-status">Não conectado</span></p>
+                        <p><strong>Endereço:</strong> <span id="user-address">-</span></p>
+                    </div>
+                </div>
+                <button id="connect-btn" class="btn">
+                    <i class="fas fa-link"></i> Conectar Carteira
+                </button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="total-pool">0</div>
+                <div class="stat-label">Total Investido no Pool</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="current-apy">5.00%</div>
+                <div class="stat-label">APY Atual</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="my-balance">0</div>
+                <div class="stat-label">Meu Saldo</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-plus-circle"></i> Investir</h2>
+            <div class="form-group">
+                <label for="deposit-amount">Quantidade de USDT:</label>
+                <input type="number" id="deposit-amount" placeholder="Ex: 100" step="any">
+            </div>
+            <button id="deposit-btn" class="btn" disabled>
+                <i class="fas fa-arrow-down"></i> Depositar
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-money-bill-wave"></i> Meus Ganhos</h2>
+            <div class="info-panel">
+                <div class="info-item">
+                    <span class="info-label">Recompensas Acumuladas:</span>
+                    <span id="accumulated-rewards">0 USDT</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Próximo Saque Disponível:</span>
+                    <span id="next-withdrawal">-</span>
+                </div>
+            </div>
+            <button id="claim-rewards-btn" class="btn" disabled>
+                <i class="fas fa-hand-holding-usd"></i> Reclamar Recompensas
+            </button>
+            <button id="withdraw-btn" class="btn" disabled>
+                <i class="fas fa-times-circle"></i> Sacar Total (Após 30 dias)
+            </button>
+        </div>
+        
+        <div class="card">
+            <h2 class="section-title"><i class="fas fa-info-circle"></i> Como Funciona</h2>
+            <div class="info-panel">
+                <p><strong>🔒 Seguro e Transparente:</strong> Todo o investimento é feito via blockchain, sem intermediários.</p>
+                <p><strong>💰 APY Variável:</strong> Quanto mais investidores, maior o retorno! APY atual: <span id="current-apy-display">5.00%</span></p>
+                <p><strong>⏱️ Saques Mensais:</strong> Seu investimento + recompensas ficam bloqueados por 30 dias para segurança.</p>
+                <p><strong>📊 Baseado em Volume:</strong> O APY aumenta proporcionalmente ao tamanho do pool de investimento.</p>
+            </div>
+        </div>
+    </div>
 
-    <div id="status" style="margin-top:20px;"></div>
-  </div>
-
-<script>
-  let web3;
-  let contract;
-  let selectedTokenAddress = "";
-  let account = "";
-
-  const ABI = [
-    { "inputs": [], "name": "buy", "outputs": [], "stateMutability": "payable", "type": "function" },
-    { "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "sell", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-    { "inputs": [], "name": "getCurrentPrice", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
-    { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }
-  ];
-
-  async function connectWallet() {
-    if (window.ethereum) {
-      try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        web3 = new Web3(window.ethereum);
-        const chainId = await web3.eth.getChainId();
-        if (chainId !== 8453) {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x2105" }] // Base mainnet
-          });
+    <script>
+        // Configuração do contrato
+        const contractABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor",
+                "inputs": [{ "internalType": "contract.IERC20", "name": "_usdtToken", "type": "address" }]
+            },
+            {
+                "anonymous": false,
+                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
+                "name": "Deposited",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
+                "name": "Withdrawn",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
+                "name": "RewardsClaimed",
+                "type": "event"
+            },
+            {
+                "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
+                "name": "deposit",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "calculateDailyRewards",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "claimRewards",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "totalInvested",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "baseAPY",
+                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+        
+        const contractAddress = '0xdCE2abAb940f1BF98a09981F60A1620eBc47aF6E'; // Substituir pelo endereço real do contrato
+        let web3;
+        let contract;
+        let connectedAccount;
+        
+        // Função para mostrar notificação
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
         }
-        const accounts = await web3.eth.getAccounts();
-        account = accounts[0];
-        document.getElementById("status").innerText = "Carteira conectada: " + account;
-      } catch (err) {
-        document.getElementById("status").innerText = "Erro ao conectar: " + err.message;
-      }
-    } else {
-      alert("Instale o MetaMask para continuar.");
-    }
-  }
-
-  async function loadContract() {
-    selectedTokenAddress = document.getElementById("tokenAddress").value;
-    if (!selectedTokenAddress || selectedTokenAddress.length !== 42) {
-      alert("Endereço inválido do contrato!");
-      return null;
-    }
-    return new web3.eth.Contract(ABI, selectedTokenAddress);
-  }
-
-  async function buyToken() {
-    const value = document.getElementById("ethAmount").value;
-    if (!value || parseFloat(value) <= 0) return alert("Digite uma quantidade válida.");
-    try {
-      contract = await loadContract();
-      await contract.methods.buy().send({
-        from: account,
-        value: web3.utils.toWei(value, "ether")
-      });
-      document.getElementById("status").innerText = "✅ Compra realizada com sucesso!";
-    } catch (e) {
-      document.getElementById("status").innerText = "Erro ao comprar: " + e.message;
-    }
-  }
-
-  async function sellToken() {
-    const amount = document.getElementById("tokenAmount").value;
-    if (!amount || parseFloat(amount) <= 0) return alert("Digite uma quantidade válida.");
-    try {
-      contract = await loadContract();
-      const amountWei = web3.utils.toWei(amount, "ether");
-      await contract.methods.sell(amountWei).send({ from: account });
-      document.getElementById("status").innerText = "✅ Venda realizada com sucesso!";
-    } catch (e) {
-      document.getElementById("status").innerText = "Erro ao vender: " + e.message;
-    }
-  }
-</script>
+        
+        // Função para conectar à carteira
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    connectedAccount = accounts[0];
+                    
+                    web3 = new Web3(window.ethereum);
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    
+                    document.getElementById('user-address').textContent = connectedAccount;
+                    document.getElementById('connection-status').textContent = 'Conectado';
+                    document.getElementById('connect-btn').innerHTML = '<i class="fas fa-sign-out-alt"></i> Desconectar';
+                    
+                    // Habilitar botões
+                    document.getElementById('deposit-btn').disabled = false;
+                    document.getElementById('claim-rewards-btn').disabled = false;
+                    document.getElementById('withdraw-btn').disabled = false;
+                    
+                    // Carregar dados do usuário
+                    loadUserData();
+                    loadPoolData();
+                    
+                    showNotification('Carteira conectada com sucesso!', 'success');
+                } catch (error) {
+                    showNotification('Erro ao conectar carteira: ' + error.message, 'error');
+                }
+            } else {
+                showNotification('Por favor instale MetaMask ou outra carteira compatível com BSC', 'error');
+            }
+        }
+        
+        // Função para desconectar carteira
+        function disconnectWallet() {
+            connectedAccount = null;
+            web3 = null;
+            contract = null;
+            
+            document.getElementById('user-address').textContent = '-';
+            document.getElementById('connection-status').textContent = 'Não conectado';
+            document.getElementById('connect-btn').innerHTML = '<i class="fas fa-link"></i> Conectar Carteira';
+            
+            // Desabilitar botões
+            document.getElementById('deposit-btn').disabled = true;
+            document.getElementById('claim-rewards-btn').disabled = true;
+            document.getElementById('withdraw-btn').disabled = true;
+            
+            // Resetar informações
+            document.getElementById('total-pool').textContent = '0';
+            document.getElementById('current-apy').textContent = '5.00%';
+            document.getElementById('my-balance').textContent = '0';
+            document.getElementById('accumulated-rewards').textContent = '0 USDT';
+            document.getElementById('next-withdrawal').textContent = '-';
+            
+            showNotification('Carteira desconectada', 'success');
+        }
+        
+        // Função para carregar dados do usuário
+        async function loadUserData() {
+            if (!contract || !connectedAccount) return;
+            
+            try {
+                // Carregar saldo do usuário
+                const userInfo = await contract.methods.users(connectedAccount).call();
+                document.getElementById('my-balance').textContent = web3.utils.fromWei(userInfo.investedAmount, 'ether');
+                
+                // Calcular recompensas acumuladas
+                const timeElapsed = Math.floor((Date.now() / 1000) - userInfo.lastWithdrawalTime);
+                const daysElapsed = Math.floor(timeElapsed / (24 * 60 * 60));
+                
+                let accumulatedRewards = 0;
+                for (let i = 0; i < daysElapsed; i++) {
+                    accumulatedRewards += await contract.methods.calculateDailyRewards().call({ from: connectedAccount });
+                }
+                
+                document.getElementById('accumulated-rewards').textContent = 
+                    `${web3.utils.fromWei(accumulatedRewards, 'ether')} USDT`;
+                
+                // Calcular próximo saque
+                if (daysElapsed >= 30) {
+                    document.getElementById('next-withdrawal').textContent = 'Disponível agora';
+                } else {
+                    const nextWithdrawal = new Date(userInfo.lastWithdrawalTime * 1000);
+                    nextWithdrawal.setDate(nextWithdrawal.getDate() + 30);
+                    document.getElementById('next-withdrawal').textContent = 
+                        `Disponível em ${Math.ceil((nextWithdrawal.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias`;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do usuário:', error);
+            }
+        }
+        
+        // Função para carregar dados do pool
+        async function loadPoolData() {
+            if (!contract) return;
+            
+            try {
+                const totalInvested = await contract.methods.totalInvested().call();
+                document.getElementById('total-pool').textContent = 
+                    `${web3.utils.fromWei(totalInvested, 'ether')} USDT`;
+                
+                const baseAPY = await contract.methods.baseAPY().call();
+                const currentAPY = baseAPY / 10000; // Convertendo de baseAPY para percentual
+                document.getElementById('current-apy').textContent = 
+                    `${currentAPY.toFixed(2)}%`;
+                document.getElementById('current-apy-display').textContent = 
+                    `${currentAPY.toFixed(2)}%`;
+            } catch (error) {
+                console.error('Erro ao carregar dados do pool:', error);
+            }
+        }
+        
+        // Função para depositar
+        async function deposit() {
+            if (!contract || !connectedAccount) return;
+            
+            const amount = document.getElementById('deposit-amount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                showNotification('Por favor insira um valor válido', 'error');
+                return;
+            }
+            
+            try {
+                document.getElementById('deposit-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
+                document.getElementById('deposit-btn').disabled = true;
+                
+                await contract.methods.deposit(
+                    web3.utils.toWei(amount, 'ether')
+                ).send({ from: connectedAccount, gas: 300000 });
+                
+                showNotification('Depósito realizado com sucesso!', 'success');
+                document.getElementById('deposit-amount').value = '';
+                loadUserData();
+                loadPoolData();
+            } catch (error) {
+                showNotification('Erro ao realizar depósito: ' + error.message, 'error');
+            } finally {
+                document.getElementById('deposit-btn').innerHTML = '<i class="fas fa-arrow-down"></i> Depositar';
+                document.getElementById('deposit-btn').disabled = false;
+            }
+        }
+        
+        // Função para reclamar recompensas
+        async function claimRewards() {
+            if (!contract || !connectedAccount) return;
+            
+            try {
+                document.getElementById('claim-rewards-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
+                document.getElementById('claim-rewards-btn').disabled = true;
+                
+                await contract.methods.claimRewards().send({ from: connectedAccount, gas: 300000 });
+                
+                showNotification('Recompensas reclamadas com sucesso!', 'success');
+                loadUserData();
+            } catch (error) {
+                showNotification('Erro ao reclamar recompensas: ' + error.message, 'error');
+            } finally {
+                document.getElementById('claim-rewards-btn').innerHTML = '<i class="fas fa-hand-holding-usd"></i> Reclamar Recompensas';
+                document.getElementById('claim-rewards-btn').disabled = false;
+            }
+        }
+        
+        // Função para sacar tudo
+        async function withdrawAll() {
+            if (!contract || !connectedAccount) return;
+            
+            try {
+                document.getElementById('withdraw-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
+                document.getElementById('withdraw-btn').disabled = true;
+                
+                await contract.methods.withdraw().send({ from: connectedAccount, gas: 300000 });
+                
+                showNotification('Saque realizado com sucesso!', 'success');
+                loadUserData();
+            } catch (error) {
+                showNotification('Erro ao realizar saque: ' + error.message, 'error');
+            } finally {
+                document.getElementById('withdraw-btn').innerHTML = '<i class="fas fa-times-circle"></i> Sacar Total (Após 30 dias)';
+                document.getElementById('withdraw-btn').disabled = false;
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('connect-btn').addEventListener('click', () => {
+            if (connectedAccount) {
+                disconnectWallet();
+            } else {
+                connectWallet();
+            }
+        });
+        
+        document.getElementById('deposit-btn').addEventListener('click', deposit);
+        document.getElementById('claim-rewards-btn').addEventListener('click', claimRewards);
+        document.getElementById('withdraw-btn').addEventListener('click', withdrawAll);
+        
+        // Carregar dados iniciais quando a página carregar
+        window.addEventListener('load', () => {
+            loadPoolData();
+        });
+    </script>
 </body>
 </html>
