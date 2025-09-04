@@ -197,6 +197,13 @@
             font-size: 14px;
             overflow-x: auto;
         }
+        .success-box {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4caf50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -237,7 +244,7 @@
                 </div>
                 <div class="col-md-6">
                     <strong>Contrato de Exploração:</strong><br>
-                    <span id="exploitContract">Não implantado</span>
+                    <span id="exploitContract">Não configurado</span>
                 </div>
             </div>
         </div>
@@ -327,14 +334,17 @@
 
             <!-- Conteúdo do Contrato de Exploração -->
             <div class="tab-pane fade" id="exploit" role="tabpanel" aria-labelledby="exploit-tab">
-                <!-- Deploy do Contrato de Exploração -->
+                <!-- Configurar Contrato de Exploração -->
                 <div class="contract-deploy">
-                    <h5><i class="fas fa-rocket"></i> Implantar Contrato de Exploração</h5>
-                    <p>Implante o contrato de exploração para poder realizar mint gratuito de NFTs.</p>
-                    <div class="d-grid gap-2">
-                        <button id="deployExploitBtn" class="btn btn-success" disabled>
-                            <i class="fas fa-rocket"></i> Implantar Contrato de Exploração
-                        </button>
+                    <h5><i class="fas fa-cog"></i> Configurar Contrato de Exploração</h5>
+                    <p>Insira o endereço do contrato de exploração que você implantou no Remix IDE.</p>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Endereço do Contrato:</span>
+                        <input type="text" class="form-control" id="exploitContractInput" placeholder="0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0" value="0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0">
+                        <button class="btn btn-primary" id="setExploitContractBtn">Configurar</button>
+                    </div>
+                    <div id="exploitStatus" class="success-box" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Contrato de exploração configurado com sucesso!
                     </div>
                 </div>
 
@@ -356,7 +366,7 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <strong>Endereço:</strong> <span id="exploitContractAddress">Não implantado</span>
+                            <strong>Endereço:</strong> <span id="exploitContractAddress">Não configurado</span>
                         </div>
                         <div class="mb-3">
                             <strong>Dono:</strong> <span id="exploitContractOwner">N/A</span>
@@ -392,9 +402,9 @@ interface INoahNFT {
     function ownerOf(uint256 tokenId) external view returns (address);
     function getReward(address user) external view returns (uint256);
     function lastClaimed(uint256 tokenId) external view returns (uint256);
-    function owner() external view returns (address);
+    function owner() view returns (address);
     function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
-    function totalSupply() external view returns (uint256);
+    function totalSupply() view returns (uint256);
     function tokenURI(uint256 tokenId) external view returns (string memory);
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 }
@@ -450,13 +460,6 @@ contract NoahNFTExploit {
                                 <li>Clique em "Deploy"</li>
                                 <li>Copie o endereço do contrato implantado e cole nesta página</li>
                             </ol>
-                        </div>
-                        <div class="mt-3">
-                            <div class="input-group">
-                                <span class="input-group-text">Endereço do Contrato de Exploração:</span>
-                                <input type="text" class="form-control" id="exploitContractInput" placeholder="0x...">
-                                <button class="btn btn-primary" id="setExploitContractBtn">Definir Contrato</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -523,9 +526,6 @@ contract NoahNFTExploit {
             "event FreeMint(address indexed user, uint256 tokenId)"
         ];
         
-        // Bytecode do contrato de exploração (compilado)
-        const EXPLOIT_CONTRACT_BYTECODE = "0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0";
-        
         // ABI do token USDT (BEP-20)
         const USDT_ABI = [
             "function balanceOf(address owner) view returns (uint256)",
@@ -553,7 +553,6 @@ contract NoahNFTExploit {
         const usdtBalance = document.getElementById('usdtBalance');
         const nftCount = document.getElementById('nftCount');
         const mintNftBtn = document.getElementById('mintNftBtn');
-        const deployExploitBtn = document.getElementById('deployExploitBtn');
         const freeMintBtn = document.getElementById('freeMintBtn');
         const claimRewardsBtn = document.getElementById('claimRewardsBtn');
         const withdrawBtn = document.getElementById('withdrawBtn');
@@ -570,12 +569,12 @@ contract NoahNFTExploit {
         const alertContainer = document.getElementById('alertContainer');
         const exploitContractInput = document.getElementById('exploitContractInput');
         const setExploitContractBtn = document.getElementById('setExploitContractBtn');
+        const exploitStatus = document.getElementById('exploitStatus');
         
         // Event Listeners
         connectWalletBtn.addEventListener('click', connectWallet);
         copyAddressBtn.addEventListener('click', () => copyToClipboard(addressText.textContent));
         mintNftBtn.addEventListener('click', mintNft);
-        deployExploitBtn.addEventListener('click', deployExploitContract);
         freeMintBtn.addEventListener('click', freeMint);
         claimRewardsBtn.addEventListener('click', claimRewards);
         withdrawBtn.addEventListener('click', withdrawFunds);
@@ -606,7 +605,6 @@ contract NoahNFTExploit {
                     
                     // Habilitar botões
                     mintNftBtn.disabled = false;
-                    deployExploitBtn.disabled = false;
                     claimRewardsBtn.disabled = false;
                     
                     showAlert('Carteira conectada com sucesso!', 'success');
@@ -751,42 +749,6 @@ contract NoahNFTExploit {
             }
         }
         
-        async function deployExploitContract() {
-            if (!confirm('Tem certeza que deseja implantar o contrato de exploração? Isso custará uma pequena quantidade de BNB para o gás.')) {
-                return;
-            }
-            
-            showLoading(true);
-            
-            try {
-                // Fábrica do contrato
-                const factory = new ethers.ContractFactory(EXPLOIT_CONTRACT_ABI, EXPLOIT_CONTRACT_BYTECODE, signer);
-                
-                // Implantar o contrato
-                const contract = await factory.deploy(ORIGINAL_CONTRACT_ADDRESS);
-                showTransactionInfo(contract.deployTransaction.hash);
-                
-                await contract.deployed();
-                
-                exploitContractAddress = contract.address;
-                exploitContract = new ethers.Contract(exploitContractAddress, EXPLOIT_CONTRACT_ABI, signer);
-                
-                // Atualizar UI
-                document.getElementById('exploitContract').textContent = exploitContractAddress;
-                exploitContractAddressSpan.textContent = exploitContractAddress;
-                freeMintBtn.disabled = false;
-                withdrawBtn.disabled = false;
-                
-                showAlert('Contrato de exploração implantado com sucesso!', 'success');
-                await updateBalances();
-            } catch (error) {
-                console.error('Erro ao implantar contrato de exploração:', error);
-                showAlert(`Erro ao implantar contrato de exploração: ${error.message}`, 'danger');
-            } finally {
-                showLoading(false);
-            }
-        }
-        
         async function setExploitContract() {
             const address = exploitContractInput.value.trim();
             
@@ -817,6 +779,7 @@ contract NoahNFTExploit {
                 exploitContractAddressSpan.textContent = exploitContractAddress;
                 freeMintBtn.disabled = false;
                 withdrawBtn.disabled = false;
+                exploitStatus.style.display = 'block';
                 
                 showAlert('Contrato de exploração configurado com sucesso!', 'success');
                 await updateBalances();
