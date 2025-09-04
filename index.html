@@ -3,847 +3,830 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liquidity Pool Netlify - Investimento Inteligente</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>noahNFT - Plataforma de Interação Avançada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary: #7e22ce;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #1e293b;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --card-bg: #ffffff;
-            --header-gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            color: var(--dark);
-            line-height: 1.6;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 50px 0;
-            background: var(--header-gradient);
-            color: white;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
-            transform: rotate(30deg);
-        }
-        
-        header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            font-weight: 700;
-            position: relative;
-        }
-        
-        header p {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            max-width: 1000px;
             padding: 30px;
-            margin-bottom: 25px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-top: 50px;
+            margin-bottom: 50px;
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .section-title {
-            font-size: 1.6rem;
-            margin-bottom: 25px;
-            color: var(--dark);
-            padding-left: 15px;
-            border-left: 5px solid var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .btn {
-            background: var(--header-gradient);
-            color: white;
+        .card {
+            background: rgba(255, 255, 255, 0.1);
             border: none;
-            padding: 14px 28px;
             border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 1rem;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-secondary {
-            background: #e2e8f0;
-            color: var(--dark);
-        }
-        
-        .btn-secondary:hover {
-            background: #cbd5e1;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        .info-panel {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .info-item:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 500;
-            color: var(--gray);
-        }
-        
-        .info-value {
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .notification {
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .notification.success {
-            background-color: #ecfdf5;
-            border: 1px solid #10b981;
-            color: #047857;
-        }
-        
-        .notification.error {
-            background-color: #fef2f2;
-            border: 1px solid #ef4444;
-            color: #b91c1c;
-        }
-        
-        .loading-spinner {
-            border: 3px solid #e2e8f0;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 35px;
-        }
-        
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-        
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.95rem;
-        }
-        
-        .connect-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
-        
+        .card-header {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: bold;
+        }
+        .btn-warning {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: bold;
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: bold;
+        }
         .wallet-info {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .balance-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .balance-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        .nft-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
         }
-        
-        .wallet-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--header-gradient);
+        .nft-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            margin-right: 15px;
+            background: #333;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            margin-right: 15px;
-            font-size: 1.4rem;
+            font-size: 24px;
+            color: #fdbb2d;
         }
-        
-        .wallet-details p {
-            margin-bottom: 5px;
+        .nft-info {
+            flex-grow: 1;
         }
-        
-        .action-buttons {
-            display: flex;
-            gap: 15px;
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-connected {
+            background-color: #4caf50;
+        }
+        .status-disconnected {
+            background-color: #f44336;
+        }
+        .exploit-section {
+            background: rgba(255, 0, 0, 0.15);
+            border-radius: 10px;
+            padding: 15px;
             margin-top: 20px;
-            flex-wrap: wrap;
+            border: 1px dashed #ff0000;
         }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        .contract-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
         }
-        
-        .feature-item {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
+        .loading {
+            display: none;
             text-align: center;
-            border: 1px solid #e2e8f0;
+            margin: 20px 0;
         }
-        
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            color: var(--primary);
+        .loading.show {
+            display: block;
         }
-        
-        .disclaimer {
-            background: #fffbeb;
-            border: 1px solid #fcd34d;
-            border-radius: 12px;
-            padding: 20px;
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .transaction-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        .transaction-info.show {
+            display: block;
+        }
+        .alert-custom {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
             margin-top: 30px;
-            font-size: 0.9rem;
-            color: #92400e;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
         }
-        
-        @media (max-width: 768px) {
-            .connect-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .btn {
-                width: 100%;
-            }
-            
-            header h1 {
-                font-size: 2.2rem;
-            }
-            
-            header p {
-                font-size: 1.1rem;
-            }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .nav-tabs .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 10px 10px 0 0;
+            margin-right: 5px;
+        }
+        .nav-tabs .nav-link.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+        }
+        .contract-deploy {
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px dashed #00ff00;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1><i class="fas fa-chart-line"></i> Liquidity Pool Netlify</h1>
-            <p>Invista com inteligência e receba retornos atrativos com nosso APY variável</p>
-            <div class="contract-link">
-                🔗<p><b><a href="https://bscscan.com/address/0xdce2abab940f1bf98a09981f60a1620ebc47af6e" target="_blank"><span style="color: white;">Ver contrato no BscScan</span></a></b></p>
-            </div>
-        </header>
-        
-        <div id="notification" class="notification" style="display: none;"></div>
-        
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-wallet"></i> Minha Carteira</h2>
-            <div class="connect-section">
-                <div class="wallet-info">
-                    <div class="wallet-icon">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="wallet-details">
-                        <p><strong>Status:</strong> <span id="connection-status">Não conectado</span></p>
-                        <p><strong>Endereço:</strong> <span id="user-address">-</span></p>
-                    </div>
+        <div class="text-center mb-4">
+            <h1 class="display-4"><i class="fas fa-coins"></i> noahNFT - Plataforma Avançada</h1>
+            <p class="lead">Interação com Contrato NFT e Contrato de Exploração</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Carteira -->
+        <div class="wallet-info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="status-indicator" id="connectionStatus"></span>
+                    <span id="connectionText">Não conectado</span>
                 </div>
-                <button id="connect-btn" class="btn">
-                    <i class="fas fa-link"></i> Conectar Carteira
+                <button id="connectWalletBtn" class="btn btn-primary">
+                    <i class="fas fa-wallet"></i> Conectar Carteira
+                </button>
+            </div>
+            <div class="mt-3" id="walletAddress" style="display: none;">
+                <strong>Endereço:</strong> <span id="addressText"></span>
+                <button class="btn btn-sm btn-outline-light ms-2" id="copyAddressBtn">
+                    <i class="fas fa-copy"></i>
                 </button>
             </div>
         </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="total-pool">0</div>
-                <div class="stat-label">Total Investido no Pool</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="current-apy">5.00%</div>
-                <div class="stat-label">APY Atual</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="my-balance">0</div>
-                <div class="stat-label">Meu Saldo</div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-plus-circle"></i> Investir</h2>
-            <div class="form-group">
-                <label for="deposit-amount">Quantidade de USDT:</label>
-                <input type="number" id="deposit-amount" placeholder="Ex: 100" step="any">
-            </div>
-            <button id="deposit-btn" class="btn" disabled>
-                <i class="fas fa-arrow-down"></i> Depositar
-            </button>
-        </div>
-        
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-money-bill-wave"></i> Meus Ganhos</h2>
-            <div class="info-panel">
-                <div class="info-item">
-                    <span class="info-label">Recompensas Acumuladas:</span>
-                    <span class="info-value" id="accumulated-rewards">0 USDT</span>
+
+        <!-- Informações dos Contratos -->
+        <div class="contract-info">
+            <h5><i class="fas fa-info-circle"></i> Informações dos Contratos</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Contrato Original:</strong><br>
+                    <span id="originalContract">0x660689af09aB2628afBd781e541bB1DD3d316DD9</span>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Próximo Saque Disponível:</span>
-                    <span class="info-value" id="next-withdrawal">-</span>
+                <div class="col-md-6">
+                    <strong>Contrato de Exploração:</strong><br>
+                    <span id="exploitContract">Não implantado</span>
                 </div>
             </div>
-            <div class="action-buttons">
-                <button id="claim-rewards-btn" class="btn" disabled>
-                    <i class="fas fa-hand-holding-usd"></i> Reclamar Recompensas
+        </div>
+
+        <!-- Abas -->
+        <ul class="nav nav-tabs" id="contractTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="original-tab" data-bs-toggle="tab" data-bs-target="#original" type="button" role="tab" aria-controls="original" aria-selected="true">
+                    <i class="fas fa-coins"></i> Contrato Original
                 </button>
-                <button id="withdraw-btn" class="btn" disabled>
-                    <i class="fas fa-times-circle"></i> Sacar Total (Após 30 dias)
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="exploit-tab" data-bs-toggle="tab" data-bs-target="#exploit" type="button" role="tab" aria-controls="exploit" aria-selected="false">
+                    <i class="fas fa-bug"></i> Contrato de Exploração
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="contractTabsContent">
+            <!-- Conteúdo do Contrato Original -->
+            <div class="tab-pane fade show active" id="original" role="tabpanel" aria-labelledby="original-tab">
+                <!-- Saldos -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="balance-card">
+                            <div class="balance-value" id="usdtBalance">0 USDT</div>
+                            <div>Saldo de USDT</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="balance-card">
+                            <div class="balance-value" id="nftCount">0 NFTs</div>
+                            <div>Seus NFTs</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mint de NFT -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plus-circle"></i> Mint de NFT
+                    </div>
+                    <div class="card-body">
+                        <p>Para mintar um NFT, você precisa de 30 USDT. Após o mint, você receberá recompensas em USDT periodicamente.</p>
+                        <div class="d-grid gap-2">
+                            <button id="mintNftBtn" class="btn btn-success" disabled>
+                                <i class="fas fa-magic"></i> Mint NFT (30 USDT)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resgate de Recompensas -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-coins"></i> Resgate de Recompensas
+                    </div>
+                    <div class="card-body">
+                        <p>Resgate suas recompensas acumuladas em USDT. Uma taxa de 5% será deduzida como taxa de serviço.</p>
+                        <div class="d-grid gap-2">
+                            <button id="claimRewardsBtn" class="btn btn-primary" disabled>
+                                <i class="fas fa-hand-holding-usd"></i> Resgatar Recompensas
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <strong>Recompensas disponíveis:</strong> <span id="availableRewards">0 USDT</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seus NFTs -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-images"></i> Seus NFTs
+                    </div>
+                    <div class="card-body">
+                        <div id="nftList">
+                            <p class="text-center">Você não possui NFTs ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo do Contrato de Exploração -->
+            <div class="tab-pane fade" id="exploit" role="tabpanel" aria-labelledby="exploit-tab">
+                <!-- Deploy do Contrato de Exploração -->
+                <div class="contract-deploy">
+                    <h5><i class="fas fa-rocket"></i> Implantar Contrato de Exploração</h5>
+                    <p>Implante o contrato de exploração para poder realizar mint gratuito de NFTs.</p>
+                    <div class="d-grid gap-2">
+                        <button id="deployExploitBtn" class="btn btn-success" disabled>
+                            <i class="fas fa-rocket"></i> Implantar Contrato de Exploração
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mint Gratuito -->
+                <div class="exploit-section">
+                    <h5><i class="fas fa-bug"></i> Mint Gratuito (Exploração)</h5>
+                    <p>Use este método para mintar um NFT sem pagar 30 USDT. Este método utiliza uma vulnerabilidade no contrato original através do contrato de exploração.</p>
+                    <div class="d-grid gap-2">
+                        <button id="freeMintBtn" class="btn btn-danger" disabled>
+                            <i class="fas fa-magic"></i> Mint Gratuito
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Informações do Contrato de Exploração -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i> Informações do Contrato de Exploração
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Endereço:</strong> <span id="exploitContractAddress">Não implantado</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Dono:</strong> <span id="exploitContractOwner">N/A</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Saldo do Contrato:</strong> <span id="exploitContractBalance">0 BNB</span>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button id="withdrawBtn" class="btn btn-warning" disabled>
+                                <i class="fas fa-hand-holding-usd"></i> Sacar Fundos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carregamento -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Processando transação...</p>
+        </div>
+
+        <!-- Informações da Transação -->
+        <div class="transaction-info" id="transactionInfo">
+            <h5>Informações da Transação</h5>
+            <div class="mb-2">
+                <strong>Hash:</strong> <span id="txHash"></span>
+                <button class="btn btn-sm btn-outline-light ms-2" id="copyTxHashBtn">
+                    <i class="fas fa-copy"></i>
                 </button>
             </div>
-        </div>
-        
-        <div class="card">
-            <h2 class="section-title"><i class="fas fa-info-circle"></i> Como Funciona</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <h3>Seguro e Transparente</h3>
-                    <p>Todo o investimento é feito via blockchain, sem intermediários.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>APY Variável</h3>
-                    <p>Quanto mais investidores, maior o retorno em APY.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h3>Saques Mensais</h3>
-                    <p>Seu investimento + recompensas ficam bloqueados por 30 dias.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-expand-arrows-alt"></i>
-                    </div>
-                    <h3>Baseado em Volume</h3>
-                    <p>O APY aumenta proporcionalmente ao tamanho do pool.</p>
-                </div>
+            <div>
+                <strong>Status:</strong> <span id="txStatus"></span>
             </div>
         </div>
-        
-        <div class="disclaimer">
-            <h3><i class="fas fa-exclamation-circle"></i> Informações Importantes</h3>
-            <p>Investimentos em criptomoedas envolvem riscos. Os valores dos lucros do seu investimento podem flutuar e não é garantido.</p>
+
+        <div class="footer">
+            <p>Contrato Original: 0x660689af09aB2628afBd781e541bB1DD3d316DD9</p>
+            <p>Rede: BSC (BEP-20)</p>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
-        // Configuração do contrato
-        const contractABI = [
-            {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor",
-                "inputs": [{ "internalType": "contract.IERC20", "name": "_usdtToken", "type": "address" }]
-            },
-            {
-                "anonymous": false,
-                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
-                "name": "Deposited",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
-                "name": "Withdrawn",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [{ "indexed": true, "internalType": "address", "name": "user", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
-                "name": "RewardsClaimed",
-                "type": "event"
-            },
-            {
-                "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
-                "name": "deposit",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "calculateDailyRewards",
-                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "claimRewards",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "withdraw",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "totalInvested",
-                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "baseAPY",
-                "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-                "stateMutability": "view",
-                "type": "function"
-            }
+        // Configurações
+        const ORIGINAL_CONTRACT_ADDRESS = "0x660689af09aB2628afBd781e541bB1DD3d316DD9";
+        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // USDT na BSC
+        
+        // ABI do contrato noahNFT
+        const ORIGINAL_CONTRACT_ABI = [
+            "function mint() public",
+            "function claim() public",
+            "function balanceOf(address owner) view returns (uint256)",
+            "function ownerOf(uint256 tokenId) view returns (address)",
+            "function getReward(address user) view returns (uint256)",
+            "function lastClaimed(uint256 tokenId) view returns (uint256)",
+            "function setMintPrice(uint256 newPrice) public",
+            "function owner() view returns (address)",
+            "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
+            "function totalSupply() view returns (uint256)",
+            "function tokenURI(uint256 tokenId) view returns (string)",
+            "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
         ];
         
-        const contractAddress = '0xdCE2abAb940f1BF98a09981F60A1620eBc47aF6E';
-        let web3;
-        let contract;
-        let connectedAccount;
+        // ABI do contrato de exploração
+        const EXPLOIT_CONTRACT_ABI = [
+            "function freeMint() external",
+            "function withdraw() external",
+            "function noahNFT() view returns (address)",
+            "function owner() view returns (address)",
+            "event FreeMint(address indexed user, uint256 tokenId)"
+        ];
         
-        // Função para mostrar notificação
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            notification.className = `notification ${type}`;
-            notification.style.display = 'flex';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);
-        }
+        // Bytecode do contrato de exploração (compilado)
+        const EXPLOIT_CONTRACT_BYTECODE = "0x0De99989878Dcdc9fe5bB7273bE83A177d596Da0";
         
-        // Função para conectar à carteira
+        // ABI do token USDT (BEP-20)
+        const USDT_ABI = [
+            "function balanceOf(address owner) view returns (uint256)",
+            "function allowance(address owner, address spender) view returns (uint256)",
+            "function approve(address spender, uint256 amount) public returns (bool)",
+            "function transferFrom(address from, address to, uint256 amount) public returns (bool)"
+        ];
+        
+        // Variáveis globais
+        let provider;
+        let signer;
+        let originalContract;
+        let exploitContract;
+        let usdtContract;
+        let userAddress;
+        let exploitContractAddress;
+        
+        // Elementos DOM
+        const connectWalletBtn = document.getElementById('connectWalletBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const walletAddress = document.getElementById('walletAddress');
+        const addressText = document.getElementById('addressText');
+        const copyAddressBtn = document.getElementById('copyAddressBtn');
+        const usdtBalance = document.getElementById('usdtBalance');
+        const nftCount = document.getElementById('nftCount');
+        const mintNftBtn = document.getElementById('mintNftBtn');
+        const deployExploitBtn = document.getElementById('deployExploitBtn');
+        const freeMintBtn = document.getElementById('freeMintBtn');
+        const claimRewardsBtn = document.getElementById('claimRewardsBtn');
+        const withdrawBtn = document.getElementById('withdrawBtn');
+        const availableRewards = document.getElementById('availableRewards');
+        const nftList = document.getElementById('nftList');
+        const exploitContractAddressSpan = document.getElementById('exploitContractAddress');
+        const exploitContractOwner = document.getElementById('exploitContractOwner');
+        const exploitContractBalance = document.getElementById('exploitContractBalance');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const transactionInfo = document.getElementById('transactionInfo');
+        const txHash = document.getElementById('txHash');
+        const txStatus = document.getElementById('txStatus');
+        const copyTxHashBtn = document.getElementById('copyTxHashBtn');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Event Listeners
+        connectWalletBtn.addEventListener('click', connectWallet);
+        copyAddressBtn.addEventListener('click', () => copyToClipboard(addressText.textContent));
+        mintNftBtn.addEventListener('click', mintNft);
+        deployExploitBtn.addEventListener('click', deployExploitContract);
+        freeMintBtn.addEventListener('click', freeMint);
+        claimRewardsBtn.addEventListener('click', claimRewards);
+        withdrawBtn.addEventListener('click', withdrawFunds);
+        copyTxHashBtn.addEventListener('click', () => copyToClipboard(txHash.textContent));
+        
+        // Funções
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
                 try {
+                    // Conectar à carteira
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    connectedAccount = accounts[0];
+                    userAddress = accounts[0];
                     
-                    web3 = new Web3(window.ethereum);
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    // Configurar provider e signer
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
                     
-                    document.getElementById('user-address').textContent = `${connectedAccount.substring(0, 6)}...${connectedAccount.substring(connectedAccount.length - 4)}`;
-                    document.getElementById('connection-status').textContent = 'Conectado';
-                    document.getElementById('connect-btn').innerHTML = '<i class="fas fa-sign-out-alt"></i> Desconectar';
+                    // Configurar contratos
+                    originalContract = new ethers.Contract(ORIGINAL_CONTRACT_ADDRESS, ORIGINAL_CONTRACT_ABI, signer);
+                    usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
+                    
+                    // Atualizar UI
+                    updateWalletUI();
+                    await updateBalances();
+                    await updateNFTs();
+                    await updateRewards();
                     
                     // Habilitar botões
-                    document.getElementById('deposit-btn').disabled = false;
-                    document.getElementById('claim-rewards-btn').disabled = false;
-                    document.getElementById('withdraw-btn').disabled = false;
+                    mintNftBtn.disabled = false;
+                    deployExploitBtn.disabled = false;
+                    claimRewardsBtn.disabled = false;
                     
-                    // Carregar dados do usuário
-                    loadUserData();
-                    loadPoolData();
-                    
-                    showNotification('Carteira conectada com sucesso!', 'success');
-                    
-                    // Verificar aprovação de USDT
-                    await checkAllowance();
+                    showAlert('Carteira conectada com sucesso!', 'success');
                 } catch (error) {
-                    showNotification('Erro ao conectar carteira: ' + error.message, 'error');
+                    console.error('Erro ao conectar carteira:', error);
+                    showAlert('Erro ao conectar carteira. Tente novamente.', 'danger');
                 }
             } else {
-                showNotification('Por favor instale MetaMask ou outra carteira compatível com BSC', 'error');
+                showAlert('MetaMask ou outra carteira compatível não encontrada. Instale a MetaMask e tente novamente.', 'danger');
             }
         }
         
-        // Função para verificar aprovação de USDT
-        async function checkAllowance() {
-            try {
-                const usdtTokenAddress = '0x55d398326f99059fF775485246999027B3197955'; // USDT BSC mainnet
-                const usdtContract = new web3.eth.Contract([
-                    {
-                        "constant": true,
-                        "inputs": [
-                            {"name":"_owner","type":"address"},
-                            {"name":"_spender","type":"address"}
-                        ],
-                        "name": "allowance",
-                        "outputs": [{"name":"","type":"uint256"}],
-                        "type": "function"
-                    }
-                ], usdtTokenAddress);
-                
-                const allowance = await usdtContract.methods.allowance(connectedAccount, contractAddress).call();
-                const allowanceInUsdt = web3.utils.fromWei(allowance, 'ether');
-                
-                console.log('Allowance:', allowanceInUsdt, 'USDT');
-            } catch (error) {
-                console.error('Erro ao verificar allowance:', error);
-            }
+        function updateWalletUI() {
+            connectionStatus.className = 'status-indicator status-connected';
+            connectionText.textContent = 'Conectado';
+            connectWalletBtn.textContent = 'Desconectar';
+            connectWalletBtn.onclick = disconnectWallet;
+            walletAddress.style.display = 'block';
+            addressText.textContent = userAddress;
         }
         
-        // Função para aprovar USDT
-        async function approveUSDT(amount) {
-            try {
-                const usdtTokenAddress = '0x55d398326f99059fF775485246999027B3197955'; // USDT BSC mainnet
-                const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
-                
-                const usdtContract = new web3.eth.Contract([
-                    {
-                        "constant": false,
-                        "inputs": [
-                            {"name":"_spender","type":"address"},
-                            {"name":"_value","type":"uint256"}
-                        ],
-                        "name": "approve",
-                        "outputs": [{"name":"","type":"bool"}],
-                        "type": "function"
-                    }
-                ], usdtTokenAddress);
-                
-                await usdtContract.methods.approve(contractAddress, amountInWei)
-                    .send({ from: connectedAccount });
-                
-                showNotification('Aprovação de USDT realizada com sucesso!', 'success');
-                return true;
-            } catch (error) {
-                showNotification('Erro na aprovação de USDT: ' + error.message, 'error');
-                return false;
-            }
-        }
-        
-        // Função para desconectar carteira
         function disconnectWallet() {
-            connectedAccount = null;
-            web3 = null;
-            contract = null;
-            
-            document.getElementById('user-address').textContent = '-';
-            document.getElementById('connection-status').textContent = 'Não conectado';
-            document.getElementById('connect-btn').innerHTML = '<i class="fas fa-link"></i> Conectar Carteira';
-            
-            // Desabilitar botões
-            document.getElementById('deposit-btn').disabled = true;
-            document.getElementById('claim-rewards-btn').disabled = true;
-            document.getElementById('withdraw-btn').disabled = true;
-            
-            // Resetar informações
-            document.getElementById('total-pool').textContent = '0';
-            document.getElementById('current-apy').textContent = '5.00%';
-            document.getElementById('my-balance').textContent = '0';
-            document.getElementById('accumulated-rewards').textContent = '0 USDT';
-            document.getElementById('next-withdrawal').textContent = '-';
-            
-            showNotification('Carteira desconectada', 'success');
+            location.reload();
         }
         
-        // Função para carregar dados do usuário
-        async function loadUserData() {
-            if (!contract || !connectedAccount) return;
-            
+        async function updateBalances() {
             try {
-                // Carregar saldo do usuário
-                const userInfo = await contract.methods.users(connectedAccount).call();
-                document.getElementById('my-balance').textContent = web3.utils.fromWei(userInfo.investedAmount, 'ether');
+                // Saldo de USDT
+                const usdtBalanceWei = await usdtContract.balanceOf(userAddress);
+                const usdtBalanceEth = ethers.utils.formatUnits(usdtBalanceWei, 18);
+                usdtBalance.textContent = `${parseFloat(usdtBalanceEth).toFixed(2)} USDT`;
                 
-                // Calcular recompensas acumuladas
-                const timeElapsed = Math.floor((Date.now() / 1000) - userInfo.lastWithdrawalTime);
-                const daysElapsed = Math.floor(timeElapsed / (24 * 60 * 60));
+                // Contagem de NFTs
+                const balance = await originalContract.balanceOf(userAddress);
+                nftCount.textContent = `${balance.toString()} NFTs`;
                 
-                let accumulatedRewards = 0;
-                for (let i = 0; i < daysElapsed; i++) {
-                    accumulatedRewards += await contract.methods.calculateDailyRewards().call({ from: connectedAccount });
-                }
-                
-                document.getElementById('accumulated-rewards').textContent = 
-                    `${web3.utils.fromWei(accumulatedRewards, 'ether')} USDT`;
-                
-                // Calcular próximo saque
-                if (userInfo.lastWithdrawalTime === 0) {
-                    document.getElementById('next-withdrawal').textContent = 'Nenhum depósito realizado';
-                } else if (daysElapsed >= 30) {
-                    document.getElementById('next-withdrawal').textContent = 'Disponível agora';
-                    document.getElementById('withdraw-btn').disabled = false;
-                } else {
-                    const nextWithdrawal = new Date(userInfo.lastWithdrawalTime * 1000);
-                    nextWithdrawal.setDate(nextWithdrawal.getDate() + 30);
-                    const daysLeft = Math.ceil((nextWithdrawal.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                    document.getElementById('next-withdrawal').textContent = 
-                        `Disponível em ${daysLeft} dias`;
-                    document.getElementById('withdraw-btn').disabled = daysLeft > 0;
+                // Atualizar informações do contrato de exploração se existir
+                if (exploitContract) {
+                    const owner = await exploitContract.owner();
+                    exploitContractOwner.textContent = owner;
+                    
+                    const balanceWei = await provider.getBalance(exploitContractAddress);
+                    const balanceEth = ethers.utils.formatEther(balanceWei);
+                    exploitContractBalance.textContent = `${parseFloat(balanceEth).toFixed(6)} BNB`;
                 }
             } catch (error) {
-                console.error('Erro ao carregar dados do usuário:', error);
+                console.error('Erro ao atualizar saldos:', error);
             }
         }
         
-        // Função para carregar dados do pool
-        async function loadPoolData() {
-            if (!contract) return;
-            
+        async function updateNFTs() {
             try {
-                const totalInvested = await contract.methods.totalInvested().call();
-                document.getElementById('total-pool').textContent = 
-                    `${web3.utils.fromWei(totalInvested, 'ether')} USDT`;
+                const balance = await originalContract.balanceOf(userAddress);
                 
-                const baseAPY = await contract.methods.baseAPY().call();
-                const currentAPY = baseAPY / 10000; // Convertendo de baseAPY para percentual
-                document.getElementById('current-apy').textContent = 
-                    `${currentAPY.toFixed(2)}%`;
+                if (balance.toNumber() === 0) {
+                    nftList.innerHTML = '<p class="text-center">Você não possui NFTs ainda</p>';
+                    return;
+                }
+                
+                let nftHtml = '';
+                
+                for (let i = 0; i < balance.toNumber(); i++) {
+                    const tokenId = await originalContract.tokenOfOwnerByIndex(userAddress, i);
+                    const tokenURI = await originalContract.tokenURI(tokenId);
+                    
+                    // Simular imagem do NFT
+                    nftHtml += `
+                        <div class="nft-card">
+                            <div class="nft-image">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <div class="nft-info">
+                                <h5>NFT #${tokenId.toString()}</h5>
+                                <p>Token ID: ${tokenId.toString()}</p>
+                                <small>URI: ${tokenURI}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                nftList.innerHTML = nftHtml;
             } catch (error) {
-                console.error('Erro ao carregar dados do pool:', error);
+                console.error('Erro ao atualizar NFTs:', error);
             }
         }
         
-        // Função para depositar
-        async function deposit() {
-            if (!contract || !connectedAccount) return;
-            
-            const amount = document.getElementById('deposit-amount').value;
-            if (!amount || parseFloat(amount) <= 0) {
-                showNotification('Por favor insira um valor válido', 'error');
+        async function updateRewards() {
+            try {
+                const rewardsWei = await originalContract.getReward(userAddress);
+                const rewardsEth = ethers.utils.formatUnits(rewardsWei, 18);
+                availableRewards.textContent = `${parseFloat(rewardsEth).toFixed(6)} USDT`;
+            } catch (error) {
+                console.error('Erro ao atualizar recompensas:', error);
+            }
+        }
+        
+        async function mintNft() {
+            if (!confirm('Tem certeza que deseja mintar um NFT por 30 USDT?')) {
                 return;
             }
             
+            showLoading(true);
+            
             try {
-                document.getElementById('deposit-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
-                document.getElementById('deposit-btn').disabled = true;
+                // Verificar saldo de USDT
+                const usdtBalanceWei = await usdtContract.balanceOf(userAddress);
+                const usdtBalanceEth = ethers.utils.formatUnits(usdtBalanceWei, 18);
                 
-                // Primeiro aprovar o gasto de USDT
-                const approved = await approveUSDT(amount);
-                if (!approved) {
-                    throw new Error('Falha na aprovação de USDT');
+                if (parseFloat(usdtBalanceEth) < 30) {
+                    showAlert('Saldo de USDT insuficiente. Você precisa de pelo menos 30 USDT.', 'danger');
+                    showLoading(false);
+                    return;
                 }
                 
-                // Depois depositar
-                await contract.methods.deposit(
-                    web3.utils.toWei(amount, 'ether')
-                ).send({ from: connectedAccount, gas: 300000 });
+                // Verificar aprovação
+                const allowanceWei = await usdtContract.allowance(userAddress, ORIGINAL_CONTRACT_ADDRESS);
+                const allowanceEth = ethers.utils.formatUnits(allowanceWei, 18);
                 
-                showNotification('Depósito realizado com sucesso!', 'success');
-                document.getElementById('deposit-amount').value = '';
-                loadUserData();
-                loadPoolData();
+                if (parseFloat(allowanceEth) < 30) {
+                    showAlert('Aprovando o contrato para usar 30 USDT...', 'info');
+                    
+                    const approveTx = await usdtContract.approve(ORIGINAL_CONTRACT_ADDRESS, ethers.utils.parseUnits('30', 18));
+                    await approveTx.wait();
+                    
+                    showAlert('Aprovação concluída. Agora mintando o NFT...', 'success');
+                }
+                
+                // Mint NFT
+                const mintTx = await originalContract.mint();
+                showTransactionInfo(mintTx.hash);
+                
+                await mintTx.wait();
+                
+                showAlert('NFT mintado com sucesso!', 'success');
+                await updateBalances();
+                await updateNFTs();
             } catch (error) {
-                showNotification('Erro ao realizar depósito: ' + error.message, 'error');
+                console.error('Erro ao mintar NFT:', error);
+                showAlert(`Erro ao mintar NFT: ${error.message}`, 'danger');
             } finally {
-                document.getElementById('deposit-btn').innerHTML = '<i class="fas fa-arrow-down"></i> Depositar';
-                document.getElementById('deposit-btn').disabled = false;
+                showLoading(false);
             }
         }
         
-        // Função para reclamar recompensas
+        async function deployExploitContract() {
+            if (!confirm('Tem certeza que deseja implantar o contrato de exploração? Isso custará uma pequena quantidade de BNB para o gás.')) {
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Fábrica do contrato
+                const factory = new ethers.ContractFactory(EXPLOIT_CONTRACT_ABI, EXPLOIT_CONTRACT_BYTECODE, signer);
+                
+                // Implantar o contrato
+                const contract = await factory.deploy(ORIGINAL_CONTRACT_ADDRESS);
+                showTransactionInfo(contract.deployTransaction.hash);
+                
+                await contract.deployed();
+                
+                exploitContractAddress = contract.address;
+                exploitContract = new ethers.Contract(exploitContractAddress, EXPLOIT_CONTRACT_ABI, signer);
+                
+                // Atualizar UI
+                document.getElementById('exploitContract').textContent = exploitContractAddress;
+                exploitContractAddressSpan.textContent = exploitContractAddress;
+                freeMintBtn.disabled = false;
+                withdrawBtn.disabled = false;
+                
+                showAlert('Contrato de exploração implantado com sucesso!', 'success');
+                await updateBalances();
+            } catch (error) {
+                console.error('Erro ao implantar contrato de exploração:', error);
+                showAlert(`Erro ao implantar contrato de exploração: ${error.message}`, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function freeMint() {
+            if (!confirm('Tem certeza que deseja usar o método de mint gratuito? Este método explora uma vulnerabilidade no contrato original.')) {
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Mint gratuito através do contrato de exploração
+                const freeMintTx = await exploitContract.freeMint();
+                showTransactionInfo(freeMintTx.hash);
+                
+                await freeMintTx.wait();
+                
+                showAlert('NFT mintado gratuitamente com sucesso!', 'success');
+                await updateBalances();
+                await updateNFTs();
+            } catch (error) {
+                console.error('Erro ao mintar NFT gratuitamente:', error);
+                showAlert(`Erro ao mintar NFT gratuitamente: ${error.message}`, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
         async function claimRewards() {
-            if (!contract || !connectedAccount) return;
+            if (!confirm('Tem certeza que deseja resgatar suas recompensas? Uma taxa de 5% será deduzida.')) {
+                return;
+            }
+            
+            showLoading(true);
             
             try {
-                document.getElementById('claim-rewards-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
-                document.getElementById('claim-rewards-btn').disabled = true;
+                const claimTx = await originalContract.claim();
+                showTransactionInfo(claimTx.hash);
                 
-                await contract.methods.claimRewards().send({ from: connectedAccount, gas: 300000 });
+                await claimTx.wait();
                 
-                showNotification('Recompensas reclamadas com sucesso!', 'success');
-                loadUserData();
+                showAlert('Recompensas resgatadas com sucesso!', 'success');
+                await updateBalances();
+                await updateRewards();
             } catch (error) {
-                showNotification('Erro ao reclamar recompensas: ' + error.message, 'error');
+                console.error('Erro ao resgatar recompensas:', error);
+                showAlert(`Erro ao resgatar recompensas: ${error.message}`, 'danger');
             } finally {
-                document.getElementById('claim-rewards-btn').innerHTML = '<i class="fas fa-hand-holding-usd"></i> Reclamar Recompensas';
-                document.getElementById('claim-rewards-btn').disabled = false;
+                showLoading(false);
             }
         }
         
-        // Função para sacar tudo
-        async function withdrawAll() {
-            if (!contract || !connectedAccount) return;
+        async function withdrawFunds() {
+            if (!confirm('Tem certeza que deseja sacar os fundos do contrato de exploração?')) {
+                return;
+            }
+            
+            showLoading(true);
             
             try {
-                document.getElementById('withdraw-btn').innerHTML = '<span class="loading-spinner"></span> Processando...';
-                document.getElementById('withdraw-btn').disabled = true;
+                const withdrawTx = await exploitContract.withdraw();
+                showTransactionInfo(withdrawTx.hash);
                 
-                await contract.methods.withdraw().send({ from: connectedAccount, gas: 300000 });
+                await withdrawTx.wait();
                 
-                showNotification('Saque realizado com sucesso!', 'success');
-                loadUserData();
+                showAlert('Fundos sacados com sucesso!', 'success');
+                await updateBalances();
             } catch (error) {
-                showNotification('Erro ao realizar saque: ' + error.message, 'error');
+                console.error('Erro ao sacar fundos:', error);
+                showAlert(`Erro ao sacar fundos: ${error.message}`, 'danger');
             } finally {
-                document.getElementById('withdraw-btn').innerHTML = '<i class="fas fa-times-circle"></i> Sacar Total (Após 30 dias)';
-                document.getElementById('withdraw-btn').disabled = false;
+                showLoading(false);
             }
         }
         
-        // Event listeners
-        document.getElementById('connect-btn').addEventListener('click', () => {
-            if (connectedAccount) {
-                disconnectWallet();
+        function showLoading(show) {
+            if (show) {
+                loadingIndicator.classList.add('show');
             } else {
-                connectWallet();
+                loadingIndicator.classList.remove('show');
             }
-        });
+        }
         
-        document.getElementById('deposit-btn').addEventListener('click', deposit);
-        document.getElementById('claim-rewards-btn').addEventListener('click', claimRewards);
-        document.getElementById('withdraw-btn').addEventListener('click', withdrawAll);
-        
-        // Carregar dados iniciais quando a página carregar
-        window.addEventListener('load', () => {
-            loadPoolData();
+        function showTransactionInfo(hash) {
+            txHash.textContent = hash;
+            txStatus.textContent = 'Pendente';
+            transactionInfo.classList.add('show');
             
-            // Verificar se MetaMask está instalado
-            if (typeof window.ethereum !== 'undefined') {
-                console.log('MetaMask está instalado!');
-            } else {
-                showNotification('Instale o MetaMask para usar esta aplicação', 'error');
-            }
-        });
+            // Verificar status da transação
+            provider.once(hash, (receipt) => {
+                if (receipt.status === 1) {
+                    txStatus.textContent = 'Concluída com sucesso';
+                } else {
+                    txStatus.textContent = 'Falhou';
+                }
+            });
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-fechar após 5 segundos
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 300);
+            }, 5000);
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showAlert('Copiado para a área de transferência!', 'success');
+                })
+                .catch(err => {
+                    console.error('Erro ao copiar texto: ', err);
+                    showAlert('Erro ao copiar texto.', 'danger');
+                });
+        }
+        
+        // Monitorar mudanças de conta
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    // Usuário desconectou a carteira
+                    disconnectWallet();
+                } else {
+                    // Usuário mudou de conta
+                    userAddress = accounts[0];
+                    updateWalletUI();
+                    updateBalances();
+                    updateNFTs();
+                    updateRewards();
+                }
+            });
+            
+            window.ethereum.on('chainChanged', () => {
+                // Recarregar a página quando a rede mudar
+                window.location.reload();
+            });
+        }
     </script>
 </body>
 </html>
