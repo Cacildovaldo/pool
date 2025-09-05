@@ -280,6 +280,17 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        .debug-info {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -322,6 +333,7 @@
                 <div class="wallet-address" id="wallet-address"></div>
                 <button id="disconnect-btn" class="btn">Desconectar</button>
             </div>
+            <div id="debug-info" class="debug-info hidden"></div>
         </div>
         
         <div id="invest-section" class="card hidden">
@@ -376,7 +388,7 @@
     </div>
 
     <script>
-        // ABI do contrato
+        // ABI do contrato InvestmentProxy
         const contractABI = [
             {
                 "inputs": [],
@@ -1056,6 +1068,7 @@
         const totalEarned = document.getElementById('total-earned');
         const activeInvestments = document.getElementById('active-investments');
         const completedInvestments = document.getElementById('completed-investments');
+        const debugInfo = document.getElementById('debug-info');
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
@@ -1094,10 +1107,6 @@
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
                 
-                // Configurar contratos
-                contract = new ethers.Contract(contractAddress, contractABI, signer);
-                usdtContract = new ethers.Contract(usdtAddress, usdtABI, signer);
-                
                 // Verificar rede
                 const network = await provider.getNetwork();
                 if (network.chainId !== 56) { // 56 é o ID da BSC Mainnet
@@ -1105,23 +1114,45 @@
                     return;
                 }
                 
-                // Atualizar UI
-                walletAddress.textContent = account;
-                walletInfo.classList.remove('hidden');
-                investSection.classList.remove('hidden');
-                investmentsSection.classList.remove('hidden');
-                connectWalletBtn.textContent = 'Carteira Conectada';
-                connectWalletBtn.disabled = true;
+                // Configurar contratos
+                contract = new ethers.Contract(contractAddress, contractABI, signer);
+                usdtContract = new ethers.Contract(usdtAddress, usdtABI, signer);
                 
-                // Carregar dados
-                loadUSDTBalance();
-                loadInvestments();
-                
-                // Escutar eventos
-                window.ethereum.on('accountsChanged', handleAccountsChanged);
-                window.ethereum.on('chainChanged', handleChainChanged);
-                
-                showNotification('Carteira conectada com sucesso!', 'success');
+                // Verificar se o contrato existe
+                try {
+                    const code = await provider.getCode(contractAddress);
+                    if (code === '0x') {
+                        throw new Error('Contrato não encontrado no endereço especificado.');
+                    }
+                    
+                    // Tentar chamar uma função simples para verificar se o contrato está respondendo
+                    const owner = await contract.owner();
+                    if (!owner) {
+                        throw new Error('Contrato não está respondendo corretamente.');
+                    }
+                    
+                    // Atualizar UI
+                    walletAddress.textContent = account;
+                    walletInfo.classList.remove('hidden');
+                    investSection.classList.remove('hidden');
+                    investmentsSection.classList.remove('hidden');
+                    connectWalletBtn.textContent = 'Carteira Conectada';
+                    connectWalletBtn.disabled = true;
+                    
+                    // Carregar dados
+                    loadUSDTBalance();
+                    loadInvestments();
+                    
+                    // Escutar eventos
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    window.ethereum.on('chainChanged', handleChainChanged);
+                    
+                    showNotification('Carteira conectada com sucesso!', 'success');
+                } catch (contractError) {
+                    console.error('Erro ao verificar contrato:', contractError);
+                    showDebugInfo(`Erro ao verificar contrato: ${contractError.message}`);
+                    showNotification('Erro ao conectar ao contrato. Verifique o endereço e a rede.', 'error');
+                }
             } catch (error) {
                 console.error('Erro ao conectar carteira:', error);
                 showNotification('Erro ao conectar carteira: ' + error.message, 'error');
@@ -1138,6 +1169,7 @@
             connectWalletBtn.disabled = false;
             investments = [];
             investmentsList.innerHTML = '';
+            debugInfo.classList.add('hidden');
             showNotification('Carteira desconectada', 'info');
         }
         
@@ -1173,7 +1205,21 @@
         // Carregar investimentos
         async function loadInvestments() {
             try {
+                // Verificar se o contrato está respondendo
+                const testCall = await contract.investmentCounter();
+                
+                // Tentar obter a contagem de investimentos
                 const investmentCount = await contract.getInvestmentCount(account);
+                
+                // Se não houver investimentos, não tentar carregar a lista
+                if (investmentCount.toNumber() === 0) {
+                    investments = [];
+                    updateInvestmentsList();
+                    updateStats();
+                    return;
+                }
+                
+                // Carregar a lista de investimentos
                 const investmentData = await contract.getInvestments(account);
                 
                 investments = investmentData.map(inv => ({
@@ -1189,6 +1235,7 @@
                 updateStats();
             } catch (error) {
                 console.error('Erro ao carregar investimentos:', error);
+                showDebugInfo(`Erro ao carregar investimentos: ${error.message}`);
                 showNotification('Erro ao carregar investimentos: ' + error.message, 'error');
             }
         }
@@ -1369,6 +1416,7 @@
                 loadInvestments();
             } catch (error) {
                 console.error('Erro ao investir:', error);
+                showDebugInfo(`Erro ao investir: ${error.message}`);
                 showNotification('Erro ao investir: ' + error.message, 'error');
             }
         }
@@ -1392,6 +1440,7 @@
                 loadInvestments();
             } catch (error) {
                 console.error('Erro ao sacar:', error);
+                showDebugInfo(`Erro ao sacar: ${error.message}`);
                 showNotification('Erro ao sacar: ' + error.message, 'error');
             }
         }
@@ -1411,6 +1460,12 @@
                     notification.remove();
                 }, 300);
             }, 5000);
+        }
+        
+        // Mostrar informações de depuração
+        function showDebugInfo(message) {
+            debugInfo.classList.remove('hidden');
+            debugInfo.textContent = message;
         }
     </script>
 </body>
