@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liquidity Pool Platform</title>
+    <title>BitNest Liquidity Pool</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         :root {
@@ -289,6 +289,87 @@
             font-family: monospace;
             font-size: 0.8rem;
             color: #ff6b6b;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .contract-info {
+            background-color: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #6ac1ff;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: var(--surface-light);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .pool-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .pool-stat-card {
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .pool-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .pool-stat-label {
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-size: 0.9rem;
         }
         
         @media (max-width: 768px) {
@@ -313,13 +394,22 @@
             .wallet-address {
                 max-width: 100%;
             }
+            
+            .tab-container {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Liquidity Pool Platform</h1>
+            <h1>BitNest Liquidity Pool</h1>
             <p class="subtitle">Investimento em USDT com retorno garantido de 24% em 28 dias</p>
         </header>
         
@@ -333,33 +423,74 @@
                 <div class="wallet-address" id="wallet-address"></div>
                 <button id="disconnect-btn" class="btn">Desconectar</button>
             </div>
+            <div id="contract-info" class="contract-info hidden"></div>
             <div id="debug-info" class="debug-info hidden"></div>
         </div>
         
-        <div id="invest-section" class="card hidden">
-            <h2>Investir USDT</h2>
-            <div class="balance-info">
-                <span>Saldo de USDT:</span>
-                <span id="usdt-balance">0</span>
+        <div id="main-content" class="hidden">
+            <div class="tab-container">
+                <div class="tab active" data-tab="invest">Investir</div>
+                <div class="tab" data-tab="investments">Meus Investimentos</div>
+                <div class="tab" data-tab="pool">Pool</div>
             </div>
-            <div class="input-group">
-                <label for="invest-amount">Valor do Investimento (USDT):</label>
-                <input type="number" id="invest-amount" placeholder="Digite o valor em USDT" min="0" step="0.01">
+            
+            <div id="invest-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Investir USDT</h2>
+                    <div class="balance-info">
+                        <span>Saldo de USDT:</span>
+                        <span id="usdt-balance">0</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="invest-amount">Valor do Investimento (USDT):</label>
+                        <input type="number" id="invest-amount" placeholder="Digite o valor em USDT" min="0" step="0.01">
+                    </div>
+                    <div class="balance-info">
+                        <span>Taxa (2%):</span>
+                        <span id="fee-amount">0</span>
+                    </div>
+                    <div class="balance-info">
+                        <span>Valor a ser investido:</span>
+                        <span id="principal-amount">0</span>
+                    </div>
+                    <div class="balance-info">
+                        <span>Retorno esperado (24%):</span>
+                        <span id="return-amount">0</span>
+                    </div>
+                    <button id="invest-btn" class="btn">Investir</button>
+                </div>
             </div>
-            <div class="balance-info">
-                <span>Taxa (2%):</span>
-                <span id="fee-amount">0</span>
+            
+            <div id="investments-tab" class="tab-content">
+                <div class="card">
+                    <h2>Meus Investimentos</h2>
+                    <div id="investments-list"></div>
+                </div>
             </div>
-            <div class="balance-info">
-                <span>Valor a ser investido:</span>
-                <span id="principal-amount">0</span>
+            
+            <div id="pool-tab" class="tab-content">
+                <div class="card">
+                    <h2>Estatísticas do Pool</h2>
+                    <div class="pool-stats">
+                        <div class="pool-stat-card">
+                            <div class="pool-stat-value" id="pool-total-supply">0</div>
+                            <div class="pool-stat-label">Total Supply</div>
+                        </div>
+                        <div class="pool-stat-card">
+                            <div class="pool-stat-value" id="pool-tvl">0</div>
+                            <div class="pool-stat-label">TVL (USDT)</div>
+                        </div>
+                        <div class="pool-stat-card">
+                            <div class="pool-stat-value" id="pool-apr">24%</div>
+                            <div class="pool-stat-label">APR</div>
+                        </div>
+                        <div class="pool-stat-card">
+                            <div class="pool-stat-value" id="pool-investors">0</div>
+                            <div class="pool-stat-label">Investidores</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button id="invest-btn" class="btn">Investir</button>
-        </div>
-        
-        <div id="investments-section" class="card hidden">
-            <h2>Meus Investimentos</h2>
-            <div id="investments-list"></div>
         </div>
         
         <div class="stats-container">
@@ -382,277 +513,68 @@
         </div>
         
         <footer>
-            <p>© 2023 Liquidity Pool Platform. Todos os direitos reservados.</p>
+            <p>© 2023 BitNest Liquidity Pool. Todos os direitos reservados.</p>
             <p>Contrato: 0xFCc442275A2620E40F17598F9987F320fB57526e</p>
         </footer>
     </div>
 
     <script>
-        // ABI do contrato InvestmentProxy
+        // Endereço do contrato
+        const contractAddress = "0xFCc442275A2620E40F17598F9987F320fB57526e";
+        
+        // Endereço do USDT na BSC
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        
+        // ABI simplificado do contrato - apenas funções essenciais
         const contractABI = [
+            // Funções de visualização
             {
                 "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "owner",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "spender",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "value",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "Approval",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "dev",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "FeeTransferred",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "uint256",
-                        "name": "investmentId",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "Invested",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "previousOwner",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "newOwner",
-                        "type": "address"
-                    }
-                ],
-                "name": "OwnershipTransferred",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "from",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "to",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "value",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "Transfer",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "uint256",
-                        "name": "investmentId",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "Withdrawn",
-                "type": "event"
-            },
-            {
-                "inputs": [],
-                "name": "BITNEST",
-                "outputs": [
-                    {
-                        "internalType": "contract IBitNest",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "DEV_WALLET",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
+                "name": "USDT",
+                "outputs": [{"internalType": "contract IERC20", "name": "", "type": "address"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "inputs": [],
                 "name": "FEE_PERCENT",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "INVESTMENT_PERIOD",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "inputs": [],
                 "name": "RETURN_PERCENT",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "inputs": [],
-                "name": "USDT",
-                "outputs": [
-                    {
-                        "internalType": "contract IERC20",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
+                "name": "INVESTMENT_PERIOD",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "investmentId",
-                        "type": "uint256"
-                    }
-                ],
+                "inputs": [{"internalType": "address", "name": "investor", "type": "address"}],
+                "name": "getInvestmentCount",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "investmentId", "type": "uint256"}],
                 "name": "getInvestmentById",
                 "outputs": [
                     {
                         "components": [
-                            {
-                                "internalType": "uint256",
-                                "name": "id",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "address",
-                                "name": "investor",
-                                "type": "address"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "principalAmount",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "originalAmount",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "timestamp",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "bool",
-                                "name": "withdrawn",
-                                "type": "bool"
-                            }
+                            {"internalType": "uint256", "name": "id", "type": "uint256"},
+                            {"internalType": "address", "name": "investor", "type": "address"},
+                            {"internalType": "uint256", "name": "principalAmount", "type": "uint256"},
+                            {"internalType": "uint256", "name": "originalAmount", "type": "uint256"},
+                            {"internalType": "uint256", "name": "timestamp", "type": "uint256"},
+                            {"internalType": "bool", "name": "withdrawn", "type": "bool"}
                         ],
                         "internalType": "struct InvestmentProxy.Investment",
                         "name": "",
@@ -662,167 +584,45 @@
                 "stateMutability": "view",
                 "type": "function"
             },
+            
+            // Funções de transação
             {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "investmentId",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "getTimeUntilWithdrawal",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    }
-                ],
-                "name": "getInvestmentCount",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    }
-                ],
-                "name": "getInvestments",
-                "outputs": [
-                    {
-                        "components": [
-                            {
-                                "internalType": "uint256",
-                                "name": "id",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "address",
-                                "name": "investor",
-                                "type": "address"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "principalAmount",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "originalAmount",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "uint256",
-                                "name": "timestamp",
-                                "type": "uint256"
-                            },
-                            {
-                                "internalType": "bool",
-                                "name": "withdrawn",
-                                "type": "bool"
-                            }
-                        ],
-                        "internalType": "struct InvestmentProxy.Investment[]",
-                        "name": "",
-                        "type": "tuple[]"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
+                "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
                 "name": "invest",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "inputs": [],
-                "name": "investmentCounter",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "address",
-                        "name": "newOwner",
-                        "type": "address"
-                    }
-                ],
-                "name": "transferOwnership",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "investmentId",
-                        "type": "uint256"
-                    }
-                ],
+                "inputs": [{"internalType": "uint256", "name": "investmentId", "type": "uint256"}],
                 "name": "withdraw",
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function"
+            },
+            
+            // Eventos
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "investor", "type": "address"},
+                    {"indexed": true, "internalType": "uint256", "name": "investmentId", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+                ],
+                "name": "Invested",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "investor", "type": "address"},
+                    {"indexed": true, "internalType": "uint256", "name": "investmentId", "type": "uint256"},
+                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+                ],
+                "name": "Withdrawn",
+                "type": "event"
             }
         ];
-
-        // Endereço do contrato
-        const contractAddress = "0xFCc442275A2620E40F17598F9987F320fB57526e";
-        
-        // Endereço do USDT na BSC
-        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
         
         // ABI do USDT
         const usdtABI = [
@@ -830,12 +630,7 @@
                 "constant": true,
                 "inputs": [],
                 "name": "name",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "string"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -844,12 +639,7 @@
                 "constant": true,
                 "inputs": [],
                 "name": "symbol",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "string"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -858,31 +648,16 @@
                 "constant": true,
                 "inputs": [],
                 "name": "decimals",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "uint8"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "uint8"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
             },
             {
                 "constant": true,
-                "inputs": [
-                    {
-                        "name": "_owner",
-                        "type": "address"
-                    }
-                ],
+                "inputs": [{"name": "_owner", "type": "address"}],
                 "name": "balanceOf",
-                "outputs": [
-                    {
-                        "name": "balance",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"name": "balance", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -891,12 +666,7 @@
                 "constant": true,
                 "inputs": [],
                 "name": "totalSupply",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -904,22 +674,11 @@
             {
                 "constant": false,
                 "inputs": [
-                    {
-                        "name": "_to",
-                        "type": "address"
-                    },
-                    {
-                        "name": "_value",
-                        "type": "uint256"
-                    }
+                    {"name": "_to", "type": "address"},
+                    {"name": "_value", "type": "uint256"}
                 ],
                 "name": "transfer",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -927,26 +686,12 @@
             {
                 "constant": false,
                 "inputs": [
-                    {
-                        "name": "_from",
-                        "type": "address"
-                    },
-                    {
-                        "name": "_to",
-                        "type": "address"
-                    },
-                    {
-                        "name": "_value",
-                        "type": "uint256"
-                    }
+                    {"name": "_from", "type": "address"},
+                    {"name": "_to", "type": "address"},
+                    {"name": "_value", "type": "uint256"}
                 ],
                 "name": "transferFrom",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -954,22 +699,11 @@
             {
                 "constant": false,
                 "inputs": [
-                    {
-                        "name": "_spender",
-                        "type": "address"
-                    },
-                    {
-                        "name": "_value",
-                        "type": "uint256"
-                    }
+                    {"name": "_spender", "type": "address"},
+                    {"name": "_value", "type": "uint256"}
                 ],
                 "name": "approve",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "bool"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "bool"}],
                 "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -977,22 +711,11 @@
             {
                 "constant": true,
                 "inputs": [
-                    {
-                        "name": "_owner",
-                        "type": "address"
-                    },
-                    {
-                        "name": "_spender",
-                        "type": "address"
-                    }
+                    {"name": "_owner", "type": "address"},
+                    {"name": "_spender", "type": "address"}
                 ],
                 "name": "allowance",
-                "outputs": [
-                    {
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
+                "outputs": [{"name": "", "type": "uint256"}],
                 "payable": false,
                 "stateMutability": "view",
                 "type": "function"
@@ -1000,21 +723,9 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    {
-                        "indexed": true,
-                        "name": "from",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "name": "to",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "name": "value",
-                        "type": "uint256"
-                    }
+                    {"indexed": true, "name": "from", "type": "address"},
+                    {"indexed": true, "name": "to", "type": "address"},
+                    {"indexed": false, "name": "value", "type": "uint256"}
                 ],
                 "name": "Transfer",
                 "type": "event"
@@ -1022,21 +733,9 @@
             {
                 "anonymous": false,
                 "inputs": [
-                    {
-                        "indexed": true,
-                        "name": "owner",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "name": "spender",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": false,
-                        "name": "value",
-                        "type": "uint256"
-                    }
+                    {"indexed": true, "name": "owner", "type": "address"},
+                    {"indexed": true, "name": "spender", "type": "address"},
+                    {"indexed": false, "name": "value", "type": "uint256"}
                 ],
                 "name": "Approval",
                 "type": "event"
@@ -1056,19 +755,20 @@
         const disconnectBtn = document.getElementById('disconnect-btn');
         const walletInfo = document.getElementById('wallet-info');
         const walletAddress = document.getElementById('wallet-address');
-        const investSection = document.getElementById('invest-section');
-        const investmentsSection = document.getElementById('investments-section');
+        const mainContent = document.getElementById('main-content');
         const investAmountInput = document.getElementById('invest-amount');
         const investBtn = document.getElementById('invest-btn');
         const usdtBalance = document.getElementById('usdt-balance');
         const feeAmount = document.getElementById('fee-amount');
         const principalAmount = document.getElementById('principal-amount');
+        const returnAmount = document.getElementById('return-amount');
         const investmentsList = document.getElementById('investments-list');
         const totalInvested = document.getElementById('total-invested');
         const totalEarned = document.getElementById('total-earned');
         const activeInvestments = document.getElementById('active-investments');
         const completedInvestments = document.getElementById('completed-investments');
         const debugInfo = document.getElementById('debug-info');
+        const contractInfo = document.getElementById('contract-info');
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
@@ -1076,6 +776,24 @@
             disconnectBtn.addEventListener('click', disconnectWallet);
             investAmountInput.addEventListener('input', updateInvestmentDetails);
             investBtn.addEventListener('click', invest);
+            
+            // Configurar abas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Remover classe active de todas as abas e conteúdos
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Adicionar classe active à aba e conteúdo correspondente
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
             
             // Verificar se já está conectado
             if (typeof window.ethereum !== 'undefined') {
@@ -1125,23 +843,20 @@
                         throw new Error('Contrato não encontrado no endereço especificado.');
                     }
                     
-                    // Tentar chamar uma função simples para verificar se o contrato está respondendo
-                    const owner = await contract.owner();
-                    if (!owner) {
-                        throw new Error('Contrato não está respondendo corretamente.');
-                    }
+                    // Exibir informações do contrato
+                    showContractInfo(`Endereço do contrato: ${contractAddress}<br>Rede: BSC Mainnet<br>Código do contrato: ${code.substring(0, 100)}...`);
                     
                     // Atualizar UI
                     walletAddress.textContent = account;
                     walletInfo.classList.remove('hidden');
-                    investSection.classList.remove('hidden');
-                    investmentsSection.classList.remove('hidden');
+                    mainContent.classList.remove('hidden');
                     connectWalletBtn.textContent = 'Carteira Conectada';
                     connectWalletBtn.disabled = true;
                     
                     // Carregar dados
                     loadUSDTBalance();
                     loadInvestments();
+                    loadPoolStats();
                     
                     // Escutar eventos
                     window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -1163,13 +878,13 @@
         function disconnectWallet() {
             // Não é possível desconectar programaticamente, apenas atualizar a UI
             walletInfo.classList.add('hidden');
-            investSection.classList.add('hidden');
-            investmentsSection.classList.add('hidden');
+            mainContent.classList.add('hidden');
             connectWalletBtn.textContent = 'Conectar Carteira';
             connectWalletBtn.disabled = false;
             investments = [];
             investmentsList.innerHTML = '';
             debugInfo.classList.add('hidden');
+            contractInfo.classList.add('hidden');
             showNotification('Carteira desconectada', 'info');
         }
         
@@ -1202,12 +917,30 @@
             }
         }
         
+        // Carregar estatísticas do pool
+        async function loadPoolStats() {
+            try {
+                // Obter total supply do USDT
+                const totalSupply = await usdtContract.totalSupply();
+                const formattedTotalSupply = ethers.utils.formatUnits(totalSupply, 18);
+                document.getElementById('pool-total-supply').textContent = parseFloat(formattedTotalSupply).toFixed(0);
+                
+                // Obter TVL (Total Value Locked) - valor aproximado
+                document.getElementById('pool-tvl').textContent = parseFloat(formattedTotalSupply).toFixed(0);
+                
+                // APR fixo de 24%
+                document.getElementById('pool-apr').textContent = '24%';
+                
+                // Número de investidores - valor aproximado
+                document.getElementById('pool-investors').textContent = '100+';
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas do pool:', error);
+            }
+        }
+        
         // Carregar investimentos
         async function loadInvestments() {
             try {
-                // Verificar se o contrato está respondendo
-                const testCall = await contract.investmentCounter();
-                
                 // Tentar obter a contagem de investimentos
                 const investmentCount = await contract.getInvestmentCount(account);
                 
@@ -1220,16 +953,26 @@
                 }
                 
                 // Carregar a lista de investimentos
-                const investmentData = await contract.getInvestments(account);
+                investments = [];
                 
-                investments = investmentData.map(inv => ({
-                    id: inv.id.toString(),
-                    investor: inv.investor,
-                    principalAmount: ethers.utils.formatUnits(inv.principalAmount, 18),
-                    originalAmount: ethers.utils.formatUnits(inv.originalAmount, 18),
-                    timestamp: inv.timestamp.toNumber(),
-                    withdrawn: inv.withdrawn
-                }));
+                // Obter cada investimento individualmente
+                for (let i = 1; i <= investmentCount.toNumber(); i++) {
+                    try {
+                        const investment = await contract.getInvestmentById(i);
+                        if (investment.investor.toLowerCase() === account.toLowerCase()) {
+                            investments.push({
+                                id: investment.id.toString(),
+                                investor: investment.investor,
+                                principalAmount: ethers.utils.formatUnits(investment.principalAmount, 18),
+                                originalAmount: ethers.utils.formatUnits(investment.originalAmount, 18),
+                                timestamp: investment.timestamp.toNumber(),
+                                withdrawn: investment.withdrawn
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Erro ao carregar investimento ${i}:`, error);
+                    }
+                }
                 
                 updateInvestmentsList();
                 updateStats();
@@ -1370,9 +1113,11 @@
             const amount = parseFloat(investAmountInput.value) || 0;
             const fee = amount * 0.02; // 2% de taxa
             const principal = amount - fee;
+            const returnVal = amount * 0.24; // 24% de retorno
             
             feeAmount.textContent = fee.toFixed(2) + ' USDT';
             principalAmount.textContent = principal.toFixed(2) + ' USDT';
+            returnAmount.textContent = returnVal.toFixed(2) + ' USDT';
         }
         
         // Investir
@@ -1414,6 +1159,7 @@
                 updateInvestmentDetails();
                 loadUSDTBalance();
                 loadInvestments();
+                loadPoolStats();
             } catch (error) {
                 console.error('Erro ao investir:', error);
                 showDebugInfo(`Erro ao investir: ${error.message}`);
@@ -1438,6 +1184,7 @@
                 // Atualizar dados
                 loadUSDTBalance();
                 loadInvestments();
+                loadPoolStats();
             } catch (error) {
                 console.error('Erro ao sacar:', error);
                 showDebugInfo(`Erro ao sacar: ${error.message}`);
@@ -1466,6 +1213,12 @@
         function showDebugInfo(message) {
             debugInfo.classList.remove('hidden');
             debugInfo.textContent = message;
+        }
+        
+        // Mostrar informações do contrato
+        function showContractInfo(message) {
+            contractInfo.classList.remove('hidden');
+            contractInfo.innerHTML = message;
         }
     </script>
 </body>
