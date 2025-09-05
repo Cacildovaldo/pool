@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liquidity Pool Platform</title>
+    <title>BitNest Investment Platform</title>
+    <!-- Carregar ethers.js de forma explícita -->
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
     <style>
         * {
@@ -238,8 +239,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Liquidity Pool Platform </h1>
-            <p class="subtitle">Invista em USDT e receba 22% de retorno em apenas 28 dias com segurança e transparência</p>
+            <h1>BitNest Investment Platform</h1>
+            <p class="subtitle">Invista em USDT e receba 24% de retorno em apenas 28 dias com segurança e transparência</p>
         </header>
         
         <div class="wallet-section card">
@@ -291,16 +292,22 @@
         </div>
         
         <footer>
-            <p>&copy; 2025 Liquidity Pool Platform. Todos os direitos reservados.</p>
-            <p>Endereço do Contrato: <span id="contract-address">0x000...</span></p>
+            <p>&copy; 2023 BitNest Investment Platform. Todos os direitos reservados.</p>
+            <p>Endereço do Contrato: <span id="contract-address">0x11CB774babD0D8ADDC01b5FfC8Efb85db90d537F</span></p>
         </footer>
     </div>
     
     <div id="notification" class="notification hidden"></div>
 
     <script>
+        // Verificar se o ethers.js está carregado
+        if (typeof ethers === 'undefined') {
+            console.error('Ethers.js não está carregado. Verifique a conexão com a internet.');
+            alert('Erro: Biblioteca ethers.js não carregada. Recarregue a página.');
+        }
+
         // Configuração do contrato
-        const CONTRACT_ADDRESS = "0x11CB774babD0D8ADDC01b5FfC8Efb85db90d537F"; // Substitua pelo endereço do seu contrato implantado
+        const CONTRACT_ADDRESS = "0x11CB774babD0D8ADDC01b5FfC8Efb85db90d537F"; // Endereço do seu contrato
         const CONTRACT_ABI = [
             "function invest(uint256 amount) external",
             "function withdraw(uint256 investmentId) external",
@@ -311,6 +318,10 @@
             "event Invested(address indexed investor, uint256 indexed investmentId, uint256 amount, uint256 timestamp)",
             "event Withdrawn(address indexed investor, uint256 indexed investmentId, uint256 amount)"
         ];
+        
+        // Configuração da rede BSC
+        const BSC_NETWORK_ID = 56; // Mainnet
+        const BSC_TESTNET_ID = 97; // Testnet
         
         // Variáveis globais
         let provider;
@@ -347,41 +358,87 @@
         
         // Funções de carteira
         async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    showLoading(true);
-                    
-                    // Solicitar acesso à carteira
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAddress = accounts[0];
-                    
-                    // Configurar provedor e assinante
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-                    
-                    // Configurar contrato
-                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-                    
-                    // Atualizar UI
-                    walletAddressSpan.textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(userAddress.length - 4);
-                    document.getElementById('wallet-address').classList.remove('hidden');
-                    connectWalletBtn.classList.add('hidden');
-                    disconnectWalletBtn.classList.remove('hidden');
-                    appContent.classList.remove('hidden');
-                    
-                    // Carregar dados do usuário
-                    await loadUserData();
-                    
-                    // Configurar listeners de eventos
-                    setupEventListeners();
-                    
-                    showLoading(false);
-                } catch (error) {
-                    showLoading(false);
-                    showNotification('Erro ao conectar carteira: ' + error.message, 'error');
-                }
-            } else {
+            if (typeof window.ethereum === 'undefined') {
                 showNotification('MetaMask não detectada. Por favor, instale a MetaMask.', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                // Verificar se está na rede correta (BSC)
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const chainIdInt = parseInt(chainId, 16);
+                
+                if (chainIdInt !== BSC_NETWORK_ID && chainIdInt !== BSC_TESTNET_ID) {
+                    // Tentar mudar para a rede BSC
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x' + BSC_NETWORK_ID.toString(16) }],
+                        });
+                    } catch (switchError) {
+                        // Se a rede não estiver adicionada, pedir para adicionar
+                        if (switchError.code === 4902) {
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [
+                                        {
+                                            chainId: '0x' + BSC_NETWORK_ID.toString(16),
+                                            chainName: 'Binance Smart Chain',
+                                            nativeCurrency: {
+                                                name: 'BNB',
+                                                symbol: 'BNB',
+                                                decimals: 18
+                                            },
+                                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                            blockExplorerUrls: ['https://bscscan.com']
+                                        },
+                                    ],
+                                });
+                            } catch (addError) {
+                                showNotification('Falha ao adicionar a rede BSC. Adicione manualmente.', 'error');
+                                showLoading(false);
+                                return;
+                            }
+                        } else {
+                            showNotification('Falha ao mudar para a rede BSC. Mude manualmente.', 'error');
+                            showLoading(false);
+                            return;
+                        }
+                    }
+                }
+                
+                // Solicitar acesso à carteira
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+                
+                // Configurar provedor e assinante
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                
+                // Configurar contrato
+                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                
+                // Atualizar UI
+                walletAddressSpan.textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(userAddress.length - 4);
+                document.getElementById('wallet-address').classList.remove('hidden');
+                connectWalletBtn.classList.add('hidden');
+                disconnectWalletBtn.classList.remove('hidden');
+                appContent.classList.remove('hidden');
+                
+                // Carregar dados do usuário
+                await loadUserData();
+                
+                // Configurar listeners de eventos
+                setupEventListeners();
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('Erro ao conectar carteira:', error);
+                showLoading(false);
+                showNotification('Erro ao conectar carteira: ' + error.message, 'error');
             }
         }
         
@@ -426,6 +483,7 @@
                 showLoading(false);
                 showNotification('Investimento realizado com sucesso!', 'success');
             } catch (error) {
+                console.error('Erro ao investir:', error);
                 showLoading(false);
                 showNotification('Erro ao realizar investimento: ' + error.message, 'error');
             }
@@ -445,6 +503,7 @@
                 showLoading(false);
                 showNotification('Retorno recebido com sucesso!', 'success');
             } catch (error) {
+                console.error('Erro ao sacar:', error);
                 showLoading(false);
                 showNotification('Erro ao realizar retirada: ' + error.message, 'error');
             }
