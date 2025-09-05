@@ -354,7 +354,26 @@
             
             <p><strong>Após 28 dias do seu depósito, você receberá automaticamente seu valor depositado com um acréscimo de 24%.</strong> Nossos contratos inteligentes garantem transações seguras e automáticas, sem a necessidade de intervenção manual.</p>
         </div>
-                     
+        
+        <div class="card">
+            <div class="card-title">
+                <i>📥</i> Endereço para Depósito
+            </div>
+            <p>Envie apenas USDT pela rede BSC (BEP-20). Enviar outros tokens ou por outras redes pode resultar em perda de fundos.</p>
+            
+            <div class="address-box hidden" id="address-container">
+                <span id="deposit-address">0xFCc442275A2620E40F17598F9987F320fB57526e</span>
+                <button id="copy-address" title="Copiar endereço">📋</button>
+            </div>
+            
+            <div class="qrcode hidden" id="qrcode-container">
+                <canvas id="qrcode-canvas"></canvas>
+            </div>
+            
+            <button id="show-address-btn" class="btn">Mostrar Endereço para Depósito</button>
+            <button id="copy-btn" class="btn hidden">Copiar Endereço</button>
+        </div>
+        
         <div class="card">
             <div class="card-title">
                 <i>🔗</i> Conectar Carteira
