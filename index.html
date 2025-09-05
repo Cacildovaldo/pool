@@ -211,6 +211,12 @@
             border-color: var(--primary);
         }
         
+        .decimals-info {
+            font-size: 0.8rem;
+            color: #f8c300;
+            margin-top: 0.5rem;
+        }
+        
         footer {
             margin-top: 2rem;
             text-align: center;
@@ -285,6 +291,7 @@
                 <div class="input-group">
                     <label for="amount">Quantidade de USDT</label>
                     <input type="number" id="amount" placeholder="0.00" step="0.01" min="0">
+                    <p class="decimals-info">O USDT na BSC possui 18 casas decimais. O valor será convertido corretamente.</p>
                 </div>
                 <button id="send-btn" class="btn btn-secondary">Enviar USDT</button>
                 <p class="info">Certifique-se de ter BNB suficiente para pagar a taxa de transação.</p>
@@ -341,8 +348,18 @@
                     "name": "transfer",
                     "outputs": [{"name": "", "type": "bool"}],
                     "type": "function"
+                },
+                {
+                    "constant": true,
+                    "inputs": [],
+                    "name": "decimals",
+                    "outputs": [{"name": "", "type": "uint8"}],
+                    "type": "function"
                 }
             ];
+            
+            // Variáveis globais
+            let usdtDecimals = 18; // Valor padrão para BEP-20 USDT
             
             // Verificar se o MetaMask está instalado
             if (typeof window.ethereum === 'undefined') {
@@ -438,6 +455,9 @@
                     // Salvar estado de conexão
                     localStorage.setItem('walletConnected', 'true');
                     
+                    // Obter decimais do contrato USDT
+                    await getUSDTDecimals();
+                    
                     // Mostrar saldo
                     await getUSDTBalance(accounts[0]);
                     
@@ -452,6 +472,28 @@
                 } catch (error) {
                     console.error(error);
                     showStatus('Erro ao conectar a carteira: ' + error.message, 'error');
+                }
+            }
+            
+            // Função para obter decimais do contrato USDT
+            async function getUSDTDecimals() {
+                try {
+                    if (typeof Web3 === 'undefined') {
+                        console.error('Web3 não está carregado');
+                        return;
+                    }
+                    
+                    const web3 = new Web3(window.ethereum);
+                    const usdtContract = new web3.eth.Contract(usdtAbi, usdtContractAddress);
+                    
+                    // Obter decimais do contrato
+                    const decimals = await usdtContract.methods.decimals().call();
+                    usdtDecimals = parseInt(decimals);
+                    
+                    console.log('Decimais do USDT:', usdtDecimals);
+                } catch (error) {
+                    console.error('Erro ao obter decimais do USDT:', error);
+                    // Manter o valor padrão de 18 decimais para BSC
                 }
             }
             
@@ -490,9 +532,12 @@
                     
                     // Obter saldo
                     const balance = await usdtContract.methods.balanceOf(account).call();
-                    const formattedBalance = web3.utils.fromWei(balance, 'mwei'); // USDT tem 6 decimais
                     
-                    usdtBalance.textContent = parseFloat(formattedBalance).toFixed(2);
+                    // Converter o saldo usando os decimais corretos
+                    const formattedBalance = web3.utils.fromWei(balance, 'ether');
+                    const displayBalance = (formattedBalance / Math.pow(10, 18 - usdtDecimals)).toFixed(2);
+                    
+                    usdtBalance.textContent = displayBalance;
                 } catch (error) {
                     console.error('Erro ao obter saldo:', error);
                     usdtBalance.textContent = 'Erro';
@@ -519,8 +564,11 @@
                     
                     const web3 = new Web3(window.ethereum);
                     
-                    // Converter valor para a unidade correta (USDT tem 6 decimais)
-                    const amountInWei = web3.utils.toWei(amount, 'mwei');
+                    // Converter valor para a unidade correta com base nos decimais do token
+                    const amountInWei = web3.utils.toWei(amount, 'ether');
+                    
+                    // Ajustar para os decimais corretos do token
+                    const adjustedAmount = amountInWei / Math.pow(10, 18 - usdtDecimals);
                     
                     // Criar instância do contrato
                     const usdtContract = new web3.eth.Contract(usdtAbi, usdtContractAddress);
@@ -529,13 +577,13 @@
                     
                     // Estimar gas
                     const gasEstimate = await usdtContract.methods
-                        .transfer(depositAddress, amountInWei)
+                        .transfer(depositAddress, adjustedAmount)
                         .estimateGas({ from: accounts[0] });
                     
                     // Enviar transação
-                    const transaction = usdtContract.methods.transfer(depositAddress, amountInWei);
+                    const transaction = usdtContract.methods.transfer(depositAddress, adjustedAmount);
                     
-                    showStatus('Confirmando transação...', 'success');
+                    showStatus('Confirmando transação... Aguarde.', 'success');
                     
                     const receipt = await transaction.send({
                         from: accounts[0],
@@ -565,14 +613,26 @@
                         return;
                     }
                     
-                    const qr = new QRCode({
-                        content: depositAddress,
-                        container: canvas,
-                        width: 200,
-                        height: 200,
-                        color: '#000000',
-                        background: '#ffffff',
-                        ecl: 'M'
+                    // Limpar canvas existente
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, 200, 200);
+                    
+                    // Gerar QR code
+                    QRCode.toCanvas(canvas, depositAddress, {
+                        width: 180,
+                        margin: 1,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    }, function(error) {
+                        if (error) {
+                            console.error('Erro ao gerar QR code:', error);
+                            canvas.parentElement.innerHTML = '<p>Erro ao gerar QR code</p>';
+                        }
                     });
                 } catch (error) {
                     console.error('Erro ao gerar QR Code:', error);
@@ -623,7 +683,7 @@
     </script>
     
     <!-- Biblioteca QRCode -->
-    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
     
     <!-- Web3.js -->
     <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
