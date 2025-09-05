@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Depósito USDT - BSC (BEP-20)</title>
+    <title>Liquidty Pool USDT</title>
     <style>
         :root {
             --primary: #2a71d0;
@@ -34,7 +34,7 @@
         }
         
         .container {
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -50,7 +50,7 @@
         }
         
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             margin-bottom: 0.5rem;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -61,6 +61,7 @@
         .subtitle {
             color: #ccc;
             margin-bottom: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .card {
@@ -68,6 +69,11 @@
             border-radius: var(--border-radius);
             padding: 1.5rem;
             margin-bottom: 1.5rem;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, rgba(42, 113, 208, 0.15), rgba(248, 195, 0, 0.15));
+            border-left: 4px solid var(--secondary);
         }
         
         .card-title {
@@ -217,6 +223,50 @@
             margin-top: 0.5rem;
         }
         
+        .benefits {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+        }
+        
+        .benefit-item {
+            flex-basis: 48%;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .benefit-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+            color: var(--secondary);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .stat-item {
+            padding: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .stat-label {
+            color: #ccc;
+        }
+        
         footer {
             margin-top: 2rem;
             text-align: center;
@@ -230,7 +280,15 @@
             }
             
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.8rem;
+            }
+            
+            .benefit-item {
+                flex-basis: 100%;
+            }
+            
+            .stats {
+                flex-direction: column;
             }
         }
     </style>
@@ -238,9 +296,64 @@
 <body>
     <div class="container">
         <header>
-            <h1>Depósito de USDT</h1>
-            <p class="subtitle">Utilize a rede Binance Smart Chain (BEP-20)</p>
+            <h1>Liquidty Pool USDT</h1>
+            <p class="subtitle">Invista em nossa pool de liquidez e receba retornos lucrativos</p>
         </header>
+        
+        <div class="card info-card">
+            <div class="card-title">
+                <i>💰</i> Sobre Nossa Liquidity Pool
+            </div>
+            <p>Nossa pool de liquidez é renomada e robusta, com milhares de usuários em todo o mundo. Ao depositar USDT em nossa pool, você estará participando de uma das estratégias de investimento mais seguras e lucrativas do mercado DeFi.</p>
+            
+            <div class="benefits">
+                <div class="benefit-item">
+                    <div class="benefit-icon">⏱️</div>
+                    <div>
+                        <h3>28 Dias</h3>
+                        <p>Período de investimento</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">📈</div>
+                    <div>
+                        <h3>24% de Retorno</h3>
+                        <p>Rendimento garantido</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🔒</div>
+                    <div>
+                        <h3>Segurança Máxima</h3>
+                        <p>Contratos auditados</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🌎</div>
+                    <div>
+                        <h3>Global</h3>
+                        <p>Disponível mundialmente</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">24%</div>
+                    <div class="stat-label">Retorno em 28 dias</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">10K+</div>
+                    <div class="stat-label">Investidores</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">$25M+</div>
+                    <div class="stat-label">Em liquidez</div>
+                </div>
+            </div>
+            
+            <p><strong>Após 28 dias do seu depósito, você receberá automaticamente seu valor depositado com um acréscimo de 24%.</strong> Nossos contratos inteligentes garantem transações seguras e automáticas, sem a necessidade de intervenção manual.</p>
+        </div>
         
         <div class="card">
             <div class="card-title">
@@ -303,7 +416,7 @@
     
     <footer>
         <p>Verifique sempre o endereço antes de enviar seus fundos.</p>
-        <p>© 2023 - Depósito USDT BSC</p>
+        <p>© 2023 - Liquidty Pool USDT</p>
     </footer>
 
     <script>
