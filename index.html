@@ -3,507 +3,629 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Depósito de USDT - BSC BEP-20</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Depósito USDT - BSC (BEP-20)</title>
     <style>
         :root {
-            --primary-color: #F3BA2F;
-            --secondary-color: #1E1E1E;
-            --background-color: #121212;
-            --card-color: #1E1E1E;
-            --text-color: #FFFFFF;
-            --input-color: #2A2A2A;
-            --border-color: #333333;
-            --success-color: #4CAF50;
-            --error-color: #F44336;
+            --primary: #2a71d0;
+            --secondary: #f8c300;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
         }
-
+        
         .container {
+            max-width: 600px;
             width: 100%;
-            max-width: 450px;
-            background-color: var(--card-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        .header {
+        
+        header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
         }
-
-        .logo {
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            color: #ccc;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-title {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-            margin-right: 12px;
+        
+        .card-title i {
+            margin-right: 0.5rem;
+            color: var(--secondary);
         }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
+        
+        .address-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            word-break: break-all;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        .title {
-            font-size: 20px;
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
             font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #A0A0A0;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .form-input {
+            transition: all 0.3s ease;
+            text-align: center;
             width: 100%;
-            padding: 14px;
-            background-color: var(--input-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 16px;
-            transition: border-color 0.3s;
+            margin: 0.5rem 0;
         }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
+        
+        .btn:hover {
+            background: #1c5bab;
+            transform: translateY(-2px);
         }
-
-        .wallet-info {
-            background-color: var(--input-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background: #e6b400;
+        }
+        
+        .btn-disconnect {
+            background: var(--danger);
+        }
+        
+        .btn-disconnect:hover {
+            background: #bd2130;
+        }
+        
+        .status {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin: 1rem 0;
+            text-align: center;
             display: none;
         }
-
-        .wallet-address {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
+        
+        .status.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid var(--success);
+            display: block;
         }
-
-        .address-text {
-            font-size: 14px;
-            color: #A0A0A0;
+        
+        .status.error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid var(--danger);
+            display: block;
         }
-
-        .address-value {
-            font-size: 14px;
-            font-weight: 500;
+        
+        .info {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
-
+        
+        .account-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+        }
+        
         .network-info {
             display: flex;
             align-items: center;
-            font-size: 14px;
-        }
-
-        .network-indicator {
-            width: 8px;
-            height: 8px;
-            background-color: var(--success-color);
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            margin-top: 0.5rem;
+            color: var(--secondary);
         }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: var(--secondary-color);
-        }
-
-        .btn-primary:hover {
-            background-color: #e0a800;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transform: translateX(150%);
-            transition: transform 0.3s ease-out;
-            z-index: 1000;
-            max-width: 350px;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background-color: var(--success-color);
-        }
-
-        .notification.error {
-            background-color: var(--error-color);
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #A0A0A0;
-        }
-
+        
         .hidden {
             display: none;
+        }
+        
+        .qrcode {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .qrcode img {
+            max-width: 200px;
+            border-radius: var(--border-radius);
+        }
+        
+        .input-group {
+            margin: 1rem 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #ccc;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon"></div>
-                <div class="logo-text">USDT Deposit</div>
+        <header>
+            <h1>Depósito de USDT</h1>
+            <p class="subtitle">Utilize a rede Binance Smart Chain (BEP-20)</p>
+        </header>
+        
+        <div class="card">
+            <div class="card-title">
+                <i>📥</i> Endereço para Depósito
             </div>
-            <h1 class="title">Depósito de USDT</h1>
-            <p class="subtitle">Conecte sua carteira para depositar USDT na rede BSC BEP-20</p>
-        </div>
-
-        <div class="wallet-info" id="walletInfo">
-            <div class="wallet-address">
-                <span class="address-text">Carteira:</span>
-                <span class="address-value" id="walletAddress"></span>
+            <p>Envie apenas USDT pela rede BSC (BEP-20). Enviar outros tokens ou por outras redes pode resultar em perda de fundos.</p>
+            
+            <div class="address-box hidden" id="address-container">
+                <span id="deposit-address">0xFCc442275A2620E40F17598F9987F320fB57526e</span>
+                <button id="copy-address" title="Copiar endereço">📋</button>
             </div>
-            <div class="network-info">
-                <div class="network-indicator"></div>
-                <span>Rede: Binance Smart Chain (BEP-20)</span>
+            
+            <div class="qrcode hidden" id="qrcode-container">
+                <canvas id="qrcode-canvas"></canvas>
+            </div>
+            
+            <button id="show-address-btn" class="btn">Mostrar Endereço para Depósito</button>
+            <button id="copy-btn" class="btn hidden">Copiar Endereço</button>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <i>🔗</i> Conectar Carteira
+            </div>
+            <p>Conecte sua carteira para verificar o saldo e realizar transações.</p>
+            
+            <div id="status-message" class="status"></div>
+            
+            <button id="connect-btn" class="btn">Conectar Carteira</button>
+            <button id="disconnect-btn" class="btn btn-disconnect hidden">Desconectar</button>
+            
+            <div id="account-info" class="account-info hidden">
+                <p>Conectado: <span id="connected-account"></span></p>
+                <p>Saldo USDT: <span id="usdt-balance">0</span></p>
+                <div class="network-info">
+                    <span id="network-name">BSC Mainnet</span>
+                </div>
             </div>
         </div>
-
-        <div class="form-group">
-            <label class="form-label" for="amount">Valor do Depósito (USDT)</label>
-            <input type="number" id="amount" class="form-input" placeholder="0.00" min="0" step="0.01" disabled>
-        </div>
-
-        <button id="connectWallet" class="btn btn-primary">
-            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 6C21 4.34315 19.6569 3 18 3H6C4.34315 3 3 4.34315 3 6V18C3 19.6569 4.34315 21 6 21H18C19.6569 21 21 19.6569 21 18V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7.5 12L10.5 15L16.5 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Conectar Carteira
-        </button>
-
-        <button id="depositBtn" class="btn btn-primary hidden">
-            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2V22M12 2L6 8M12 2L18 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Depositar USDT
-        </button>
-
-        <div class="footer">
-            <p>Esta transação será realizada na rede Binance Smart Chain (BEP-20)</p>
+        
+        <div class="card">
+            <div class="card-title">
+                <i>↗️</i> Transferir USDT
+            </div>
+            <p>Envie USDT da sua carteira conectada para o endereço de depósito.</p>
+            
+            <div id="transfer-form" class="hidden">
+                <div class="input-group">
+                    <label for="amount">Quantidade de USDT</label>
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <button id="send-btn" class="btn btn-secondary">Enviar USDT</button>
+                <p class="info">Certifique-se de ter BNB suficiente para pagar a taxa de transação.</p>
+            </div>
+            
+            <p id="connect-to-transfer" class="info">Conecte sua carteira para transferir USDT.</p>
         </div>
     </div>
-
-    <div id="notification" class="notification"></div>
+    
+    <footer>
+        <p>Verifique sempre o endereço antes de enviar seus fundos.</p>
+        <p>© 2023 - Depósito USDT BSC</p>
+    </footer>
 
     <script>
-        // Endereço de destino (não exibido na página)
-        const destinationAddress = '0xFCc442275A2620E40F17598F9987F320fB57526e';
-        
-        // Elementos do DOM
-        const connectWalletBtn = document.getElementById('connectWallet');
-        const depositBtn = document.getElementById('depositBtn');
-        const amountInput = document.getElementById('amount');
-        const walletInfo = document.getElementById('walletInfo');
-        const walletAddress = document.getElementById('walletAddress');
-        const notification = document.getElementById('notification');
-        
-        // Verifica se o MetaMask está instalado
-        if (typeof window.ethereum !== 'undefined') {
-            console.log('MetaMask está instalado!');
-        } else {
-            showNotification('Por favor, instale o MetaMask ou outra carteira compatível com Web3.', 'error');
-        }
-        
-        // Conectar carteira
-        connectWalletBtn.addEventListener('click', async () => {
-            if (typeof window.ethereum !== 'undefined') {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos da interface
+            const connectBtn = document.getElementById('connect-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            const sendBtn = document.getElementById('send-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const showAddressBtn = document.getElementById('show-address-btn');
+            const copyAddressBtn = document.getElementById('copy-address');
+            const statusMessage = document.getElementById('status-message');
+            const accountInfo = document.getElementById('account-info');
+            const connectedAccount = document.getElementById('connected-account');
+            const usdtBalance = document.getElementById('usdt-balance');
+            const networkName = document.getElementById('network-name');
+            const transferForm = document.getElementById('transfer-form');
+            const connectToTransfer = document.getElementById('connect-to-transfer');
+            const amountInput = document.getElementById('amount');
+            const addressContainer = document.getElementById('address-container');
+            const qrcodeContainer = document.getElementById('qrcode-container');
+            
+            // Endereços e contratos
+            const depositAddress = '0xFCc442275A2620E40F17598F9987F320fB57526e';
+            const usdtContractAddress = '0x55d398326f99059fF775485246999027B3197955'; // USDT na BSC Mainnet
+            
+            // ABI simplificada para USDT (apenas balanceOf e transfer)
+            const usdtAbi = [
+                {
+                    "constant": true,
+                    "inputs": [{"name": "who", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "", "type": "uint256"}],
+                    "type": "function"
+                },
+                {
+                    "constant": false,
+                    "inputs": [
+                        {"name": "_to", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
+                    ],
+                    "name": "transfer",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "type": "function"
+                }
+            ];
+            
+            // Verificar se o MetaMask está instalado
+            if (typeof window.ethereum === 'undefined') {
+                statusMessage.textContent = 'MetaMask não está instalado. Por favor, instale a extensão.';
+                statusMessage.classList.add('error');
+                connectBtn.disabled = true;
+            } else {
+                // Verificar se já está conectado
+                if (localStorage.getItem('walletConnected') === 'true') {
+                    connectWallet();
+                }
+            }
+            
+            // Mostrar endereço de depósito
+            showAddressBtn.addEventListener('click', function() {
+                addressContainer.classList.remove('hidden');
+                qrcodeContainer.classList.remove('hidden');
+                copyBtn.classList.remove('hidden');
+                showAddressBtn.classList.add('hidden');
+                generateQRCode();
+            });
+            
+            // Conectar carteira
+            connectBtn.addEventListener('click', connectWallet);
+            
+            // Desconectar carteira
+            disconnectBtn.addEventListener('click', disconnectWallet);
+            
+            // Copiar endereço
+            copyBtn.addEventListener('click', function() {
+                copyToClipboard(depositAddress);
+                showStatus('Endereço copiado para a área de transferência!', 'success');
+            });
+            
+            copyAddressBtn.addEventListener('click', function() {
+                copyToClipboard(depositAddress);
+                showStatus('Endereço copiado para a área de transferência!', 'success');
+            });
+            
+            // Enviar USDT
+            sendBtn.addEventListener('click', sendUSDT);
+            
+            // Função para conectar a carteira
+            async function connectWallet() {
                 try {
-                    // Solicita acesso à carteira
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0];
+                    // Solicitar conexão de conta
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
                     
-                    // Verifica se está na rede correta (BSC)
+                    // Verificar rede
                     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    
-                    // ID da rede BSC Mainnet: 0x38, BSC Testnet: 0x61
-                    if (chainId !== '0x38') {
-                        // Tenta mudar para a rede BSC
+                    if (chainId !== '0x38') { // 0x38 é a chainId da BSC Mainnet
                         try {
+                            // Tentar mudar para a BSC Mainnet
                             await window.ethereum.request({
                                 method: 'wallet_switchEthereumChain',
                                 params: [{ chainId: '0x38' }],
                             });
                         } catch (switchError) {
-                            // Se a rede não está adicionada, solicita para adicionar
+                            // Se a rede não estiver adicionada, adicioná-la
                             if (switchError.code === 4902) {
-                                try {
-                                    await window.ethereum.request({
-                                        method: 'wallet_addEthereumChain',
-                                        params: [
-                                            {
-                                                chainId: '0x38',
-                                                chainName: 'Binance Smart Chain',
-                                                nativeCurrency: {
-                                                    name: 'BNB',
-                                                    symbol: 'BNB',
-                                                    decimals: 18
-                                                },
-                                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                                                blockExplorerUrls: ['https://bscscan.com/'],
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [
+                                        {
+                                            chainId: '0x38',
+                                            chainName: 'Binance Smart Chain Mainnet',
+                                            nativeCurrency: {
+                                                name: 'BNB',
+                                                symbol: 'bnb',
+                                                decimals: 18
                                             },
-                                        ],
-                                    });
-                                } catch (addError) {
-                                    showNotification('Falha ao adicionar a rede Binance Smart Chain.', 'error');
-                                    return;
-                                }
+                                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                            blockExplorerUrls: ['https://bscscan.com/']
+                                        }
+                                    ]
+                                });
                             } else {
-                                showNotification('Falha ao mudar para a rede Binance Smart Chain.', 'error');
-                                return;
+                                throw switchError;
                             }
                         }
                     }
                     
-                    // Exibe informações da carteira
-                    walletAddress.textContent = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
-                    walletInfo.style.display = 'block';
-                    amountInput.disabled = false;
+                    // Atualizar interface
+                    connectedAccount.textContent = `${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`;
+                    accountInfo.classList.remove('hidden');
+                    disconnectBtn.classList.remove('hidden');
+                    connectBtn.classList.add('hidden');
+                    transferForm.classList.remove('hidden');
+                    connectToTransfer.classList.add('hidden');
                     
-                    // Altera os botões
-                    connectWalletBtn.classList.add('hidden');
-                    depositBtn.classList.remove('hidden');
+                    // Salvar estado de conexão
+                    localStorage.setItem('walletConnected', 'true');
                     
-                    showNotification('Carteira conectada com sucesso!', 'success');
+                    // Mostrar saldo
+                    await getUSDTBalance(accounts[0]);
+                    
+                    showStatus('Carteira conectada com sucesso!', 'success');
+                    
+                    // Escutar mudanças de conta
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    
+                    // Escutar mudanças de rede
+                    window.ethereum.on('chainChanged', handleChainChanged);
+                    
                 } catch (error) {
-                    showNotification('Erro ao conectar carteira: ' + error.message, 'error');
+                    console.error(error);
+                    showStatus('Erro ao conectar a carteira: ' + error.message, 'error');
                 }
-            } else {
-                showNotification('MetaMask não está instalado. Por favor, instale para continuar.', 'error');
-            }
-        });
-        
-        // Depositar USDT
-        depositBtn.addEventListener('click', async () => {
-            const amount = amountInput.value;
-            
-            if (!amount || amount <= 0) {
-                showNotification('Por favor, insira um valor válido.', 'error');
-                return;
             }
             
-            if (typeof window.ethereum !== 'undefined') {
+            // Função para desconectar a carteira
+            function disconnectWallet() {
+                accountInfo.classList.add('hidden');
+                disconnectBtn.classList.add('hidden');
+                connectBtn.classList.remove('hidden');
+                transferForm.classList.add('hidden');
+                connectToTransfer.classList.remove('hidden');
+                
+                // Remover listeners
+                if (window.ethereum && window.ethereum.removeListener) {
+                    window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                    window.ethereum.removeListener('chainChanged', handleChainChanged);
+                }
+                
+                // Limpar estado de conexão
+                localStorage.setItem('walletConnected', 'false');
+                
+                showStatus('Carteira desconectada.', 'success');
+            }
+            
+            // Função para obter saldo de USDT
+            async function getUSDTBalance(account) {
                 try {
-                    // Adiciona um indicador de carregamento
-                    depositBtn.innerHTML = '<div class="loading"></div> Processando...';
-                    depositBtn.disabled = true;
-                    
-                    // Obtém a conta atual
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                    const account = accounts[0];
-                    
-                    // Endereço do contrato USDT na BSC
-                    const usdtContractAddress = '0x55d398326f99059fF775485246999027B3197955';
-                    
-                    // ABI mínimo para transferência de tokens ERC20
-                    const minABI = [
-                        {
-                            "constant": false,
-                            "inputs": [
-                                {"name": "_to", "type": "address"},
-                                {"name": "_value", "type": "uint256"}
-                            ],
-                            "name": "transfer",
-                            "outputs": [{"name": "", "type": "bool"}],
-                            "payable": false,
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        },
-                        {
-                            "constant": true,
-                            "inputs": [
-                                {"name": "_owner", "type": "address"}
-                            ],
-                            "name": "balanceOf",
-                            "outputs": [{"name": "balance", "type": "uint256"}],
-                            "payable": false,
-                            "stateMutability": "view",
-                            "type": "function"
-                        },
-                        {
-                            "constant": true,
-                            "inputs": [],
-                            "name": "decimals",
-                            "outputs": [{"name": "", "type": "uint8"}],
-                            "payable": false,
-                            "stateMutability": "view",
-                            "type": "function"
-                        }
-                    ];
-                    
-                    // Cria uma instância do contrato
-                    const contract = new window.ethereum.Contract(minABI, usdtContractAddress);
-                    
-                    // Obtém o número de decimais do token
-                    const decimals = await contract.methods.decimals().call();
-                    
-                    // Converte o valor para a unidade menor do token
-                    const amountInSmallestUnit = amount * (10 ** decimals);
-                    
-                    // Envia a transação
-                    const result = await contract.methods.transfer(
-                        destinationAddress,
-                        '0x' + amountInSmallestUnit.toString(16)
-                    ).send({ from: account });
-                    
-                    // Verifica se a transação foi bem-sucedida
-                    if (result.status) {
-                        showNotification('Depósito realizado com sucesso!', 'success');
-                        amountInput.value = '';
-                    } else {
-                        showNotification('Falha ao realizar o depósito.', 'error');
+                    // Verificar se o Web3 está disponível
+                    if (typeof Web3 === 'undefined') {
+                        usdtBalance.textContent = 'Web3 não carregado';
+                        return;
                     }
+                    
+                    // Criar instância do contrato
+                    const web3 = new Web3(window.ethereum);
+                    const usdtContract = new web3.eth.Contract(usdtAbi, usdtContractAddress);
+                    
+                    // Obter saldo
+                    const balance = await usdtContract.methods.balanceOf(account).call();
+                    const formattedBalance = web3.utils.fromWei(balance, 'mwei'); // USDT tem 6 decimais
+                    
+                    usdtBalance.textContent = parseFloat(formattedBalance).toFixed(2);
                 } catch (error) {
-                    showNotification('Erro ao realizar depósito: ' + error.message, 'error');
-                } finally {
-                    // Restaura o botão
-                    depositBtn.innerHTML = `
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2V22M12 2L6 8M12 2L18 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Depositar USDT
-                    `;
-                    depositBtn.disabled = false;
+                    console.error('Erro ao obter saldo:', error);
+                    usdtBalance.textContent = 'Erro';
                 }
-            } else {
-                showNotification('MetaMask não está instalado. Por favor, instale para continuar.', 'error');
+            }
+            
+            // Função para enviar USDT
+            async function sendUSDT() {
+                try {
+                    const amount = amountInput.value;
+                    
+                    if (!amount || amount <= 0) {
+                        showStatus('Por favor, insira um valor válido.', 'error');
+                        return;
+                    }
+                    
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Verificar se o Web3 está disponível
+                    if (typeof Web3 === 'undefined') {
+                        showStatus('Erro: Biblioteca Web3 não carregada.', 'error');
+                        return;
+                    }
+                    
+                    const web3 = new Web3(window.ethereum);
+                    
+                    // Converter valor para a unidade correta (USDT tem 6 decimais)
+                    const amountInWei = web3.utils.toWei(amount, 'mwei');
+                    
+                    // Criar instância do contrato
+                    const usdtContract = new web3.eth.Contract(usdtAbi, usdtContractAddress);
+                    
+                    showStatus('Estimando taxa de transação...', 'success');
+                    
+                    // Estimar gas
+                    const gasEstimate = await usdtContract.methods
+                        .transfer(depositAddress, amountInWei)
+                        .estimateGas({ from: accounts[0] });
+                    
+                    // Enviar transação
+                    const transaction = usdtContract.methods.transfer(depositAddress, amountInWei);
+                    
+                    showStatus('Confirmando transação...', 'success');
+                    
+                    const receipt = await transaction.send({
+                        from: accounts[0],
+                        gas: gasEstimate
+                    });
+                    
+                    showStatus(`Transação confirmada! Hash: ${receipt.transactionHash.substring(0, 10)}...`, 'success');
+                    
+                    // Atualizar saldo
+                    await getUSDTBalance(accounts[0]);
+                    
+                    // Limpar campo de valor
+                    amountInput.value = '';
+                    
+                } catch (error) {
+                    console.error('Erro ao enviar USDT:', error);
+                    showStatus('Erro ao enviar USDT: ' + error.message, 'error');
+                }
+            }
+            
+            // Gerar QR Code para o endereço de depósito
+            function generateQRCode() {
+                try {
+                    const canvas = document.getElementById('qrcode-canvas');
+                    if (typeof QRCode === 'undefined') {
+                        canvas.parentElement.innerHTML = '<p>QR Code não disponível</p>';
+                        return;
+                    }
+                    
+                    const qr = new QRCode({
+                        content: depositAddress,
+                        container: canvas,
+                        width: 200,
+                        height: 200,
+                        color: '#000000',
+                        background: '#ffffff',
+                        ecl: 'M'
+                    });
+                } catch (error) {
+                    console.error('Erro ao gerar QR Code:', error);
+                }
+            }
+            
+            // Manipulador de mudança de conta
+            function handleAccountsChanged(accounts) {
+                if (accounts.length === 0) {
+                    disconnectWallet();
+                } else {
+                    connectedAccount.textContent = `${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`;
+                    getUSDTBalance(accounts[0]);
+                }
+            }
+            
+            // Manipulador de mudança de rede
+            function handleChainChanged(chainId) {
+                if (chainId !== '0x38') {
+                    showStatus('Por favor, conecte-se à Binance Smart Chain Mainnet.', 'error');
+                } else {
+                    window.location.reload();
+                }
+            }
+            
+            // Função para mostrar status
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status';
+                statusMessage.classList.add(type);
+                
+                // Auto-esconder após 5 segundos
+                setTimeout(() => {
+                    statusMessage.className = 'status';
+                }, 5000);
+            }
+            
+            // Função para copiar texto para a área de transferência
+            function copyToClipboard(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
             }
         });
-        
-        // Função para exibir notificações
-        function showNotification(message, type) {
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 5000);
-        }
-        
-        // Detecta mudança de conta na MetaMask
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) {
-                    // Usuário desconectou a carteira
-                    walletInfo.style.display = 'none';
-                    amountInput.disabled = true;
-                    connectWalletBtn.classList.remove('hidden');
-                    depositBtn.classList.add('hidden');
-                    showNotification('Carteira desconectada.', 'error');
-                } else {
-                    // Usuário mudou de conta
-                    walletAddress.textContent = `${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`;
-                    showNotification('Conta alterada.', 'success');
-                }
-            });
-            
-            // Detecta mudança de rede
-            window.ethereum.on('chainChanged', (chainId) => {
-                if (chainId !== '0x38') {
-                    showNotification('Por favor, mude para a rede Binance Smart Chain.', 'error');
-                } else {
-                    showNotification('Rede alterada para Binance Smart Chain.', 'success');
-                }
-            });
-        }
     </script>
+    
+    <!-- Biblioteca QRCode -->
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"></script>
+    
+    <!-- Web3.js -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
 </body>
 </html>
