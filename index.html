@@ -17,6 +17,7 @@
             --error: #ed4b9e;
             --warning: #ff9f0a;
             --investment: #ff6b35;
+            --owner: #8b5cf6;
         }
         
         * {
@@ -144,6 +145,10 @@
         
         .btn-investment {
             background-color: var(--investment);
+        }
+        
+        .btn-owner {
+            background-color: var(--owner);
         }
         
         .status {
@@ -284,10 +289,24 @@
             margin-top: 16px;
         }
         
+        .owner-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--owner);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
         .info-title {
             font-weight: 600;
             margin-bottom: 8px;
             color: var(--secondary);
+        }
+        
+        .owner-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--owner);
         }
         
         .external-link {
@@ -408,6 +427,42 @@
             color: var(--text-secondary);
             margin-top: 4px;
         }
+        
+        .owner-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--owner);
+        }
+        
+        .owner-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .owner-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .small-btn {
+            padding: 12px 20px;
+            width: auto;
+        }
+        
+        .contract-address {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -425,6 +480,7 @@
             <div class="tab active" data-tab="add">Adicionar Liquidez</div>
             <div class="tab" data-tab="invest">Investir USDT</div>
             <div class="tab" data-tab="remove">Remover Liquidez</div>
+            <div class="tab" data-tab="owner">Área do Proprietário</div>
         </div>
         
         <!-- Tab: Adicionar Liquidez -->
@@ -566,6 +622,80 @@
             </div>
         </div>
         
+        <!-- Tab: Área do Proprietário -->
+        <div class="tab-content" id="owner-tab">
+            <div class="card">
+                <h2 class="card-title">.</h2>
+                
+                <div class="owner-box">
+                    <div class="owner-title">Contrato de Investimento</div>
+                    <div class="contract-address" id="contractAddressDisplay">
+                        0xb7eFe6291E656503E98Cf8479945b0A92b670f5C
+                    </div>
+                    <p style="margin-top: 10px; font-size: 14px;">
+                        <strong>Funcionamento:</strong> Você recebe 14% de lucro sobre cada investimento dos usuários.
+                        Os valores ficam disponíveis no contrato após os 30 dias de período de investimento.
+                    </p>
+                </div>
+                
+                <div class="owner-section">
+                    <h3 style="margin-bottom: 15px; color: var(--owner);">Controles do Proprietário</h3>
+                    
+                    <div class="input-group">
+                        <label for="ownerWithdrawAmount">Valor para Sacar (USDT)</label>
+                        <div class="token-input">
+                            <input type="number" id="ownerWithdrawAmount" placeholder="0.0" min="0" step="0.001">
+                            <span class="token-symbol">USDT</span>
+                        </div>
+                        <div class="balance">Saldo disponível no contrato: <span id="ownerContractBalance">0.0</span> USDT</div>
+                    </div>
+                    
+                    <div class="owner-controls">
+                        <button id="withdrawOwnerBtn" class="btn btn-owner small-btn">
+                            <span id="withdrawOwnerText">Sacar Lucros</span>
+                        </button>
+                        <button id="withdrawMaxBtn" class="btn btn-secondary small-btn">
+                            Sacar Máximo
+                        </button>
+                    </div>
+                    
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label for="updateExternalContract">Atualizar Contrato Externo (Apenas em caso de necessidade)</label>
+                        <div class="token-input">
+                            <input type="text" id="updateExternalContract" placeholder="0x...">
+                        </div>
+                        <button id="updateContractBtn" class="btn btn-warning" style="margin-top: 10px;">
+                            Atualizar Contrato Externo
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="ownerStatusMessage" class="status" style="display: none;"></div>
+                
+                <div class="info-box" style="margin-top: 20px;">
+                    <div class="info-title">📊 Estatísticas do Contrato</div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalContractBalance">0.0</div>
+                            <div class="stat-label">Saldo Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="ownerAddress">-</div>
+                            <div class="stat-label">Proprietário Atual</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="externalContractAddress">-</div>
+                            <div class="stat-label">Contrato Externo</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="isOwner">Não</div>
+                            <div class="stat-label">Você é o Proprietário</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="info-box">
             <div class="info-title">💡 Como funciona:</div>
             <p><strong>Adicionar Liquidez:</strong> Use esta página para adicionar USDT e USDC ao pool.</p>
@@ -586,7 +716,7 @@
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
         const USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
         const ROUTER_ADDRESS = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-        const INVESTMENT_CONTRACT_ADDRESS = "0xb7eFe6291E656503E98Cf8479945b0A92b670f5C"; // Substitua após deploy
+        const INVESTMENT_CONTRACT_ADDRESS = "0xb7eFe6291E656503E98Cf8479945b0A92b670f5C";
         
         // ABI do contrato do Pool (PancakeSwap Pair)
         const LP_ABI = [
@@ -833,6 +963,7 @@
         let slippage = 0.5;
         let usdtDecimals = 18;
         let usdcDecimals = 18;
+        let isUserOwner = false;
 
         // Inicialização
         window.addEventListener('load', async () => {
@@ -855,6 +986,9 @@
                     usdtDecimals = await usdtContract.methods.decimals().call();
                     usdcDecimals = await usdcContract.methods.decimals().call();
                     
+                    // Verificar se o usuário é o proprietário
+                    await checkIfOwner();
+                    
                     // Configurar eventos
                     setupEventListeners();
                     
@@ -864,6 +998,7 @@
                     window.ethereum.on('accountsChanged', (accounts) => {
                         userAccount = accounts[0];
                         loadAllData();
+                        checkIfOwner();
                     });
                     
                 } catch (error) {
@@ -873,6 +1008,20 @@
                 showStatus('Instale o MetaMask!', 'error');
             }
         });
+
+        async function checkIfOwner() {
+            try {
+                const contractOwner = await investmentContract.methods.owner().call();
+                isUserOwner = (contractOwner.toLowerCase() === userAccount.toLowerCase());
+                
+                document.getElementById('isOwner').textContent = isUserOwner ? 'Sim' : 'Não';
+                document.getElementById('ownerAddress').textContent = 
+                    contractOwner.substring(0, 6) + '...' + contractOwner.substring(38);
+                    
+            } catch (error) {
+                console.error('Erro ao verificar proprietário:', error);
+            }
+        }
 
         function setupEventListeners() {
             // Tabs
@@ -886,6 +1035,8 @@
                     // Recarregar dados específicos da tab
                     if (tab.dataset.tab === 'invest') {
                         loadInvestmentData();
+                    } else if (tab.dataset.tab === 'owner') {
+                        loadOwnerData();
                     }
                 });
             });
@@ -910,12 +1061,16 @@
             document.getElementById('approveBtn').addEventListener('click', approveTokens);
             document.getElementById('addLiquidityBtn').addEventListener('click', addLiquidity);
             document.getElementById('investBtn').addEventListener('click', investUSDT);
+            document.getElementById('withdrawOwnerBtn').addEventListener('click', withdrawOwner);
+            document.getElementById('withdrawMaxBtn').addEventListener('click', withdrawMax);
+            document.getElementById('updateContractBtn').addEventListener('click', updateExternalContract);
         }
         
         async function loadAllData() {
             await loadBalances();
             await loadPoolInfo();
             await loadInvestmentData();
+            await loadOwnerData();
         }
         
         async function loadBalances() {
@@ -1032,6 +1187,25 @@
                 
             } catch (error) {
                 console.error('Erro ao carregar dados de investimento:', error);
+            }
+        }
+        
+        async function loadOwnerData() {
+            if (!isUserOwner) return;
+            
+            try {
+                const contractBalance = await investmentContract.methods.getContractBalance().call();
+                const externalContract = await investmentContract.methods.externalContract().call();
+                
+                document.getElementById('ownerContractBalance').textContent = 
+                    (contractBalance / Math.pow(10, usdtDecimals)).toFixed(6);
+                document.getElementById('totalContractBalance').textContent = 
+                    (contractBalance / Math.pow(10, usdtDecimals)).toFixed(6);
+                document.getElementById('externalContractAddress').textContent = 
+                    externalContract.substring(0, 6) + '...' + externalContract.substring(38);
+                    
+            } catch (error) {
+                console.error('Erro ao carregar dados do proprietário:', error);
             }
         }
         
@@ -1157,6 +1331,89 @@
             }
         }
         
+        async function withdrawOwner() {
+            if (!isUserOwner) {
+                showOwnerStatus('Apenas o proprietário pode realizar esta ação.', 'error');
+                return;
+            }
+            
+            const withdrawAmount = document.getElementById('ownerWithdrawAmount').value;
+            
+            if (!withdrawAmount || withdrawAmount <= 0) {
+                showOwnerStatus('Insira um valor válido para sacar.', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('withdrawOwnerBtn', 'Sacando...');
+                showOwnerStatus('Processando saque do proprietário...', 'info');
+                
+                const withdrawAmountWei = web3.utils.toBN(withdrawAmount * Math.pow(10, usdtDecimals));
+                
+                await investmentContract.methods.withdrawOwner(withdrawAmountWei.toString())
+                    .send({ from: userAccount, gas: 150000 });
+                
+                showOwnerStatus('Saque do proprietário realizado com sucesso!', 'success');
+                await loadAllData();
+                
+                document.getElementById('ownerWithdrawAmount').value = '';
+                setButtonNormal('withdrawOwnerBtn', 'Sacar Lucros');
+                
+            } catch (error) {
+                showOwnerStatus('Erro ao sacar: ' + error.message, 'error');
+                setButtonNormal('withdrawOwnerBtn', 'Sacar Lucros');
+            }
+        }
+        
+        async function withdrawMax() {
+            if (!isUserOwner) {
+                showOwnerStatus('Apenas o proprietário pode realizar esta ação.', 'error');
+                return;
+            }
+            
+            try {
+                const contractBalance = await investmentContract.methods.getContractBalance().call();
+                const contractBalanceFormatted = (contractBalance / Math.pow(10, usdtDecimals)).toFixed(6);
+                
+                document.getElementById('ownerWithdrawAmount').value = contractBalanceFormatted;
+                
+            } catch (error) {
+                showOwnerStatus('Erro ao carregar saldo máximo: ' + error.message, 'error');
+            }
+        }
+        
+        async function updateExternalContract() {
+            if (!isUserOwner) {
+                showOwnerStatus('Apenas o proprietário pode realizar esta ação.', 'error');
+                return;
+            }
+            
+            const newContractAddress = document.getElementById('updateExternalContract').value;
+            
+            if (!newContractAddress || !web3.utils.isAddress(newContractAddress)) {
+                showOwnerStatus('Insira um endereço de contrato válido.', 'error');
+                return;
+            }
+            
+            try {
+                setButtonLoading('updateContractBtn', 'Atualizando...');
+                showOwnerStatus('Atualizando contrato externo...', 'info');
+                
+                await investmentContract.methods.updateExternalContract(newContractAddress)
+                    .send({ from: userAccount, gas: 100000 });
+                
+                showOwnerStatus('Contrato externo atualizado com sucesso!', 'success');
+                await loadAllData();
+                
+                document.getElementById('updateExternalContract').value = '';
+                setButtonNormal('updateContractBtn', 'Atualizar Contrato Externo');
+                
+            } catch (error) {
+                showOwnerStatus('Erro ao atualizar contrato: ' + error.message, 'error');
+                setButtonNormal('updateContractBtn', 'Atualizar Contrato Externo');
+            }
+        }
+        
         function showStatus(message, type) {
             const statusElement = document.getElementById('statusMessage');
             statusElement.textContent = message;
@@ -1169,6 +1426,16 @@
         
         function showInvestStatus(message, type) {
             const statusElement = document.getElementById('investStatusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status ' + type;
+            statusElement.style.display = 'block';
+            if (type !== 'info') {
+                setTimeout(() => statusElement.style.display = 'none', 5000);
+            }
+        }
+        
+        function showOwnerStatus(message, type) {
+            const statusElement = document.getElementById('ownerStatusMessage');
             statusElement.textContent = message;
             statusElement.className = 'status ' + type;
             statusElement.style.display = 'block';
