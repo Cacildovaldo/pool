@@ -643,11 +643,11 @@
             <p class="subtitle">Staking System & USDT/USDC Liquidity Pool on 🌐 BSC Network</p>
             <div class="network-indicator">
             
-        <right><div style="margin-top:12px;">
+        <div style="margin-top:12px;">
             <button id="connectWalletBtn_manual" class="btn btn-secondary" style="width:auto;display:inline-block;margin-right:10px;">🔗 Connect Wallet</button>
-            <button id="disconnectWalletBtn_manual" class="btn btn-warning" style="width:auto;display:inline-block;display:none;">❌ Disconnect Wallet</button>
-            <span id="manualWalletStatus" style="margin-left:12px;font-weight:600;color:var(--text-secondary);display:none;"></span>
-        </div></right>
+            <button id="disconnectWalletBtn_manual" class="btn btn-warning" style="width:auto;display:inline-block;margin-right:10px;">❌ Disconnect Wallet</button>
+            <span id="manualWalletStatus" style="margin-left:12px;font-weight:600;color:var(--text-secondary);"></span>
+        </div>
 
         </header>
         
@@ -1109,6 +1109,7 @@
         let slippage = 0.5;
         let usdtDecimals = 18;
         let usdcDecimals = 18;
+        let isWalletConnected = false;
 
         // Initialization
         window.addEventListener('load', async () => {
@@ -1119,6 +1120,10 @@
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
                     const accounts = await web3.eth.getAccounts();
                     userAccount = accounts[0];
+                    isWalletConnected = true;
+                    
+                    // Update wallet status
+                    updateWalletStatus(true);
                     
                     // Initialize contracts
                     lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
@@ -1138,19 +1143,88 @@
                     await loadAllData();
                     
                     window.ethereum.on('accountsChanged', (accounts) => {
-                        userAccount = accounts[0];
-                        loadAllData();
+                        if (accounts.length > 0) {
+                            userAccount = accounts[0];
+                            updateWalletStatus(true);
+                            loadAllData();
+                        } else {
+                            isWalletConnected = false;
+                            updateWalletStatus(false);
+                        }
                     });
                     
                 } catch (error) {
                     showStatus('Error connecting: ' + error.message, 'error');
+                    updateWalletStatus(false);
                 }
             } else {
                 showStatus('Install MetaMask!', 'error');
+                updateWalletStatus(false);
             }
         });
 
+        function updateWalletStatus(connected) {
+            const connectBtn = document.getElementById('connectWalletBtn_manual');
+            const disconnectBtn = document.getElementById('disconnectWalletBtn_manual');
+            const statusSpan = document.getElementById('manualWalletStatus');
+            
+            if (connected) {
+                connectBtn.style.display = 'none';
+                disconnectBtn.style.display = 'inline-block';
+                statusSpan.style.display = 'inline';
+                statusSpan.textContent = userAccount.substring(0, 6) + '...' + userAccount.substring(userAccount.length - 4);
+                isWalletConnected = true;
+            } else {
+                connectBtn.style.display = 'inline-block';
+                disconnectBtn.style.display = 'none';
+                statusSpan.style.display = 'none';
+                isWalletConnected = false;
+            }
+        }
+
         function setupEventListeners() {
+            // Connect/Disconnect wallet buttons
+            document.getElementById('connectWalletBtn_manual').addEventListener('click', async () => {
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        const accounts = await web3.eth.getAccounts();
+                        userAccount = accounts[0];
+                        isWalletConnected = true;
+                        
+                        // Update wallet status
+                        updateWalletStatus(true);
+                        
+                        // Initialize contracts if not already done
+                        if (!lpContract) {
+                            lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
+                            usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
+                            usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
+                            routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
+                            investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
+                            
+                            // Load decimals
+                            usdtDecimals = await usdtContract.methods.decimals().call();
+                            usdcDecimals = await usdcContract.methods.decimals().call();
+                        }
+                        
+                        // Load data
+                        await loadAllData();
+                        
+                    } catch (error) {
+                        showStatus('Error connecting: ' + error.message, 'error');
+                    }
+                } else {
+                    showStatus('Install MetaMask!', 'error');
+                }
+            });
+            
+            document.getElementById('disconnectWalletBtn_manual').addEventListener('click', () => {
+                isWalletConnected = false;
+                updateWalletStatus(false);
+                userAccount = null;
+            });
+            
             // Tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -1189,12 +1263,16 @@
         }
         
         async function loadAllData() {
+            if (!isWalletConnected) return;
+            
             await loadBalances();
             await loadPoolInfo();
             await loadInvestmentData();
         }
         
         async function loadBalances() {
+            if (!isWalletConnected) return;
+            
             try {
                 const usdtBalance = await usdtContract.methods.balanceOf(userAccount).call();
                 const usdcBalance = await usdcContract.methods.balanceOf(userAccount).call();
@@ -1212,6 +1290,8 @@
         }
         
         async function loadPoolInfo() {
+            if (!isWalletConnected) return;
+            
             try {
                 const reserves = await lpContract.methods.getReserves().call();
                 
@@ -1232,6 +1312,8 @@
         }
         
         async function loadInvestmentData() {
+            if (!isWalletConnected) return;
+            
             try {
                 // Load statistics
                 const totalInvested = await investmentContract.methods.totalInvested(userAccount).call();
@@ -1302,6 +1384,11 @@
         }
         
         async function approveTokens() {
+            if (!isWalletConnected) {
+                showStatus('Please connect your wallet first', 'error');
+                return;
+            }
+            
             try {
                 const usdtAmount = document.getElementById('usdtAmount').value;
                 const usdcAmount = document.getElementById('usdcAmount').value;
@@ -1331,6 +1418,11 @@
         }
         
         async function addLiquidity() {
+            if (!isWalletConnected) {
+                showStatus('Please connect your wallet first', 'error');
+                return;
+            }
+            
             try {
                 const usdtAmount = document.getElementById('usdtAmount').value;
                 const usdcAmount = document.getElementById('usdcAmount').value;
@@ -1379,6 +1471,11 @@
         }
         
         async function investUSDT() {
+            if (!isWalletConnected) {
+                showStatus('Please connect your wallet first', 'error');
+                return;
+            }
+            
             try {
                 const investAmount = document.getElementById('investAmount').value;
                 
@@ -1411,6 +1508,11 @@
         }
         
         async function withdrawInvestment(index) {
+            if (!isWalletConnected) {
+                showStatus('Please connect your wallet first', 'error');
+                return;
+            }
+            
             try {
                 showStatus('Processing withdrawal...', 'info');
                 await investmentContract.methods.withdraw(index).send({ from: userAccount });
