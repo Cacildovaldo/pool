@@ -862,7 +862,7 @@
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
         const USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
         const ROUTER_ADDRESS = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-        const INVESTMENT_CONTRACT_ADDRESS = "0xb7eFe6291E656503E98Cf8479945b0A92b670f5C"; // Replace after deploy
+        const INVESTMENT_CONTRACT_ADDRESS = "0xb7eFe6291E656503E98Cf8479945b0A92b670f5C";
         
         // Pool Contract ABI (PancakeSwap Pair)
         const LP_ABI = [
@@ -952,7 +952,7 @@
             }
         ];
         
-        // Investment contract ABI
+        // Investment contract ABI (ORIGINAL FUNCTIONALITY RESTORED)
         const INVESTMENT_ABI = [
             {
                 "inputs": [{"internalType": "address", "name": "_usdtAddress", "type": "address"}],
@@ -965,9 +965,18 @@
                     {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
                     {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
                     {"indexed": false, "internalType": "uint256", "name": "returnAmount", "type": "uint256"},
-                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                    {"indexed": false, "internalType": "uint256", "name": "depositTime", "type": "uint256"}
                 ],
-                "name": "InvestmentWithdrawn",
+                "name": "Deposited",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
+                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+                ],
+                "name": "OwnerWithdrawn",
                 "type": "event"
             },
             {
@@ -975,23 +984,16 @@
                 "inputs": [
                     {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
                     {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
-                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                    {"indexed": false, "internalType": "uint256", "name": "returnAmount", "type": "uint256"}
                 ],
-                "name": "Invested",
+                "name": "Withdrawn",
                 "type": "event"
             },
             {
-                "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
-                "name": "invest",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256", "name": "investmentId", "type": "uint256"}],
-                "name": "withdraw",
-                "outputs": [],
-                "stateMutability": "nonpayable",
+                "inputs": [],
+                "name": "externalContract",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
                 "type": "function"
             },
             {
@@ -1002,19 +1004,31 @@
                 "type": "function"
             },
             {
-                "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
+                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}],
+                "name": "getActiveInvestmentsCount",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}, {"internalType": "uint256", "name": "_investmentIndex", "type": "uint256"}],
+                "name": "getDaysUntilWithdrawal",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}],
                 "name": "getUserInvestments",
                 "outputs": [
                     {
                         "components": [
-                            {"internalType": "uint256", "name": "id", "type": "uint256"},
                             {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                            {"internalType": "uint256", "name": "depositTime", "type": "uint256"},
                             {"internalType": "uint256", "name": "returnAmount", "type": "uint256"},
-                            {"internalType": "uint256", "name": "startTime", "type": "uint256"},
-                            {"internalType": "uint256", "name": "endTime", "type": "uint256"},
-                            {"internalType": "bool", "name": "withdrawn", "type": "bool"}
+                            {"internalType": "bool", "name": "claimed", "type": "bool"}
                         ],
-                        "internalType": "struct USDTInvestment.Investment[]",
+                        "internalType": "struct InvestmentContract.Investment[]",
                         "name": "",
                         "type": "tuple[]"
                     }
@@ -1023,547 +1037,579 @@
                 "type": "function"
             },
             {
-                "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
-                "name": "getUserTotalInvested",
+                "inputs": [{"internalType": "address", "name": "", "type": "address"}, {"internalType": "uint256", "name": "", "type": "uint256"}],
+                "name": "investments",
+                "outputs": [
+                    {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                    {"internalType": "uint256", "name": "depositTime", "type": "uint256"},
+                    {"internalType": "uint256", "name": "returnAmount", "type": "uint256"},
+                    {"internalType": "bool", "name": "claimed", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "name": "totalInvested",
                 "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
             },
             {
-                "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
-                "name": "getUserTotalReturns",
+                "inputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "name": "totalReturns",
                 "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
                 "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "_newExternalContract", "type": "address"}],
+                "name": "updateExternalContract",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "_amount", "type": "uint256"}],
+                "name": "deposit",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "_investmentIndex", "type": "uint256"}],
+                "name": "withdraw",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "_amount", "type": "uint256"}],
+                "name": "withdrawOwner",
+                "outputs": [],
+                "stateMutability": "nonpayable",
                 "type": "function"
             }
         ];
         
-        // Global variables
         let web3;
         let userAccount;
-        let slippage = 0.5; // Default slippage 0.5%
-        
-        // DOM elements
-        const connectWalletBtn = document.getElementById('connectWalletBtn_manual');
-        const disconnectWalletBtn = document.getElementById('disconnectWalletBtn_manual');
-        const manualWalletStatus = document.getElementById('manualWalletStatus');
-        const investBtn = document.getElementById('investBtn');
-        const approveBtn = document.getElementById('approveBtn');
-        const addLiquidityBtn = document.getElementById('addLiquidityBtn');
-        const statusMessage = document.getElementById('statusMessage');
-        const investStatusMessage = document.getElementById('investStatusMessage');
-        const removeStatusMessage = document.getElementById('removeStatusMessage');
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        // Initialize the app
+        let lpContract;
+        let usdtContract;
+        let usdcContract;
+        let routerContract;
+        let investmentContract;
+        let slippage = 0.5;
+        let usdtDecimals = 18;
+        let usdcDecimals = 18;
+
+        // Inicialização
         window.addEventListener('load', async () => {
-            await initWeb3();
-            setupEventListeners();
-            updatePoolInfo();
-        });
-        
-        // Initialize Web3
-        async function initWeb3() {
-            if (window.ethereum) {
+            if (typeof window.ethereum !== 'undefined') {
                 web3 = new Web3(window.ethereum);
+                
                 try {
-                    // Request account access
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    await getAccounts();
-                } catch (error) {
-                    console.error("User denied account access");
-                }
-            } else {
-                // Fallback to a provider or show error
-                console.log('Non-Ethereum browser detected. Consider installing MetaMask!');
-                showStatus(statusMessage, 'Please install MetaMask to use this dApp!', 'error');
-            }
-        }
-        
-        // Get user accounts
-        async function getAccounts() {
-            const accounts = await web3.eth.getAccounts();
-            if (accounts.length === 0) {
-                console.log("No accounts found");
-                return;
-            }
-            userAccount = accounts[0];
-            updateWalletStatus();
-            updateBalances();
-            updateInvestmentInfo();
-        }
-        
-        // Update wallet connection status
-        function updateWalletStatus() {
-            if (userAccount) {
-                const shortAddress = userAccount.substring(0, 6) + '...' + userAccount.substring(userAccount.length - 4);
-                manualWalletStatus.textContent = `Connected: ${shortAddress}`;
-                manualWalletStatus.style.display = 'inline-block';
-                connectWalletBtn.style.display = 'none';
-                disconnectWalletBtn.style.display = 'inline-block';
-            } else {
-                manualWalletStatus.style.display = 'none';
-                connectWalletBtn.style.display = 'inline-block';
-                disconnectWalletBtn.style.display = 'none';
-            }
-        }
-        
-        // Update token balances
-        async function updateBalances() {
-            if (!web3 || !userAccount) return;
-            
-            try {
-                // Get USDT balance
-                const usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                const usdtBalance = await usdtContract.methods.balanceOf(userAccount).call();
-                const usdtDecimals = await usdtContract.methods.decimals().call();
-                document.getElementById('usdtBalance').textContent = (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(2);
-                document.getElementById('investBalance').textContent = (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(2);
-                
-                // Get USDC balance
-                const usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
-                const usdcBalance = await usdcContract.methods.balanceOf(userAccount).call();
-                const usdcDecimals = await usdcContract.methods.decimals().call();
-                document.getElementById('usdcBalance').textContent = (usdcBalance / Math.pow(10, usdcDecimals)).toFixed(2);
-            } catch (error) {
-                console.error("Error updating balances:", error);
-            }
-        }
-        
-        // Update pool information
-        async function updatePoolInfo() {
-            if (!web3) return;
-            
-            try {
-                const lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
-                const reserves = await lpContract.methods.getReserves().call();
-                const token0 = await lpContract.methods.token0().call();
-                
-                // Determine which token is which
-                let usdtReserve, usdcReserve;
-                if (token0.toLowerCase() === USDT_ADDRESS.toLowerCase()) {
-                    usdtReserve = reserves.reserve0;
-                    usdcReserve = reserves.reserve1;
-                } else {
-                    usdtReserve = reserves.reserve1;
-                    usdcReserve = reserves.reserve0;
-                }
-                
-                // Get token decimals
-                const usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                const usdtDecimals = await usdtContract.methods.decimals().call();
-                
-                const usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
-                const usdcDecimals = await usdcContract.methods.decimals().call();
-                
-                // Update UI
-                document.getElementById('poolReserve0').textContent = (usdtReserve / Math.pow(10, usdtDecimals)).toFixed(2);
-                document.getElementById('poolReserve1').textContent = (usdcReserve / Math.pow(10, usdcDecimals)).toFixed(2);
-                
-                // Calculate total value (assuming 1:1 ratio for stablecoins)
-                const totalValue = (usdtReserve / Math.pow(10, usdtDecimals)) + (usdcReserve / Math.pow(10, usdcDecimals));
-                document.getElementById('poolValue').textContent = `$${totalValue.toFixed(2)}`;
-            } catch (error) {
-                console.error("Error updating pool info:", error);
-            }
-        }
-        
-        // Update investment information
-        async function updateInvestmentInfo() {
-            if (!web3 || !userAccount) return;
-            
-            try {
-                const investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
-                
-                // Get contract balance
-                const contractBalance = await investmentContract.methods.getContractBalance().call();
-                const usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                const usdtDecimals = await usdtContract.methods.decimals().call();
-                
-                document.getElementById('contractBalance').textContent = (contractBalance / Math.pow(10, usdtDecimals)).toFixed(2);
-                
-                // Get user investment stats
-                const totalInvested = await investmentContract.methods.getUserTotalInvested(userAccount).call();
-                const totalReturns = await investmentContract.methods.getUserTotalReturns(userAccount).call();
-                
-                document.getElementById('totalInvested').textContent = (totalInvested / Math.pow(10, usdtDecimals)).toFixed(2);
-                document.getElementById('totalReturns').textContent = (totalReturns / Math.pow(10, usdtDecimals)).toFixed(2);
-                
-                // Get user active investments
-                const userInvestments = await investmentContract.methods.getUserInvestments(userAccount).call();
-                const activeInvestments = userInvestments.filter(inv => !inv.withdrawn);
-                
-                document.getElementById('activeInvestmentsCount').textContent = activeInvestments.length;
-                
-                // Display active investments
-                if (activeInvestments.length > 0) {
-                    document.getElementById('activeInvestments').style.display = 'block';
-                    const investmentsList = document.getElementById('investmentsList');
-                    investmentsList.innerHTML = '';
+                    const accounts = await web3.eth.getAccounts();
+                    userAccount = accounts[0];
                     
-                    activeInvestments.forEach(investment => {
-                        const investmentItem = document.createElement('div');
-                        investmentItem.className = 'investment-item';
+                    // Inicializar contratos
+                    lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
+                    usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
+                    usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
+                    routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
+                    investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
+                    
+                    // Carregar decimals
+                    usdtDecimals = await usdtContract.methods.decimals().call();
+                    usdcDecimals = await usdcContract.methods.decimals().call();
+                    
+                    // Configurar eventos
+                    setupEventListeners();
+                    
+                    // Carregar dados
+                    await loadAllData();
+                    
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        userAccount = accounts[0];
+                        loadAllData();
+                    });
+                    
+                } catch (error) {
+                    showStatus('Connection error: ' + error.message, 'error');
+                }
+            } else {
+                showStatus('Please install MetaMask!', 'error');
+            }
+        });
+
+        function setupEventListeners() {
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+                    
+                    // Recarregar dados específicos da tab
+                    if (tab.dataset.tab === 'invest') {
+                        loadInvestmentData();
+                    }
+                });
+            });
+            
+            // Slippage
+            document.querySelectorAll('[data-slippage]').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('[data-slippage]').forEach(o => o.classList.remove('active'));
+                    option.classList.add('active');
+                    slippage = parseFloat(option.dataset.slippage);
+                });
+            });
+            
+            document.getElementById('customSlippage').addEventListener('input', (e) => {
+                if (e.target.value) {
+                    document.querySelectorAll('[data-slippage]').forEach(o => o.classList.remove('active'));
+                    slippage = parseFloat(e.target.value);
+                }
+            });
+            
+            // Botões
+            document.getElementById('approveBtn').addEventListener('click', approveTokens);
+            document.getElementById('addLiquidityBtn').addEventListener('click', addLiquidity);
+            document.getElementById('investBtn').addEventListener('click', investUSDT);
+        }
+        
+        async function loadAllData() {
+            await loadBalances();
+            await loadPoolInfo();
+            await loadInvestmentData();
+        }
+        
+        async function loadBalances() {
+            try {
+                const usdtBalance = await usdtContract.methods.balanceOf(userAccount).call();
+                const usdcBalance = await usdcContract.methods.balanceOf(userAccount).call();
+                
+                document.getElementById('usdtBalance').textContent = 
+                    (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(6);
+                document.getElementById('usdcBalance').textContent = 
+                    (usdcBalance / Math.pow(10, usdcDecimals)).toFixed(6);
+                document.getElementById('investBalance').textContent = 
+                    (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(6);
+                    
+            } catch (error) {
+                console.error('Error loading balances:', error);
+            }
+        }
+        
+        async function loadPoolInfo() {
+            try {
+                const reserves = await lpContract.methods.getReserves().call();
+                
+                const usdtReserve = (reserves.reserve0 / Math.pow(10, usdtDecimals)).toFixed(2);
+                const usdcReserve = (reserves.reserve1 / Math.pow(10, usdcDecimals)).toFixed(2);
+                const totalValue = (parseFloat(usdtReserve) + parseFloat(usdcReserve)).toFixed(2);
+                
+                document.getElementById('poolReserve0').textContent = usdtReserve;
+                document.getElementById('poolReserve1').textContent = usdcReserve;
+                document.getElementById('poolValue').textContent = '$' + totalValue;
+                
+            } catch (error) {
+                console.error('Error loading pool information:', error);
+                document.getElementById('poolReserve0').textContent = 'Error';
+                document.getElementById('poolReserve1').textContent = 'Error';
+                document.getElementById('poolValue').textContent = 'Error';
+            }
+        }
+        
+        async function loadInvestmentData() {
+            try {
+                // Carregar estatísticas
+                const totalInvested = await investmentContract.methods.totalInvested(userAccount).call();
+                const totalReturns = await investmentContract.methods.totalReturns(userAccount).call();
+                const activeInvestmentsCount = await investmentContract.methods.getActiveInvestmentsCount(userAccount).call();
+                const contractBalance = await investmentContract.methods.getContractBalance().call();
+                
+                document.getElementById('totalInvested').textContent = 
+                    (totalInvested / Math.pow(10, usdtDecimals)).toFixed(2);
+                document.getElementById('totalReturns').textContent = 
+                    (totalReturns / Math.pow(10, usdtDecimals)).toFixed(2);
+                document.getElementById('activeInvestmentsCount').textContent = activeInvestmentsCount;
+                document.getElementById('contractBalance').textContent = 
+                    (contractBalance / Math.pow(10, usdtDecimals)).toFixed(2);
+                
+                // Carregar investimentos ativos
+                const investments = await investmentContract.methods.getUserInvestments(userAccount).call();
+                
+                const investmentsList = document.getElementById('investmentsList');
+                investmentsList.innerHTML = '';
+                
+                let activeInvestments = 0;
+                
+                for (let i = 0; i < investments.length; i++) {
+                    const investment = investments[i];
+                    
+                    if (!investment.claimed) {
+                        activeInvestments++;
                         
-                        const daysLeft = Math.max(0, Math.ceil((parseInt(investment.endTime) * 1000 - Date.now()) / (1000 * 60 * 60 * 24)));
-                        const amount = (investment.amount / Math.pow(10, usdtDecimals)).toFixed(2);
-                        const returnAmount = (investment.returnAmount / Math.pow(10, usdtDecimals)).toFixed(2);
+                        const daysUntilWithdrawal = await investmentContract.methods.getDaysUntilWithdrawal(userAccount, i).call();
+                        const canWithdraw = daysUntilWithdrawal == 0;
                         
-                        investmentItem.innerHTML = `
+                        const investmentElement = document.createElement('div');
+                        investmentElement.className = 'investment-item';
+                        investmentElement.innerHTML = `
                             <div class="investment-header">
-                                <div class="investment-amount">${amount} USDT</div>
-                                <div class="investment-days">${daysLeft} days left</div>
+                                <div class="investment-amount">${(investment.amount / Math.pow(10, usdtDecimals)).toFixed(2)} USDT</div>
+                                <div class="investment-days">${canWithdraw ? 'Available' : daysUntilWithdrawal + ' days'}</div>
                             </div>
                             <div class="investment-details">
                                 <div class="investment-detail">
-                                    <div class="investment-value">${returnAmount} USDT</div>
-                                    <div class="investment-label">Total Return</div>
+                                    <div class="investment-label">Expected Return</div>
+                                    <div class="investment-value">${(investment.returnAmount / Math.pow(10, usdtDecimals)).toFixed(2)} USDT</div>
                                 </div>
                                 <div class="investment-detail">
-                                    <div class="investment-value">10%</div>
-                                    <div class="investment-label">Profit</div>
+                                    <div class="investment-label">Deposit Date</div>
+                                    <div class="investment-value">${new Date(investment.depositTime * 1000).toLocaleDateString()}</div>
                                 </div>
                             </div>
-                            <button class="withdraw-btn" data-id="${investment.id}" ${daysLeft > 0 ? 'disabled' : ''}>
-                                ${daysLeft > 0 ? '⏳ Not Yet Available' : '💰 Withdraw'}
+                            <button class="withdraw-btn" data-index="${i}" ${canWithdraw ? '' : 'disabled'}>
+                                ${canWithdraw ? 'Withdraw' : 'Waiting'}
                             </button>
                         `;
                         
-                        investmentsList.appendChild(investmentItem);
-                    });
+                        investmentsList.appendChild(investmentElement);
+                    }
+                }
+                
+                // Mostrar/ocultar seção de investimentos ativos
+                const activeInvestmentsSection = document.getElementById('activeInvestments');
+                if (activeInvestments > 0) {
+                    activeInvestmentsSection.style.display = 'block';
                     
-                    // Add event listeners to withdraw buttons
-                    document.querySelectorAll('.withdraw-btn:not(:disabled)').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const investmentId = btn.getAttribute('data-id');
-                            withdrawInvestment(investmentId);
+                    // Adicionar event listeners aos botões de saque
+                    document.querySelectorAll('.withdraw-btn').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const index = button.getAttribute('data-index');
+                            withdrawInvestment(index);
                         });
                     });
                 } else {
-                    document.getElementById('activeInvestments').style.display = 'none';
+                    activeInvestmentsSection.style.display = 'none';
                 }
+                
             } catch (error) {
-                console.error("Error updating investment info:", error);
+                console.error('Error loading investment data:', error);
             }
         }
         
-        // Setup event listeners
-        function setupEventListeners() {
-            // Connect wallet button
-            connectWalletBtn.addEventListener('click', async () => {
-                if (window.ethereum) {
-                    try {
-                        await window.ethereum.request({ method: 'eth_requestAccounts' });
-                        await getAccounts();
-                    } catch (error) {
-                        console.error("User denied account access");
-                    }
-                } else {
-                    showStatus(statusMessage, 'Please install MetaMask to use this dApp!', 'error');
-                }
-            });
-            
-            // Disconnect wallet button
-            disconnectWalletBtn.addEventListener('click', () => {
-                userAccount = null;
-                updateWalletStatus();
-                updateBalances();
-                updateInvestmentInfo();
-            });
-            
-            // Tab switching
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    // Update active content
-                    tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === `${tabId}-tab`) {
-                            content.classList.add('active');
-                        }
-                    });
-                });
-            });
-            
-            // Slippage settings
-            document.querySelectorAll('.slippage-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    document.querySelectorAll('.slippage-option').forEach(opt => opt.classList.remove('active'));
-                    option.classList.add('active');
-                    slippage = parseFloat(option.getAttribute('data-slippage'));
-                });
-            });
-            
-            // Custom slippage input
-            document.getElementById('customSlippage').addEventListener('change', (e) => {
-                const value = parseFloat(e.target.value);
-                if (!isNaN(value) && value >= 0.1 && value <= 100) {
-                    slippage = value;
-                    document.querySelectorAll('.slippage-option').forEach(opt => opt.classList.remove('active'));
-                }
-            });
-            
-            // Approve tokens button
-            approveBtn.addEventListener('click', approveTokens);
-            
-            // Add liquidity button
-            addLiquidityBtn.addEventListener('click', addLiquidity);
-            
-            // Invest button
-            investBtn.addEventListener('click', invest);
-            
-            // Auto-sync amounts for liquidity
-            document.getElementById('usdtAmount').addEventListener('input', syncAmounts);
-            document.getElementById('usdcAmount').addEventListener('input', syncAmounts);
-        }
-        
-        // Sync USDT and USDC amounts (1:1 ratio for stablecoins)
-        function syncAmounts(e) {
-            const usdtAmount = document.getElementById('usdtAmount');
-            const usdcAmount = document.getElementById('usdcAmount');
-            
-            if (e.target.id === 'usdtAmount') {
-                usdcAmount.value = usdtAmount.value;
-            } else if (e.target.id === 'usdcAmount') {
-                usdtAmount.value = usdcAmount.value;
-            }
-        }
-        
-        // Show status message
-        function showStatus(element, message, type) {
-            element.textContent = message;
-            element.className = `status ${type}`;
-            element.style.display = 'block';
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Approve tokens for liquidity
         async function approveTokens() {
-            if (!web3 || !userAccount) {
-                showStatus(statusMessage, 'Please connect your wallet first!', 'error');
-                return;
-            }
-            
             const usdtAmount = document.getElementById('usdtAmount').value;
             const usdcAmount = document.getElementById('usdcAmount').value;
             
-            if (!usdtAmount || parseFloat(usdtAmount) <= 0 || !usdcAmount || parseFloat(usdcAmount) <= 0) {
-                showStatus(statusMessage, 'Please enter valid amounts for both tokens!', 'error');
+            if (!usdtAmount || !usdcAmount || usdtAmount <= 0 || usdcAmount <= 0) {
+                showStatus('Enter valid values for USDT and USDC.', 'error');
                 return;
             }
             
             try {
-                // Get token contracts
-                const usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                const usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
+                setButtonLoading('approveBtn', 'Approving...');
+                showStatus('Approving tokens...', 'info');
                 
-                // Get token decimals
-                const usdtDecimals = await usdtContract.methods.decimals().call();
-                const usdcDecimals = await usdcContract.methods.decimals().call();
+                const usdtAmountWei = web3.utils.toBN(usdtAmount * Math.pow(10, usdtDecimals));
+                const usdcAmountWei = web3.utils.toBN(usdcAmount * Math.pow(10, usdcDecimals));
                 
-                // Calculate amounts in wei
-                const usdtAmountWei = web3.utils.toWei(usdtAmount, 'ether').replace(/\..*$/, '');
-                const usdcAmountWei = web3.utils.toWei(usdcAmount, 'ether').replace(/\..*$/, '');
+                await usdtContract.methods.approve(ROUTER_ADDRESS, usdtAmountWei.toString())
+                    .send({ from: userAccount });
+                await usdcContract.methods.approve(ROUTER_ADDRESS, usdcAmountWei.toString())
+                    .send({ from: userAccount });
                 
-                // Update button state
-                approveBtn.disabled = true;
-                approveBtn.innerHTML = '<span class="loading"></span> Approving USDT...';
-                
-                // Approve USDT
-                await usdtContract.methods.approve(ROUTER_ADDRESS, usdtAmountWei).send({ from: userAccount });
-                
-                approveBtn.innerHTML = '<span class="loading"></span> Approving USDC...';
-                
-                // Approve USDC
-                await usdcContract.methods.approve(ROUTER_ADDRESS, usdcAmountWei).send({ from: userAccount });
-                
-                // Success
-                approveBtn.innerHTML = '✅ Tokens Approved';
-                showStatus(statusMessage, 'Tokens approved successfully! You can now add liquidity.', 'success');
-                
-                // Enable add liquidity button
-                addLiquidityBtn.disabled = false;
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    approveBtn.disabled = false;
-                    approveBtn.innerHTML = '✅ Approve Tokens';
-                }, 3000);
+                showStatus('Tokens approved!', 'success');
+                document.getElementById('addLiquidityBtn').disabled = false;
+                setButtonNormal('approveBtn', 'Tokens Approved');
                 
             } catch (error) {
-                console.error("Error approving tokens:", error);
-                showStatus(statusMessage, 'Error approving tokens. Please try again.', 'error');
-                approveBtn.disabled = false;
-                approveBtn.innerHTML = '✅ Approve Tokens';
+                showStatus('Approval error: ' + error.message, 'error');
+                setButtonNormal('approveBtn', 'Approve Tokens');
             }
         }
         
-        // Add liquidity to the pool
         async function addLiquidity() {
-            if (!web3 || !userAccount) {
-                showStatus(statusMessage, 'Please connect your wallet first!', 'error');
-                return;
-            }
-            
             const usdtAmount = document.getElementById('usdtAmount').value;
             const usdcAmount = document.getElementById('usdcAmount').value;
             
-            if (!usdtAmount || parseFloat(usdtAmount) <= 0 || !usdcAmount || parseFloat(usdcAmount) <= 0) {
-                showStatus(statusMessage, 'Please enter valid amounts for both tokens!', 'error');
-                return;
-            }
-            
             try {
-                // Get router contract
-                const routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
+                setButtonLoading('addLiquidityBtn', 'Adding...');
+                showStatus('Adding liquidity...', 'info');
                 
-                // Calculate amounts in wei
-                const usdtAmountWei = web3.utils.toWei(usdtAmount, 'ether').replace(/\..*$/, '');
-                const usdcAmountWei = web3.utils.toWei(usdcAmount, 'ether').replace(/\..*$/, '');
+                const usdtAmountWei = web3.utils.toBN(usdtAmount * Math.pow(10, usdtDecimals));
+                const usdcAmountWei = web3.utils.toBN(usdcAmount * Math.pow(10, usdcDecimals));
                 
-                // Calculate minimum amounts based on slippage
-                const usdtAmountMin = Math.floor(usdtAmountWei * (1 - slippage / 100));
-                const usdcAmountMin = Math.floor(usdcAmountWei * (1 - slippage / 100));
+                const usdtMin = usdtAmountWei.mul(web3.utils.toBN(10000 - slippage * 100)).div(web3.utils.toBN(10000));
+                const usdcMin = usdcAmountWei.mul(web3.utils.toBN(10000 - slippage * 100)).div(web3.utils.toBN(10000));
                 
-                // Set deadline (10 minutes from now)
-                const deadline = Math.floor(Date.now() / 1000) + 600;
+                const deadline = Math.floor(Date.now() / 1000) + 60 * 30;
                 
-                // Update button state
-                addLiquidityBtn.disabled = true;
-                addLiquidityBtn.innerHTML = '<span class="loading"></span> Adding Liquidity...';
-                
-                // Add liquidity
                 await routerContract.methods.addLiquidity(
                     USDT_ADDRESS,
                     USDC_ADDRESS,
-                    usdtAmountWei,
-                    usdcAmountWei,
-                    usdtAmountMin,
-                    usdcAmountMin,
+                    usdtAmountWei.toString(),
+                    usdcAmountWei.toString(),
+                    usdtMin.toString(),
+                    usdcMin.toString(),
                     userAccount,
                     deadline
-                ).send({ from: userAccount });
+                ).send({ from: userAccount, gas: 300000 });
                 
-                // Success
-                addLiquidityBtn.innerHTML = '💧 Liquidity Added';
-                showStatus(statusMessage, 'Liquidity added successfully!', 'success');
+                showStatus('Liquidity added successfully!', 'success');
+                await loadAllData();
                 
-                // Update balances and pool info
-                updateBalances();
-                updatePoolInfo();
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    addLiquidityBtn.disabled = false;
-                    addLiquidityBtn.innerHTML = '💧 Add Liquidity';
-                }, 3000);
+                document.getElementById('usdtAmount').value = '';
+                document.getElementById('usdcAmount').value = '';
+                document.getElementById('addLiquidityBtn').disabled = true;
+                setButtonNormal('addLiquidityBtn', 'Add Liquidity');
+                setButtonNormal('approveBtn', 'Approve Tokens');
                 
             } catch (error) {
-                console.error("Error adding liquidity:", error);
-                showStatus(statusMessage, 'Error adding liquidity. Please try again.', 'error');
-                addLiquidityBtn.disabled = false;
-                addLiquidityBtn.innerHTML = '💧 Add Liquidity';
+                showStatus('Error: ' + error.message, 'error');
+                setButtonNormal('addLiquidityBtn', 'Add Liquidity');
             }
         }
         
-        // Invest USDT
-        async function invest() {
-            if (!web3 || !userAccount) {
-                showStatus(investStatusMessage, 'Please connect your wallet first!', 'error');
-                return;
-            }
-            
+        async function investUSDT() {
             const investAmount = document.getElementById('investAmount').value;
             
-            if (!investAmount || parseFloat(investAmount) <= 0) {
-                showStatus(investStatusMessage, 'Please enter a valid amount to invest!', 'error');
+            if (!investAmount || investAmount <= 0) {
+                showInvestStatus('Enter a valid amount to invest.', 'error');
                 return;
             }
             
             try {
-                // Get investment contract
-                const investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
+                setButtonLoading('investBtn', 'Investing...');
+                showInvestStatus('Processing investment...', 'info');
                 
-                // Calculate amount in wei
-                const investAmountWei = web3.utils.toWei(investAmount, 'ether').replace(/\..*$/, '');
+                // Aprovar primeiro o contrato de investimento para gastar USDT
+                const investAmountWei = web3.utils.toBN(investAmount * Math.pow(10, usdtDecimals));
                 
-                // Update button state
-                investBtn.disabled = true;
-                investBtn.innerHTML = '<span class="loading"></span> Processing Investment...';
+                await usdtContract.methods.approve(INVESTMENT_CONTRACT_ADDRESS, investAmountWei.toString())
+                    .send({ from: userAccount });
                 
-                // First approve USDT for the investment contract
-                const usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                await usdtContract.methods.approve(INVESTMENT_CONTRACT_ADDRESS, investAmountWei).send({ from: userAccount });
+                // Fazer o depósito no contrato de investimento
+                await investmentContract.methods.deposit(investAmountWei.toString())
+                    .send({ from: userAccount, gas: 200000 });
                 
-                // Then invest
-                await investmentContract.methods.invest(investAmountWei).send({ from: userAccount });
+                showInvestStatus('Investment successful!', 'success');
+                await loadAllData();
                 
-                // Success
-                investBtn.innerHTML = '📈 Investment Successful';
-                showStatus(investStatusMessage, 'Investment successful! You can track it in your active investments.', 'success');
-                
-                // Update balances and investment info
-                updateBalances();
-                updateInvestmentInfo();
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    investBtn.disabled = false;
-                    investBtn.innerHTML = '📈 Stake USDT';
-                }, 3000);
+                document.getElementById('investAmount').value = '';
+                setButtonNormal('investBtn', 'Stake USDT');
                 
             } catch (error) {
-                console.error("Error making investment:", error);
-                showStatus(investStatusMessage, 'Error making investment. Please try again.', 'error');
-                investBtn.disabled = false;
-                investBtn.innerHTML = '📈 Stake USDT';
+                showInvestStatus('Investment error: ' + error.message, 'error');
+                setButtonNormal('investBtn', 'Stake USDT');
             }
         }
         
-        // Withdraw investment
-        async function withdrawInvestment(investmentId) {
-            if (!web3 || !userAccount) {
-                showStatus(investStatusMessage, 'Please connect your wallet first!', 'error');
-                return;
-            }
-            
+        async function withdrawInvestment(investmentIndex) {
             try {
-                // Get investment contract
-                const investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
+                showInvestStatus('Processing withdrawal...', 'info');
                 
-                // Update button state
-                const withdrawBtn = document.querySelector(`.withdraw-btn[data-id="${investmentId}"]`);
-                withdrawBtn.disabled = true;
-                withdrawBtn.innerHTML = '<span class="loading"></span> Withdrawing...';
+                await investmentContract.methods.withdraw(investmentIndex)
+                    .send({ from: userAccount, gas: 150000 });
                 
-                // Withdraw
-                await investmentContract.methods.withdraw(investmentId).send({ from: userAccount });
-                
-                // Success
-                withdrawBtn.innerHTML = '💰 Withdrawn';
-                showStatus(investStatusMessage, 'Investment withdrawn successfully!', 'success');
-                
-                // Update investment info
-                updateInvestmentInfo();
+                showInvestStatus('Withdrawal successful!', 'success');
+                await loadAllData();
                 
             } catch (error) {
-                console.error("Error withdrawing investment:", error);
-                showStatus(investStatusMessage, 'Error withdrawing investment. Please try again.', 'error');
-                const withdrawBtn = document.querySelector(`.withdraw-btn[data-id="${investmentId}"]`);
-                withdrawBtn.disabled = false;
-                withdrawBtn.innerHTML = '💰 Withdraw';
+                showInvestStatus('Withdrawal error: ' + error.message, 'error');
             }
         }
+        
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status ' + type;
+            statusElement.style.display = 'block';
+            if (type !== 'info') {
+                setTimeout(() => statusElement.style.display = 'none', 5000);
+            }
+        }
+        
+        function showInvestStatus(message, type) {
+            const statusElement = document.getElementById('investStatusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status ' + type;
+            statusElement.style.display = 'block';
+            if (type !== 'info') {
+                setTimeout(() => statusElement.style.display = 'none', 5000);
+            }
+        }
+        
+        function setButtonLoading(buttonId, text) {
+            const button = document.getElementById(buttonId);
+            const textElement = document.getElementById(buttonId.replace('Btn', 'Text'));
+            
+            if (textElement) {
+                textElement.innerHTML = '<span class="loading"></span>' + text;
+            } else {
+                button.innerHTML = '<span class="loading"></span>' + text;
+            }
+            
+            button.disabled = true;
+        }
+        
+        function setButtonNormal(buttonId, text) {
+            const button = document.getElementById(buttonId);
+            const textElement = document.getElementById(buttonId.replace('Btn', 'Text'));
+            
+            if (textElement) {
+                textElement.textContent = text;
+            } else {
+                button.textContent = text;
+            }
+            
+            button.disabled = false;
+        }
+
+        /* ---------- Manual connect/disconnect + network check (BSC) ---------- */
+        const BSC_CHAIN_ID_HEX = '0x38'; // 56
+
+        function showManualStatus(msg, kind='info') {
+            const el = document.getElementById('manualWalletStatus');
+            el.style.display = 'inline-block';
+            el.textContent = msg;
+            if (kind === 'error') el.style.color = 'var(--error)';
+            else if (kind === 'success') el.style.color = 'var(--success)';
+            else if (kind === 'warning') el.style.color = 'var(--warning)';
+            else el.style.color = 'var(--text-secondary)';
+            if (kind !== 'info') setTimeout(()=>{ el.style.display='none'; }, 6000);
+        }
+
+        async function manualConnectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                showManualStatus('MetaMask not detected', 'error');
+                return;
+            }
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                // garantir que web3 e userAccount existentes do script principal sejam atualizados
+                if (typeof Web3 !== 'undefined') {
+                    if (!window.web3) window.web3 = new Web3(window.ethereum);
+                } else {
+                    console.warn('Web3 not found globally.');
+                }
+                // Recuperar conta
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (!accounts || accounts.length === 0) {
+                    showManualStatus('No authorized account', 'error');
+                    return;
+                }
+                // Atualizar variável userAccount usada pelo script original, se existir
+                try {
+                    window.userAccount = accounts[0];
+                } catch(e){ console.warn(e); }
+
+                // Verificar rede
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== BSC_CHAIN_ID_HEX) {
+                    // tentar trocar automaticamente
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: BSC_CHAIN_ID_HEX }]
+                        });
+                        showManualStatus('Network switched to BSC.', 'success');
+                    } catch (switchErr) {
+                        // se não puder mudar, apenas informar
+                        showManualStatus('You are not on BSC network. Please switch to BSC (ChainId 56).', 'warning');
+                    }
+                } else {
+                    showManualStatus('Connected to BSC', 'success');
+                }
+
+                // Expor botões
+                document.getElementById('connectWalletBtn_manual').style.display = 'none';
+                document.getElementById('disconnectWalletBtn_manual').style.display = 'inline-block';
+
+                // Se o script principal definiu funções/variáveis como loadAllData, lpContract etc, chamar loadAllData para inicializar UI
+                try {
+                    if (typeof initContracts === 'function') {
+                        await initContracts();
+                    } else {
+                        // fallback: re-criar contratos conforme o script original faz no load
+                        if (typeof web3 !== 'undefined' && window.userAccount) {
+                            // tenta instanciar contratos se ABI/global constants estiverem disponíveis
+                            if (typeof LP_ABI !== 'undefined' && typeof LP_POOL_ADDRESS !== 'undefined') {
+                                window.lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
+                            }
+                            if (typeof TOKEN_ABI !== 'undefined' && typeof USDT_ADDRESS !== 'undefined') {
+                                window.usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
+                            }
+                            if (typeof TOKEN_ABI !== 'undefined' && typeof USDC_ADDRESS !== 'undefined') {
+                                window.usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
+                            }
+                            if (typeof ROUTER_ABI !== 'undefined' && typeof ROUTER_ADDRESS !== 'undefined') {
+                                window.routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
+                            }
+                            if (typeof INVESTMENT_ABI !== 'undefined' && typeof INVESTMENT_CONTRACT_ADDRESS !== 'undefined') {
+                                window.investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.warn('Error initializing contracts manually:', e);
+                }
+
+                try {
+                    if (typeof loadAllData === 'function') await loadAllData();
+                } catch(e){ console.warn('loadAllData not available:', e); }
+
+            } catch (err) {
+                showManualStatus('Connection error: ' + (err.message || err), 'error');
+            }
+        }
+
+        function manualDisconnectWallet() {
+            // Limpeza local apenas (não é possível desconectar fisicamente do MetaMask)
+            try { window.userAccount = null; } catch(e){}
+            document.getElementById('connectWalletBtn_manual').style.display = 'inline-block';
+            document.getElementById('disconnectWalletBtn_manual').style.display = 'none';
+            showManualStatus('Wallet disconnected (local).', 'info');
+        }
+
+        // Adicionar listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnConnect = document.getElementById('connectWalletBtn_manual');
+            const btnDisconnect = document.getElementById('disconnectWalletBtn_manual');
+            if (btnConnect) btnConnect.addEventListener('click', manualConnectWallet);
+            if (btnDisconnect) btnDisconnect.addEventListener('click', manualDisconnectWallet);
+        });
+        /* ---------- Fim bloco manual connect ---------- */
     </script>
+
+    <!-- Histats.com  START  (aync)-->
+<script type="text/javascript">var _Hasync= _Hasync|| [];
+_Hasync.push(['Histats.start', '1,4984957,4,0,0,0,00010000']);
+_Hasync.push(['Histats.fasi', '1']);
+_Hasync.push(['Histats.track_hits', '']);
+(function() {
+var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+hs.src = ('//s10.histats.com/js15_as.js');
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+})();</script>
+<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4984957&101" alt="" border="0"></a></noscript>
+<!-- Histats.com  END  -->
+    <!-- Histats.com  START (hidden counter) -->
+<a href="/" alt="" target="_blank" >
+<img  src="//sstatic1.histats.com/0.gif?4984957&101" alt="" border="0">
+<!-- Histats.com  END  -->
 </body>
 </html>
