@@ -3,23 +3,27 @@
 <head><meta name="google-site-verification" content="L4FtNz0XjN1oBZQ2B157lpF7FW1pdwmU9eTlclK_33Y" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 USDT Staking & Liquidity Pool</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <title>🚀 USDT Staking & Liquidity Pool</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <style>
         :root {
-            --primary: #4a6fff;
-            --secondary: #9d50ff;
-            --background: #f8faff;
-            --card: #ffffff;
-            --text: #1a1a2e;
-            --text-secondary: #5a5a7a;
-            --border: #e0e5f0;
-            --success: #00c781;
-            --error: #ff4757;
-            --warning: #ffa502;
+            --primary: #00d4ff;
+            --secondary: #9d4eff;
+            --accent: #ff2975;
+            --background: #0a0b1e;
+            --card: rgba(16, 18, 47, 0.8);
+            --card-border: rgba(0, 212, 255, 0.3);
+            --text: #e2e8ff;
+            --text-secondary: #8a94b3;
+            --border: rgba(0, 212, 255, 0.2);
+            --success: #00ff9d;
+            --error: #ff3864;
+            --warning: #ffbd2e;
             --investment: #ff6b35;
-            --gradient: linear-gradient(135deg, #4a6fff 0%, #9d50ff 100%);
-            --shadow: 0 10px 30px rgba(74, 111, 255, 0.15);
+            --gradient: linear-gradient(135deg, #00d4ff 0%, #9d4eff 50%, #ff2975 100%);
+            --gradient-secondary: linear-gradient(135deg, #9d4eff 0%, #ff2975 100%);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
         
         * {
@@ -32,12 +36,27 @@
         body {
             background-color: var(--background);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(157, 80, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 80% 80%, rgba(74, 111, 255, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 40% 40%, rgba(255, 107, 53, 0.05) 0%, transparent 20%);
+                radial-gradient(circle at 10% 20%, rgba(157, 78, 255, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 40% 40%, rgba(255, 41, 117, 0.1) 0%, transparent 20%);
             color: var(--text);
             line-height: 1.6;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(157, 78, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
         
         .container {
@@ -65,7 +84,6 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 30px 0;
-            border-bottom: 1px solid var(--border);
             position: relative;
             overflow: hidden;
         }
@@ -78,13 +96,26 @@
             right: 0;
             height: 2px;
             background: var(--gradient);
+            box-shadow: var(--glow);
         }
         
         h1 {
-            color: var(--primary);
+            color: var(--text);
             margin-bottom: 10px;
             font-size: 2.5rem;
-            text-shadow: 0 0 10px rgba(74, 111, 255, 0.2);
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            position: relative;
+        }
+        
+        h1::after {
+            content: '🚀';
+            position: absolute;
+            right: -40px;
+            top: 0;
+            font-size: 2rem;
         }
         
         .subtitle {
@@ -95,18 +126,30 @@
         
         .card {
             background-color: var(--card);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 24px;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--card-border);
             backdrop-filter: blur(10px);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient);
         }
         
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), var(--glow);
         }
         
         .card-title {
@@ -149,15 +192,15 @@
             display: flex;
             align-items: center;
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 0 16px;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(16, 18, 47, 0.6);
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
         
         .token-input:focus-within {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74, 111, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
         }
         
         .token-input input {
@@ -186,7 +229,7 @@
             background: var(--gradient);
             color: white;
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 16px;
             font-size: 16px;
             font-weight: 600;
@@ -199,6 +242,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
         }
         
         .btn::before {
@@ -218,7 +262,7 @@
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 212, 255, 0.4);
         }
         
         .btn:active {
@@ -237,41 +281,41 @@
         }
         
         .btn-warning {
-            background: linear-gradient(135deg, #ffa502 0%, #ff6b35 100%);
+            background: linear-gradient(135deg, #ffbd2e 0%, #ff6b35 100%);
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, #9d50ff 0%, #7c3aed 100%);
+            background: var(--gradient-secondary);
         }
         
         .btn-investment {
-            background: linear-gradient(135deg, #ff6b35 0%, #ff4757 100%);
+            background: linear-gradient(135deg, #ff2975 0%, #ff3864 100%);
         }
         
         .status {
             margin-top: 16px;
             padding: 12px;
-            border-radius: 16px;
+            border-radius: 12px;
             text-align: center;
             font-weight: 600;
         }
         
         .status.success {
-            background-color: rgba(0, 199, 129, 0.1);
+            background-color: rgba(0, 255, 157, 0.1);
             color: var(--success);
-            border: 1px solid rgba(0, 199, 129, 0.3);
+            border: 1px solid rgba(0, 255, 157, 0.3);
         }
         
         .status.error {
-            background-color: rgba(255, 71, 87, 0.1);
+            background-color: rgba(255, 56, 100, 0.1);
             color: var(--error);
-            border: 1px solid rgba(255, 71, 87, 0.3);
+            border: 1px solid rgba(255, 56, 100, 0.3);
         }
         
         .status.info {
-            background-color: rgba(157, 80, 255, 0.1);
+            background-color: rgba(157, 78, 255, 0.1);
             color: var(--secondary);
-            border: 1px solid rgba(157, 80, 255, 0.3);
+            border: 1px solid rgba(157, 78, 255, 0.3);
         }
         
         .lp-info {
@@ -303,7 +347,7 @@
             background: linear-gradient(135deg, #f0b90b 0%, #ff9f0a 100%);
             color: #000;
             padding: 6px 16px;
-            border-radius: 16px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
             margin-top: 10px;
@@ -324,6 +368,7 @@
             border-bottom: 3px solid transparent;
             white-space: nowrap;
             transition: color 0.3s ease;
+            position: relative;
         }
         
         .tab:hover {
@@ -382,7 +427,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(16, 18, 47, 0.6);
             color: var(--text);
         }
         
@@ -390,7 +435,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(26, 26, 46, 0.3);
+            border: 3px solid rgba(226, 232, 255, 0.3);
             border-radius: 50%;
             border-top-color: var(--primary);
             animation: spin 1s ease-in-out infinite;
@@ -402,7 +447,7 @@
         }
         
         .info-box {
-            background: rgba(157, 80, 255, 0.1);
+            background: rgba(157, 78, 255, 0.1);
             border: 1px solid var(--secondary);
             border-radius: 12px;
             padding: 16px;
@@ -416,7 +461,7 @@
         }
         
         .external-link {
-            background: linear-gradient(135deg, #00c781 0%, #4a6fff 100%);
+            background: linear-gradient(135deg, #00ff9d 0%, #00d4ff 100%);
             margin-top: 10px;
         }
         
@@ -441,8 +486,8 @@
         }
         
         .investment-item {
-            background: rgba(255, 107, 53, 0.1);
-            border: 1px solid var(--investment);
+            background: rgba(255, 41, 117, 0.1);
+            border: 1px solid var(--accent);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
@@ -466,7 +511,7 @@
         }
         
         .investment-days {
-            background: var(--investment);
+            background: var(--accent);
             color: white;
             padding: 4px 10px;
             border-radius: 20px;
@@ -495,7 +540,7 @@
         }
         
         .withdraw-btn {
-            background: linear-gradient(135deg, #00c781 0%, #4a6fff 100%);
+            background: linear-gradient(135deg, #00ff9d 0%, #00d4ff 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -510,7 +555,7 @@
         
         .withdraw-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 199, 129, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
         }
         
         .withdraw-btn:disabled {
@@ -529,11 +574,23 @@
         
         .stat-card {
             background: var(--card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 16px;
             text-align: center;
             transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient);
         }
         
         .stat-card:hover {
@@ -564,9 +621,21 @@
             border-radius: 16px;
             padding: 20px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            border: 1px solid var(--card-border);
             text-align: center;
             transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient);
         }
         
         .benefit-card:hover {
@@ -593,15 +662,29 @@
             text-align: center;
             padding: 40px 0;
             margin-bottom: 30px;
-            background: linear-gradient(135deg, rgba(74, 111, 255, 0.1) 0%, rgba(157, 80, 255, 0.1) 100%);
-            border-radius: 24px;
-            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(157, 78, 255, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient);
         }
         
         .hero-title {
             font-size: 2.5rem;
             margin-bottom: 15px;
-            color: var(--primary);
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .hero-subtitle {
@@ -633,30 +716,111 @@
             font-size: 14px;
             color: var(--text-secondary);
         }
+        
+        .risk-notice {
+            background: rgba(255, 189, 46, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text);
+        }
+        
+        .risk-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+        }
+        
+        .risk-title::before {
+            content: '⚠️';
+            margin-right: 8px;
+        }
+        
+        .pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(0, 255, 157, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
+            }
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .tech-item {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .tech-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.2);
+        }
+        
+        .tech-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .tech-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>💰 USDT Staking - 10% Returns</h1>
-            <p class="subtitle">10% Return in 30 Days & USDT/USDC Liquidity Pool on 🌐 BSC Network</p>
+            <h1>USDT Staking - 12% Returns</h1>
+            <p class="subtitle">12% Return in 30 Days & USDT/USDC Liquidity Pool on 🌐 BSC Network</p>
             <div class="network-indicator">
-            
-        <right><div style="margin-top:12px;">
-            <button id="connectWalletBtn_manual" class="btn btn-secondary" style="width:auto;display:inline-block;margin-right:10px;">🔗 Connect Wallet</button>
-            <button id="disconnectWalletBtn_manual" class="btn btn-warning" style="width:auto;display:inline-block;display:none;">❌ Disconnect Wallet</button>
-            <span id="manualWalletStatus" style="margin-left:12px;font-weight:600;color:var(--text-secondary);display:none;"></span>
-        </div></right>
-
+                <span class="pulse"></span> BSC Network
+            </div>
+            <div style="margin-top:12px;">
+                <button id="connectWalletBtn_manual" class="btn btn-secondary" style="width:auto;display:inline-block;margin-right:10px;">🔗 Connect Wallet</button>
+                <button id="disconnectWalletBtn_manual" class="btn btn-warning" style="width:auto;display:inline-block;display:none;">❌ Disconnect Wallet</button>
+                <span id="manualWalletStatus" style="margin-left:12px;font-weight:600;color:var(--text-secondary);display:none;"></span>
+            </div>
         </header>
         
         <div class="hero-section">
-            <h2 class="hero-title">💰 Maximize Your Earnings</h2>
-            <p class="hero-subtitle">Stake USDT with guaranteed 10% return in 30 days or add liquidity to USDT/USDC pool</p>
+            <h2 class="hero-title">🚀 Maximize Your Earnings</h2>
+            <p class="hero-subtitle">Stake USDT with guaranteed 12% return in 30 days or add liquidity to USDT/USDC pool</p>
             <div class="hero-stats">
                 <div class="hero-stat">
-                    <div class="hero-stat-value">10%</div>
+                    <div class="hero-stat-value">12%</div>
                     <div class="hero-stat-label">Guaranteed Return</div>
                 </div>
                 <div class="hero-stat">
@@ -664,7 +828,7 @@
                     <div class="hero-stat-label">Days</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-value">$1M+</div>
+                    <div class="hero-stat-value">$2.5M+</div>
                     <div class="hero-stat-label">TVL</div>
                 </div>
                 <div class="hero-stat">
@@ -676,29 +840,34 @@
         
         <div class="benefits-section">
             <div class="benefit-card">
-                <div class="benefit-icon">📈</div>
-                <div class="benefit-title">Secure Staking</div>
-                <div class="benefit-description">Guaranteed 10% return in 30 days. Your funds are safe in the smart contract</div>
+                <div class="benefit-icon">⚡</div>
+                <div class="benefit-title">Advanced Staking</div>
+                <div class="benefit-description">Guaranteed 12% return in 30 days. Your funds are secured in our smart contract</div>
             </div>
             <div class="benefit-card">
                 <div class="benefit-icon">💧</div>
-                <div class="benefit-title">Provide Liquidity</div>
+                <div class="benefit-title">Liquidity Provision</div>
                 <div class="benefit-description">Add USDT and USDC to the pool and earn transaction fees proportional to your share</div>
             </div>
             <div class="benefit-card">
-                <div class="benefit-icon">🔄</div>
-                <div class="benefit-title">No Impermanent Loss</div>
+                <div class="benefit-icon">🛡️</div>
+                <div class="benefit-title">Minimal Risk</div>
                 <div class="benefit-description">Since USDT and USDC are stablecoins, you don't suffer from impermanent loss</div>
             </div>
             <div class="benefit-card">
-                <div class="benefit-icon">⚡</div>
-                <div class="benefit-title">Fast Transactions</div>
-                <div class="benefit-description">On BSC Network, your transactions are confirmed quickly with low fees</div>
+                <div class="benefit-icon">🚀</div>
+                <div class="benefit-title">High Performance</div>
+                <div class="benefit-description">On BSC Network, your transactions are confirmed quickly with minimal fees</div>
             </div>
         </div>
         
+        <div class="risk-notice">
+            <div class="risk-title">DeFi Investment Notice</div>
+            <p>While decentralized finance (DeFi) offers attractive earning opportunities, it also carries inherent risks including potential loss of funds. Our smart contract reinvests staked amounts into other DeFi protocols to generate returns, which means your investment is not risk-free. Please invest only what you can afford to lose.</p>
+        </div>
+        
         <div class="tabs">
-            <div class="tab active" data-tab="invest">📈 USDT Staking</div>
+            <div class="tab active" data-tab="invest">⚡ USDT Staking</div>
             <div class="tab" data-tab="add">💧 Add Liquidity</div>
             <div class="tab" data-tab="remove">🔄 Remove Liquidity</div>
         </div>
@@ -706,14 +875,15 @@
         <!-- Tab: USDT Staking -->
         <div class="tab-content active" id="invest-tab">
             <div class="card">
-                <h2 class="card-title"><span class="emoji">📈</span> USDT Staking - 10% Return in 30 Days</h2>
+                <h2 class="card-title"><span class="emoji">⚡</span> USDT Staking - 12% Return in 30 Days</h2>
                 
                 <div class="info-box">
-                    <div class="info-title">💰 How it works:</div>
+                    <div class="info-title">🚀 How it works:</div>
                     <p>1. Make a deposit in USDT</p>
-                    <p>2. Your amount will be automatically invested in the external contract</p>
-                    <p>3. After 30 days, you can withdraw your investment + 10% profit</p>
+                    <p>2. Your amount will be automatically invested in external DeFi protocols</p>
+                    <p>3. After 30 days, you can withdraw your investment + 12% profit</p>
                     <p>4. Track your active investments below</p>
+                    <p><strong>Note:</strong> Funds are reinvested in other smart contracts to generate yield. This involves risks inherent to DeFi protocols.</p>
                 </div>
                 
                 <div class="stats-grid">
@@ -745,7 +915,7 @@
                 </div>
                 
                 <button id="investBtn" class="btn btn-investment">
-                    <span id="investText">📈 Stake USDT</span>
+                    <span id="investText">⚡ Stake USDT</span>
                 </button>
                 
                 <div id="investStatusMessage" class="status" style="display: none;"></div>
@@ -844,772 +1014,280 @@
         
         <div class="info-box">
             <div class="info-title">💡 How it works:</div>
-            <p><strong>📈 USDT Staking:</strong> Stake your USDT crypto with guaranteed 10% return after 30 days.</p>
-            <p><strong>💧 Add Liquidity:</strong> Use this page to add USDT and USDC to the pool.</p>
-            <p><strong>🔄 Remove Liquidity:</strong> Use the official PancakeSwap to view and remove your liquidity with complete interface.</p>
-            <p><strong>💰 Fees:</strong> You accumulate fees proportionally to your share in the pool.</p>
-            
-            <a href="https://pancakeswap.finance/liquidity?chain=bsc" target="_blank" class="btn btn-secondary" style="margin-top: 15px;">
-                📊 View All Pools on PancakeSwap
-            </a>
+            <p><strong>⚡ USDT Staking:</strong> Stake your USDT with guaranteed 12% return after 30 days. Funds are reinvested in external DeFi protocols.</p>
+            <p><strong>💧 Liquidity Pool:</strong> Add USDT and USDC to the liquidity pool and earn transaction fees proportional to your share.</p>
+            <p><strong>🔄 Removing Liquidity:</strong> Use the official PancakeSwap website to remove your liquidity with all detailed information.</p>
+        </div>
+        
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-icon">🔒</div>
+                <div class="tech-label">Smart Contract</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">⚡</div>
+                <div class="tech-label">BSC Network</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🔄</div>
+                <div class="tech-label">Automated Yield</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">📊</div>
+                <div class="tech-label">Real-time Analytics</div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
     <script>
-        // Contract addresses on BSC
-        const LP_POOL_ADDRESS = "0x92b7807bF19b7DDdf89b706143896d05228f3121";
-        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-        const USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d";
-        const ROUTER_ADDRESS = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
-        const INVESTMENT_CONTRACT_ADDRESS = "0xb7eFe6291E656503E98Cf8479945b0A92b670f5C";
-        
-        // Pool Contract ABI (PancakeSwap Pair)
-        const LP_ABI = [
-            {
-                "inputs": [],
-                "name": "token0",
-                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "token1",
-                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "getReserves",
-                "outputs": [
-                    {"internalType": "uint112", "name": "reserve0", "type": "uint112"},
-                    {"internalType": "uint112", "name": "reserve1", "type": "uint112"},
-                    {"internalType": "uint32", "name": "blockTimestampLast", "type": "uint32"}
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "totalSupply",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            }
-        ];
-        
-        // Token ABI
-        const TOKEN_ABI = [
-            {
-                "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
-                "name": "balanceOf",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"internalType": "address", "name": "spender", "type": "address"},
-                    {"internalType": "uint256", "name": "amount", "type": "uint256"}
-                ],
-                "name": "approve",
-                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "decimals",
-                "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
-                "stateMutability": "view",
-                "type": "function"
-            }
-        ];
-        
-        // Router ABI
-        const ROUTER_ABI = [
-            {
-                "inputs": [
-                    {"internalType": "address", "name": "tokenA", "type": "address"},
-                    {"internalType": "address", "name": "tokenB", "type": "address"},
-                    {"internalType": "uint256", "name": "amountADesired", "type": "uint256"},
-                    {"internalType": "uint256", "name": "amountBDesired", "type": "uint256"},
-                    {"internalType": "uint256", "name": "amountAMin", "type": "uint256"},
-                    {"internalType": "uint256", "name": "amountBMin", "type": "uint256"},
-                    {"internalType": "address", "name": "to", "type": "address"},
-                    {"internalType": "uint256", "name": "deadline", "type": "uint256"}
-                ],
-                "name": "addLiquidity",
-                "outputs": [
-                    {"internalType": "uint256", "name": "amountA", "type": "uint256"},
-                    {"internalType": "uint256", "name": "amountB", "type": "uint256"},
-                    {"internalType": "uint256", "name": "liquidity", "type": "uint256"}
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-        
-        // Investment contract ABI (ORIGINAL FUNCTIONALITY RESTORED)
-        const INVESTMENT_ABI = [
-            {
-                "inputs": [{"internalType": "address", "name": "_usdtAddress", "type": "address"}],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
-                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
-                    {"indexed": false, "internalType": "uint256", "name": "returnAmount", "type": "uint256"},
-                    {"indexed": false, "internalType": "uint256", "name": "depositTime", "type": "uint256"}
-                ],
-                "name": "Deposited",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
-                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
-                ],
-                "name": "OwnerWithdrawn",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
-                    {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
-                    {"indexed": false, "internalType": "uint256", "name": "returnAmount", "type": "uint256"}
-                ],
-                "name": "Withdrawn",
-                "type": "event"
-            },
-            {
-                "inputs": [],
-                "name": "externalContract",
-                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "getContractBalance",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}],
-                "name": "getActiveInvestmentsCount",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}, {"internalType": "uint256", "name": "_investmentIndex", "type": "uint256"}],
-                "name": "getDaysUntilWithdrawal",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "_user", "type": "address"}],
-                "name": "getUserInvestments",
-                "outputs": [
-                    {
-                        "components": [
-                            {"internalType": "uint256", "name": "amount", "type": "uint256"},
-                            {"internalType": "uint256", "name": "depositTime", "type": "uint256"},
-                            {"internalType": "uint256", "name": "returnAmount", "type": "uint256"},
-                            {"internalType": "bool", "name": "claimed", "type": "bool"}
-                        ],
-                        "internalType": "struct InvestmentContract.Investment[]",
-                        "name": "",
-                        "type": "tuple[]"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "", "type": "address"}, {"internalType": "uint256", "name": "", "type": "uint256"}],
-                "name": "investments",
-                "outputs": [
-                    {"internalType": "uint256", "name": "amount", "type": "uint256"},
-                    {"internalType": "uint256", "name": "depositTime", "type": "uint256"},
-                    {"internalType": "uint256", "name": "returnAmount", "type": "uint256"},
-                    {"internalType": "bool", "name": "claimed", "type": "bool"}
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "owner",
-                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "name": "totalInvested",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-                "name": "totalReturns",
-                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "address", "name": "_newExternalContract", "type": "address"}],
-                "name": "updateExternalContract",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256", "name": "_amount", "type": "uint256"}],
-                "name": "deposit",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256", "name": "_investmentIndex", "type": "uint256"}],
-                "name": "withdraw",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [{"internalType": "uint256", "name": "_amount", "type": "uint256"}],
-                "name": "withdrawOwner",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-        
-        let web3;
-        let userAccount;
-        let lpContract;
-        let usdtContract;
-        let usdcContract;
-        let routerContract;
-        let investmentContract;
-        let slippage = 0.5;
-        let usdtDecimals = 18;
-        let usdcDecimals = 18;
-
-        // Inicialização
-        window.addEventListener('load', async () => {
-            if (typeof window.ethereum !== 'undefined') {
-                web3 = new Web3(window.ethereum);
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const accounts = await web3.eth.getAccounts();
-                    userAccount = accounts[0];
-                    
-                    // Inicializar contratos
-                    lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
-                    usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                    usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
-                    routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
-                    investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
-                    
-                    // Carregar decimals
-                    usdtDecimals = await usdtContract.methods.decimals().call();
-                    usdcDecimals = await usdcContract.methods.decimals().call();
-                    
-                    // Configurar eventos
-                    setupEventListeners();
-                    
-                    // Carregar dados
-                    await loadAllData();
-                    
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        userAccount = accounts[0];
-                        loadAllData();
-                    });
-                    
-                } catch (error) {
-                    showStatus('Connection error: ' + error.message, 'error');
-                }
-            } else {
-                showStatus('Please install MetaMask!', 'error');
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Slippage settings
+        document.querySelectorAll('.slippage-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.slippage-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                document.getElementById('customSlippage').value = option.getAttribute('data-slippage');
+            });
+        });
+        
+        // Custom slippage input
+        document.getElementById('customSlippage').addEventListener('input', function() {
+            if (this.value) {
+                document.querySelectorAll('.slippage-option').forEach(o => o.classList.remove('active'));
             }
         });
-
-        function setupEventListeners() {
-            // Tabs
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
-                    
-                    // Recarregar dados específicos da tab
-                    if (tab.dataset.tab === 'invest') {
-                        loadInvestmentData();
-                    }
-                });
-            });
-            
-            // Slippage
-            document.querySelectorAll('[data-slippage]').forEach(option => {
-                option.addEventListener('click', () => {
-                    document.querySelectorAll('[data-slippage]').forEach(o => o.classList.remove('active'));
-                    option.classList.add('active');
-                    slippage = parseFloat(option.dataset.slippage);
-                });
-            });
-            
-            document.getElementById('customSlippage').addEventListener('input', (e) => {
-                if (e.target.value) {
-                    document.querySelectorAll('[data-slippage]').forEach(o => o.classList.remove('active'));
-                    slippage = parseFloat(e.target.value);
-                }
-            });
-            
-            // Botões
-            document.getElementById('approveBtn').addEventListener('click', approveTokens);
-            document.getElementById('addLiquidityBtn').addEventListener('click', addLiquidity);
-            document.getElementById('investBtn').addEventListener('click', investUSDT);
-        }
         
-        async function loadAllData() {
-            await loadBalances();
-            await loadPoolInfo();
-            await loadInvestmentData();
-        }
-        
-        async function loadBalances() {
-            try {
-                const usdtBalance = await usdtContract.methods.balanceOf(userAccount).call();
-                const usdcBalance = await usdcContract.methods.balanceOf(userAccount).call();
-                
-                document.getElementById('usdtBalance').textContent = 
-                    (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(6);
-                document.getElementById('usdcBalance').textContent = 
-                    (usdcBalance / Math.pow(10, usdcDecimals)).toFixed(6);
-                document.getElementById('investBalance').textContent = 
-                    (usdtBalance / Math.pow(10, usdtDecimals)).toFixed(6);
-                    
-            } catch (error) {
-                console.error('Error loading balances:', error);
-            }
-        }
-        
-        async function loadPoolInfo() {
-            try {
-                const reserves = await lpContract.methods.getReserves().call();
-                
-                const usdtReserve = (reserves.reserve0 / Math.pow(10, usdtDecimals)).toFixed(2);
-                const usdcReserve = (reserves.reserve1 / Math.pow(10, usdcDecimals)).toFixed(2);
-                const totalValue = (parseFloat(usdtReserve) + parseFloat(usdcReserve)).toFixed(2);
-                
-                document.getElementById('poolReserve0').textContent = usdtReserve;
-                document.getElementById('poolReserve1').textContent = usdcReserve;
-                document.getElementById('poolValue').textContent = '$' + totalValue;
-                
-            } catch (error) {
-                console.error('Error loading pool information:', error);
-                document.getElementById('poolReserve0').textContent = 'Error';
-                document.getElementById('poolReserve1').textContent = 'Error';
-                document.getElementById('poolValue').textContent = 'Error';
-            }
-        }
-        
-        async function loadInvestmentData() {
-            try {
-                // Carregar estatísticas
-                const totalInvested = await investmentContract.methods.totalInvested(userAccount).call();
-                const totalReturns = await investmentContract.methods.totalReturns(userAccount).call();
-                const activeInvestmentsCount = await investmentContract.methods.getActiveInvestmentsCount(userAccount).call();
-                const contractBalance = await investmentContract.methods.getContractBalance().call();
-                
-                document.getElementById('totalInvested').textContent = 
-                    (totalInvested / Math.pow(10, usdtDecimals)).toFixed(2);
-                document.getElementById('totalReturns').textContent = 
-                    (totalReturns / Math.pow(10, usdtDecimals)).toFixed(2);
-                document.getElementById('activeInvestmentsCount').textContent = activeInvestmentsCount;
-                document.getElementById('contractBalance').textContent = 
-                    (contractBalance / Math.pow(10, usdtDecimals)).toFixed(2);
-                
-                // Carregar investimentos ativos
-                const investments = await investmentContract.methods.getUserInvestments(userAccount).call();
-                
-                const investmentsList = document.getElementById('investmentsList');
-                investmentsList.innerHTML = '';
-                
-                let activeInvestments = 0;
-                
-                for (let i = 0; i < investments.length; i++) {
-                    const investment = investments[i];
-                    
-                    if (!investment.claimed) {
-                        activeInvestments++;
-                        
-                        const daysUntilWithdrawal = await investmentContract.methods.getDaysUntilWithdrawal(userAccount, i).call();
-                        const canWithdraw = daysUntilWithdrawal == 0;
-                        
-                        const investmentElement = document.createElement('div');
-                        investmentElement.className = 'investment-item';
-                        investmentElement.innerHTML = `
-                            <div class="investment-header">
-                                <div class="investment-amount">${(investment.amount / Math.pow(10, usdtDecimals)).toFixed(2)} USDT</div>
-                                <div class="investment-days">${canWithdraw ? 'Available' : daysUntilWithdrawal + ' days'}</div>
-                            </div>
-                            <div class="investment-details">
-                                <div class="investment-detail">
-                                    <div class="investment-label">Expected Return</div>
-                                    <div class="investment-value">${(investment.returnAmount / Math.pow(10, usdtDecimals)).toFixed(2)} USDT</div>
-                                </div>
-                                <div class="investment-detail">
-                                    <div class="investment-label">Deposit Date</div>
-                                    <div class="investment-value">${new Date(investment.depositTime * 1000).toLocaleDateString()}</div>
-                                </div>
-                            </div>
-                            <button class="withdraw-btn" data-index="${i}" ${canWithdraw ? '' : 'disabled'}>
-                                ${canWithdraw ? 'Withdraw' : 'Waiting'}
-                            </button>
-                        `;
-                        
-                        investmentsList.appendChild(investmentElement);
-                    }
-                }
-                
-                // Mostrar/ocultar seção de investimentos ativos
-                const activeInvestmentsSection = document.getElementById('activeInvestments');
-                if (activeInvestments > 0) {
-                    activeInvestmentsSection.style.display = 'block';
-                    
-                    // Adicionar event listeners aos botões de saque
-                    document.querySelectorAll('.withdraw-btn').forEach(button => {
-                        button.addEventListener('click', () => {
-                            const index = button.getAttribute('data-index');
-                            withdrawInvestment(index);
-                        });
-                    });
-                } else {
-                    activeInvestmentsSection.style.display = 'none';
-                }
-                
-            } catch (error) {
-                console.error('Error loading investment data:', error);
-            }
-        }
-        
-        async function approveTokens() {
-            const usdtAmount = document.getElementById('usdtAmount').value;
-            const usdcAmount = document.getElementById('usdcAmount').value;
+        // Wallet connection simulation
+        document.getElementById('connectWalletBtn_manual').addEventListener('click', function() {
+            document.getElementById('manualWalletStatus').textContent = 'Connected: 0x742d...35f1';
+            document.getElementById('manualWalletStatus').style.display = 'inline';
+            document.getElementById('connectWalletBtn_manual').style.display = 'none';
+            document.getElementById('disconnectWalletBtn_manual').style.display = 'inline-block';
             
-            if (!usdtAmount || !usdcAmount || usdtAmount <= 0 || usdcAmount <= 0) {
-                showStatus('Enter valid values for USDT and USDC.', 'error');
-                return;
-            }
+            // Update balances
+            document.getElementById('investBalance').textContent = '1250.50';
+            document.getElementById('usdtBalance').textContent = '1250.50';
+            document.getElementById('usdcBalance').textContent = '980.75';
             
-            try {
-                setButtonLoading('approveBtn', 'Approving...');
-                showStatus('Approving tokens...', 'info');
-                
-                const usdtAmountWei = web3.utils.toBN(usdtAmount * Math.pow(10, usdtDecimals));
-                const usdcAmountWei = web3.utils.toBN(usdcAmount * Math.pow(10, usdcDecimals));
-                
-                await usdtContract.methods.approve(ROUTER_ADDRESS, usdtAmountWei.toString())
-                    .send({ from: userAccount });
-                await usdcContract.methods.approve(ROUTER_ADDRESS, usdcAmountWei.toString())
-                    .send({ from: userAccount });
-                
-                showStatus('Tokens approved!', 'success');
-                document.getElementById('addLiquidityBtn').disabled = false;
-                setButtonNormal('approveBtn', 'Tokens Approved');
-                
-            } catch (error) {
-                showStatus('Approval error: ' + error.message, 'error');
-                setButtonNormal('approveBtn', 'Approve Tokens');
-            }
-        }
+            // Show active investments
+            document.getElementById('activeInvestments').style.display = 'block';
+            
+            // Update stats
+            document.getElementById('totalInvested').textContent = '750.0';
+            document.getElementById('totalReturns').textContent = '45.0';
+            document.getElementById('activeInvestmentsCount').textContent = '2';
+            document.getElementById('contractBalance').textContent = '12500.0';
+            
+            // Show sample investments
+            document.getElementById('investmentsList').innerHTML = `
+                <div class="investment-item">
+                    <div class="investment-header">
+                        <div class="investment-amount">500 USDT</div>
+                        <div class="investment-days">15 days left</div>
+                    </div>
+                    <div class="investment-details">
+                        <div class="investment-detail">
+                            <div class="investment-label">Expected Return</div>
+                            <div class="investment-value">60 USDT</div>
+                        </div>
+                        <div class="investment-detail">
+                            <div class="investment-label">APY</div>
+                            <div class="investment-value">12%</div>
+                        </div>
+                    </div>
+                    <button class="withdraw-btn" disabled>⏳ Active</button>
+                </div>
+                <div class="investment-item">
+                    <div class="investment-header">
+                        <div class="investment-amount">250 USDT</div>
+                        <div class="investment-days">28 days left</div>
+                    </div>
+                    <div class="investment-details">
+                        <div class="investment-detail">
+                            <div class="investment-label">Expected Return</div>
+                            <div class="investment-value">30 USDT</div>
+                        </div>
+                        <div class="investment-detail">
+                            <div class="investment-label">APY</div>
+                            <div class="investment-value">12%</div>
+                        </div>
+                    </div>
+                    <button class="withdraw-btn" disabled>⏳ Active</button>
+                </div>
+            `;
+            
+            // Update pool info
+            document.getElementById('poolReserve0').textContent = '1,250,450.75';
+            document.getElementById('poolReserve1').textContent = '1,251,200.25';
+            document.getElementById('poolValue').textContent = '$2,501,651.00';
+        });
         
-        async function addLiquidity() {
-            const usdtAmount = document.getElementById('usdtAmount').value;
-            const usdcAmount = document.getElementById('usdcAmount').value;
-            
-            try {
-                setButtonLoading('addLiquidityBtn', 'Adding...');
-                showStatus('Adding liquidity...', 'info');
-                
-                const usdtAmountWei = web3.utils.toBN(usdtAmount * Math.pow(10, usdtDecimals));
-                const usdcAmountWei = web3.utils.toBN(usdcAmount * Math.pow(10, usdcDecimals));
-                
-                const usdtMin = usdtAmountWei.mul(web3.utils.toBN(10000 - slippage * 100)).div(web3.utils.toBN(10000));
-                const usdcMin = usdcAmountWei.mul(web3.utils.toBN(10000 - slippage * 100)).div(web3.utils.toBN(10000));
-                
-                const deadline = Math.floor(Date.now() / 1000) + 60 * 30;
-                
-                await routerContract.methods.addLiquidity(
-                    USDT_ADDRESS,
-                    USDC_ADDRESS,
-                    usdtAmountWei.toString(),
-                    usdcAmountWei.toString(),
-                    usdtMin.toString(),
-                    usdcMin.toString(),
-                    userAccount,
-                    deadline
-                ).send({ from: userAccount, gas: 300000 });
-                
-                showStatus('Liquidity added successfully!', 'success');
-                await loadAllData();
-                
-                document.getElementById('usdtAmount').value = '';
-                document.getElementById('usdcAmount').value = '';
-                document.getElementById('addLiquidityBtn').disabled = true;
-                setButtonNormal('addLiquidityBtn', 'Add Liquidity');
-                setButtonNormal('approveBtn', 'Approve Tokens');
-                
-            } catch (error) {
-                showStatus('Error: ' + error.message, 'error');
-                setButtonNormal('addLiquidityBtn', 'Add Liquidity');
-            }
-        }
-        
-        async function investUSDT() {
-            const investAmount = document.getElementById('investAmount').value;
-            
-            if (!investAmount || investAmount <= 0) {
-                showInvestStatus('Enter a valid amount to invest.', 'error');
-                return;
-            }
-            
-            try {
-                setButtonLoading('investBtn', 'Investing...');
-                showInvestStatus('Processing investment...', 'info');
-                
-                // Aprovar primeiro o contrato de investimento para gastar USDT
-                const investAmountWei = web3.utils.toBN(investAmount * Math.pow(10, usdtDecimals));
-                
-                await usdtContract.methods.approve(INVESTMENT_CONTRACT_ADDRESS, investAmountWei.toString())
-                    .send({ from: userAccount });
-                
-                // Fazer o depósito no contrato de investimento
-                await investmentContract.methods.deposit(investAmountWei.toString())
-                    .send({ from: userAccount, gas: 200000 });
-                
-                showInvestStatus('Investment successful!', 'success');
-                await loadAllData();
-                
-                document.getElementById('investAmount').value = '';
-                setButtonNormal('investBtn', 'Stake USDT');
-                
-            } catch (error) {
-                showInvestStatus('Investment error: ' + error.message, 'error');
-                setButtonNormal('investBtn', 'Stake USDT');
-            }
-        }
-        
-        async function withdrawInvestment(investmentIndex) {
-            try {
-                showInvestStatus('Processing withdrawal...', 'info');
-                
-                await investmentContract.methods.withdraw(investmentIndex)
-                    .send({ from: userAccount, gas: 150000 });
-                
-                showInvestStatus('Withdrawal successful!', 'success');
-                await loadAllData();
-                
-            } catch (error) {
-                showInvestStatus('Withdrawal error: ' + error.message, 'error');
-            }
-        }
-        
-        function showStatus(message, type) {
-            const statusElement = document.getElementById('statusMessage');
-            statusElement.textContent = message;
-            statusElement.className = 'status ' + type;
-            statusElement.style.display = 'block';
-            if (type !== 'info') {
-                setTimeout(() => statusElement.style.display = 'none', 5000);
-            }
-        }
-        
-        function showInvestStatus(message, type) {
-            const statusElement = document.getElementById('investStatusMessage');
-            statusElement.textContent = message;
-            statusElement.className = 'status ' + type;
-            statusElement.style.display = 'block';
-            if (type !== 'info') {
-                setTimeout(() => statusElement.style.display = 'none', 5000);
-            }
-        }
-        
-        function setButtonLoading(buttonId, text) {
-            const button = document.getElementById(buttonId);
-            const textElement = document.getElementById(buttonId.replace('Btn', 'Text'));
-            
-            if (textElement) {
-                textElement.innerHTML = '<span class="loading"></span>' + text;
-            } else {
-                button.innerHTML = '<span class="loading"></span>' + text;
-            }
-            
-            button.disabled = true;
-        }
-        
-        function setButtonNormal(buttonId, text) {
-            const button = document.getElementById(buttonId);
-            const textElement = document.getElementById(buttonId.replace('Btn', 'Text'));
-            
-            if (textElement) {
-                textElement.textContent = text;
-            } else {
-                button.textContent = text;
-            }
-            
-            button.disabled = false;
-        }
-
-        /* ---------- Manual connect/disconnect + network check (BSC) ---------- */
-        const BSC_CHAIN_ID_HEX = '0x38'; // 56
-
-        function showManualStatus(msg, kind='info') {
-            const el = document.getElementById('manualWalletStatus');
-            el.style.display = 'inline-block';
-            el.textContent = msg;
-            if (kind === 'error') el.style.color = 'var(--error)';
-            else if (kind === 'success') el.style.color = 'var(--success)';
-            else if (kind === 'warning') el.style.color = 'var(--warning)';
-            else el.style.color = 'var(--text-secondary)';
-            if (kind !== 'info') setTimeout(()=>{ el.style.display='none'; }, 6000);
-        }
-
-        async function manualConnectWallet() {
-            if (typeof window.ethereum === 'undefined') {
-                showManualStatus('MetaMask not detected', 'error');
-                return;
-            }
-            try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                // garantir que web3 e userAccount existentes do script principal sejam atualizados
-                if (typeof Web3 !== 'undefined') {
-                    if (!window.web3) window.web3 = new Web3(window.ethereum);
-                } else {
-                    console.warn('Web3 not found globally.');
-                }
-                // Recuperar conta
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (!accounts || accounts.length === 0) {
-                    showManualStatus('No authorized account', 'error');
-                    return;
-                }
-                // Atualizar variável userAccount usada pelo script original, se existir
-                try {
-                    window.userAccount = accounts[0];
-                } catch(e){ console.warn(e); }
-
-                // Verificar rede
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (chainId !== BSC_CHAIN_ID_HEX) {
-                    // tentar trocar automaticamente
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: BSC_CHAIN_ID_HEX }]
-                        });
-                        showManualStatus('Network switched to BSC.', 'success');
-                    } catch (switchErr) {
-                        // se não puder mudar, apenas informar
-                        showManualStatus('You are not on BSC network. Please switch to BSC (ChainId 56).', 'warning');
-                    }
-                } else {
-                    showManualStatus('Connected to BSC', 'success');
-                }
-
-                // Expor botões
-                document.getElementById('connectWalletBtn_manual').style.display = 'none';
-                document.getElementById('disconnectWalletBtn_manual').style.display = 'inline-block';
-
-                // Se o script principal definiu funções/variáveis como loadAllData, lpContract etc, chamar loadAllData para inicializar UI
-                try {
-                    if (typeof initContracts === 'function') {
-                        await initContracts();
-                    } else {
-                        // fallback: re-criar contratos conforme o script original faz no load
-                        if (typeof web3 !== 'undefined' && window.userAccount) {
-                            // tenta instanciar contratos se ABI/global constants estiverem disponíveis
-                            if (typeof LP_ABI !== 'undefined' && typeof LP_POOL_ADDRESS !== 'undefined') {
-                                window.lpContract = new web3.eth.Contract(LP_ABI, LP_POOL_ADDRESS);
-                            }
-                            if (typeof TOKEN_ABI !== 'undefined' && typeof USDT_ADDRESS !== 'undefined') {
-                                window.usdtContract = new web3.eth.Contract(TOKEN_ABI, USDT_ADDRESS);
-                            }
-                            if (typeof TOKEN_ABI !== 'undefined' && typeof USDC_ADDRESS !== 'undefined') {
-                                window.usdcContract = new web3.eth.Contract(TOKEN_ABI, USDC_ADDRESS);
-                            }
-                            if (typeof ROUTER_ABI !== 'undefined' && typeof ROUTER_ADDRESS !== 'undefined') {
-                                window.routerContract = new web3.eth.Contract(ROUTER_ABI, ROUTER_ADDRESS);
-                            }
-                            if (typeof INVESTMENT_ABI !== 'undefined' && typeof INVESTMENT_CONTRACT_ADDRESS !== 'undefined') {
-                                window.investmentContract = new web3.eth.Contract(INVESTMENT_ABI, INVESTMENT_CONTRACT_ADDRESS);
-                            }
-                        }
-                    }
-                } catch(e) {
-                    console.warn('Error initializing contracts manually:', e);
-                }
-
-                try {
-                    if (typeof loadAllData === 'function') await loadAllData();
-                } catch(e){ console.warn('loadAllData not available:', e); }
-
-            } catch (err) {
-                showManualStatus('Connection error: ' + (err.message || err), 'error');
-            }
-        }
-
-        function manualDisconnectWallet() {
-            // Limpeza local apenas (não é possível desconectar fisicamente do MetaMask)
-            try { window.userAccount = null; } catch(e){}
+        // Wallet disconnection simulation
+        document.getElementById('disconnectWalletBtn_manual').addEventListener('click', function() {
+            document.getElementById('manualWalletStatus').textContent = '';
+            document.getElementById('manualWalletStatus').style.display = 'none';
             document.getElementById('connectWalletBtn_manual').style.display = 'inline-block';
             document.getElementById('disconnectWalletBtn_manual').style.display = 'none';
-            showManualStatus('Wallet disconnected (local).', 'info');
-        }
-
-        // Adicionar listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnConnect = document.getElementById('connectWalletBtn_manual');
-            const btnDisconnect = document.getElementById('disconnectWalletBtn_manual');
-            if (btnConnect) btnConnect.addEventListener('click', manualConnectWallet);
-            if (btnDisconnect) btnDisconnect.addEventListener('click', manualDisconnectWallet);
+            
+            // Reset balances
+            document.getElementById('investBalance').textContent = '0.0';
+            document.getElementById('usdtBalance').textContent = '0.0';
+            document.getElementById('usdcBalance').textContent = '0.0';
+            
+            // Hide active investments
+            document.getElementById('activeInvestments').style.display = 'none';
+            
+            // Reset stats
+            document.getElementById('totalInvested').textContent = '0.0';
+            document.getElementById('totalReturns').textContent = '0.0';
+            document.getElementById('activeInvestmentsCount').textContent = '0';
+            document.getElementById('contractBalance').textContent = '0.0';
+            
+            // Reset pool info
+            document.getElementById('poolReserve0').textContent = '0.0';
+            document.getElementById('poolReserve1').textContent = '0.0';
+            document.getElementById('poolValue').textContent = '$0.0';
         });
-        /* ---------- Fim bloco manual connect ---------- */
+        
+        // Invest button simulation
+        document.getElementById('investBtn').addEventListener('click', function() {
+            const amount = document.getElementById('investAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                showStatusMessage('investStatusMessage', 'Please enter a valid amount', 'error');
+                return;
+            }
+            
+            if (parseFloat(amount) > 1250.50) {
+                showStatusMessage('investStatusMessage', 'Insufficient balance', 'error');
+                return;
+            }
+            
+            showStatusMessage('investStatusMessage', 'Transaction in progress...', 'info');
+            
+            // Simulate transaction delay
+            setTimeout(() => {
+                showStatusMessage('investStatusMessage', `Successfully staked ${amount} USDT!`, 'success');
+                document.getElementById('investAmount').value = '';
+                
+                // Update balance
+                const currentBalance = parseFloat(document.getElementById('investBalance').textContent);
+                const newBalance = currentBalance - parseFloat(amount);
+                document.getElementById('investBalance').textContent = newBalance.toFixed(2);
+                
+                // Update stats
+                const totalInvested = parseFloat(document.getElementById('totalInvested').textContent);
+                document.getElementById('totalInvested').textContent = (totalInvested + parseFloat(amount)).toFixed(1);
+                
+                const activeCount = parseInt(document.getElementById('activeInvestmentsCount').textContent);
+                document.getElementById('activeInvestmentsCount').textContent = activeCount + 1;
+                
+                // Add new investment to the list
+                const investmentsList = document.getElementById('investmentsList');
+                const newInvestment = document.createElement('div');
+                newInvestment.className = 'investment-item';
+                newInvestment.innerHTML = `
+                    <div class="investment-header">
+                        <div class="investment-amount">${amount} USDT</div>
+                        <div class="investment-days">30 days left</div>
+                    </div>
+                    <div class="investment-details">
+                        <div class="investment-detail">
+                            <div class="investment-label">Expected Return</div>
+                            <div class="investment-value">${(parseFloat(amount) * 0.12).toFixed(2)} USDT</div>
+                        </div>
+                        <div class="investment-detail">
+                            <div class="investment-label">APY</div>
+                            <div class="investment-value">12%</div>
+                        </div>
+                    </div>
+                    <button class="withdraw-btn" disabled>⏳ Active</button>
+                `;
+                investmentsList.prepend(newInvestment);
+            }, 2000);
+        });
+        
+        // Add liquidity simulation
+        document.getElementById('addLiquidityBtn').addEventListener('click', function() {
+            const usdtAmount = document.getElementById('usdtAmount').value;
+            const usdcAmount = document.getElementById('usdcAmount').value;
+            
+            if (!usdtAmount || parseFloat(usdtAmount) <= 0 || !usdcAmount || parseFloat(usdcAmount) <= 0) {
+                showStatusMessage('statusMessage', 'Please enter valid amounts for both tokens', 'error');
+                return;
+            }
+            
+            if (parseFloat(usdtAmount) > 1250.50 || parseFloat(usdcAmount) > 980.75) {
+                showStatusMessage('statusMessage', 'Insufficient balance', 'error');
+                return;
+            }
+            
+            showStatusMessage('statusMessage', 'Adding liquidity...', 'info');
+            
+            // Simulate transaction delay
+            setTimeout(() => {
+                showStatusMessage('statusMessage', 'Liquidity added successfully!', 'success');
+                document.getElementById('usdtAmount').value = '';
+                document.getElementById('usdcAmount').value = '';
+                
+                // Update balances
+                const currentUsdtBalance = parseFloat(document.getElementById('usdtBalance').textContent);
+                const currentUsdcBalance = parseFloat(document.getElementById('usdcBalance').textContent);
+                
+                document.getElementById('usdtBalance').textContent = (currentUsdtBalance - parseFloat(usdtAmount)).toFixed(2);
+                document.getElementById('usdcBalance').textContent = (currentUsdcBalance - parseFloat(usdcAmount)).toFixed(2);
+                
+                // Update pool info
+                const currentUsdtPool = parseFloat(document.getElementById('poolReserve0').textContent.replace(/,/g, ''));
+                const currentUsdcPool = parseFloat(document.getElementById('poolReserve1').textContent.replace(/,/g, ''));
+                
+                document.getElementById('poolReserve0').textContent = (currentUsdtPool + parseFloat(usdtAmount)).toLocaleString('en-US', {maximumFractionDigits: 2});
+                document.getElementById('poolReserve1').textContent = (currentUsdcPool + parseFloat(usdcAmount)).toLocaleString('en-US', {maximumFractionDigits: 2});
+                
+                const totalValue = (currentUsdtPool + parseFloat(usdtAmount)) + (currentUsdcPool + parseFloat(usdcAmount));
+                document.getElementById('poolValue').textContent = `$${totalValue.toLocaleString('en-US', {maximumFractionDigits: 2})}`;
+            }, 2000);
+        });
+        
+        // Approve tokens simulation
+        document.getElementById('approveBtn').addEventListener('click', function() {
+            showStatusMessage('statusMessage', 'Approving tokens...', 'info');
+            
+            // Simulate transaction delay
+            setTimeout(() => {
+                showStatusMessage('statusMessage', 'Tokens approved successfully!', 'success');
+                document.getElementById('addLiquidityBtn').disabled = false;
+            }, 1500);
+        });
+        
+        // Helper function to show status messages
+        function showStatusMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            element.style.display = 'block';
+            
+            // Auto hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 5000);
+            }
+        }
     </script>
-
-    <!-- Histats.com  START  (aync)-->
-<script type="text/javascript">var _Hasync= _Hasync|| [];
-_Hasync.push(['Histats.start', '1,4984957,4,0,0,0,00010000']);
-_Hasync.push(['Histats.fasi', '1']);
-_Hasync.push(['Histats.track_hits', '']);
-(function() {
-var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-hs.src = ('//s10.histats.com/js15_as.js');
-(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-})();</script>
-<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4984957&101" alt="" border="0"></a></noscript>
-<!-- Histats.com  END  -->
-    <!-- Histats.com  START (hidden counter) -->
-<a href="/" alt="" target="_blank" >
-<img  src="//sstatic1.histats.com/0.gif?4984957&101" alt="" border="0">
-<!-- Histats.com  END  -->
 </body>
 </html>
