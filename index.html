@@ -193,40 +193,13 @@
             border-left: 4px solid #ff9800;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .instruction-step {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
+        .network-warning {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .step-number {
-            background: #128C7E;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            margin-top: 10px;
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -256,6 +229,7 @@
                     🔗 Conectar MetaMask / Ruby Wallet
                 </button>
                 <div id="walletInfo" class="wallet-info" style="display:none;"></div>
+                <div id="networkWarning" class="network-warning"></div>
             </div>
 
             <div id="formSection" class="form-section">
@@ -293,21 +267,16 @@
                     </div>
                     
                     <div>
-                        <div class="instruction-step">
-                            <div class="step-number">1</div>
-                            <div>Conecte sua carteira e pague $50 USDT</div>
-                        </div>
-                        <div class="instruction-step">
-                            <div class="step-number">2</div>
-                            <div>Preencha os dados da sua clínica</div>
-                        </div>
-                        <div class="instruction-step">
-                            <div class="step-number">3</div>
-                            <div>Após o pagamento, escaneie o QR code com seu WhatsApp</div>
-                        </div>
-                        <div class="instruction-step">
-                            <div class="step-number">4</div>
-                            <div>O agente IA será conectado automaticamente ao seu WhatsApp</div>
+                        <div style="background: #e3f2fd; padding: 20px; border-radius: 10px;">
+                            <h4>📌 Como funciona:</h4>
+                            <p style="margin-top: 10px;">1. Conecte sua carteira MetaMask</p>
+                            <p>2. Preencha os dados da sua clínica</p>
+                            <p>3. Pague $50 USDT via blockchain</p>
+                            <p>4. Escaneie o QR code com seu WhatsApp</p>
+                            <p>5. O agente IA será ativado automaticamente</p>
+                            <hr style="margin: 15px 0;">
+                            <p><strong>💰 Valor:</strong> $50 USDT por 30 dias</p>
+                            <p><strong>🎁 Owner:</strong> Gratuidade garantida</p>
                         </div>
                     </div>
                 </div>
@@ -347,7 +316,13 @@
     </div>
 
     <script>
-        // CONTRACT ABI (inserir ABI do contrato compilado)
+        // CONTRACT ADDRESS (ATUALIZADO COM SEU ENDEREÇO)
+        const contractAddress = "0x2c4bc4a9A670Dac861Aad37a0CcAF89dE064E453";
+        
+        // USDT BSC Address (BSC Mainnet USDT)
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        
+        // CONTRACT ABI (inserir ABI completa do contrato compilado)
         const contractABI = [
             {
                 "inputs": [{"internalType": "address","name": "_usdtAddress","type": "address"}],
@@ -361,23 +336,34 @@
                     {"internalType": "string","name": "_apiKey","type": "string"},
                     {"internalType": "string","name": "_whatsappNumber","type": "string"}
                 ],
-                "name": "registerClinic","outputs": [],"stateMutability": "nonpayable","type": "function"
+                "name": "registerClinic",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
-                "inputs": [],"name": "renewSubscription","outputs": [],"stateMutability": "nonpayable","type": "function"
+                "inputs": [],
+                "name": "renewSubscription",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
                 "inputs": [{"internalType": "address","name": "_clinicAddress","type": "address"}],
-                "name": "checkSubscriptionStatus","outputs": [
+                "name": "checkSubscriptionStatus",
+                "outputs": [
                     {"internalType": "bool","name": "isValid","type": "bool"},
                     {"internalType": "uint256","name": "remainingDays","type": "uint256"},
-                    {"internalType": "uint256","name": "expirationDate","type": "uint256"}
+                    {"internalType": "uint256","name": "expirationDate","type": "uint256"},
+                    {"internalType": "bool","name": "isRegistered","type": "bool"}
                 ],
-                "stateMutability": "view","type": "function"
+                "stateMutability": "view",
+                "type": "function"
             },
             {
                 "inputs": [{"internalType": "address","name": "_clinicAddress","type": "address"}],
-                "name": "getClinicInfo","outputs": [
+                "name": "getClinicInfo",
+                "outputs": [
                     {"internalType": "string","name": "name","type": "string"},
                     {"internalType": "string","name": "specialty","type": "string"},
                     {"internalType": "string","name": "phoneNumber","type": "string"},
@@ -386,23 +372,29 @@
                     {"internalType": "string","name": "sessionId","type": "string"},
                     {"internalType": "uint256","name": "subscriptionEnd","type": "uint256"},
                     {"internalType": "bool","name": "isActive","type": "bool"},
-                    {"internalType": "uint256","name": "createdAt","type": "uint256"}
+                    {"internalType": "uint256","name": "createdAt","type": "uint256"},
+                    {"internalType": "bool","name": "hasActiveSubscription","type": "bool"}
                 ],
-                "stateMutability": "view","type": "function"
+                "stateMutability": "view",
+                "type": "function"
             },
             {
                 "inputs": [{"internalType": "string","name": "_sessionId","type": "string"}],
-                "name": "updateSessionId","outputs": [],"stateMutability": "nonpayable","type": "function"
+                "name": "updateSessionId",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getOwner",
+                "outputs": [{"internalType": "address","name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
             }
         ];
-
-        // CONTRACT ADDRESS (inserir após deploy no Remix)
-        const contractAddress = "0x2c4bc4a9A670Dac861Aad37a0CcAF89dE064E453";
         
-        // USDT BSC Address (BSC Mainnet USDT)
-        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-        
-        // ERC20 ABI mínimo para approve
+        // ERC20 ABI mínimo
         const erc20ABI = [
             {
                 "constant": false,
@@ -420,6 +412,27 @@
                 "name": "balanceOf",
                 "outputs": [{"name": "","type": "uint256"}],
                 "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [
+                    {"name": "owner","type": "address"},
+                    {"name": "spender","type": "address"}
+                ],
+                "name": "allowance",
+                "outputs": [{"name": "","type": "uint256"}],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "sender","type": "address"},
+                    {"name": "recipient","type": "address"},
+                    {"name": "amount","type": "uint256"}
+                ],
+                "name": "transferFrom",
+                "outputs": [{"name": "","type": "bool"}],
+                "type": "function"
             }
         ];
         
@@ -428,58 +441,152 @@
         let userAccount;
         let currentQRCode;
         let sessionCheckInterval;
-
+        
+        // Função para conectar carteira (corrigida)
         async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    web3 = new Web3(window.ethereum);
-                    userAccount = (await web3.eth.getAccounts())[0];
-                    
-                    // Verificar se está na BSC Mainnet
-                    const chainId = await web3.eth.getChainId();
-                    if (chainId !== 56) {
-                        await Swal.fire({
-                            icon: 'warning',
-                            title: 'Rede Incorreta',
-                            text: 'Por favor, mude para BSC Mainnet (Chain ID: 56) no MetaMask',
-                            confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-                    
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
-                    
-                    // Verificar se é o owner
-                    const owner = await contract.methods.getOwner().call();
-                    const isOwner = userAccount.toLowerCase() === owner.toLowerCase();
-                    
-                    document.getElementById('walletInfo').innerHTML = `
-                        <strong>✅ Carteira Conectada:</strong><br>
-                        ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>
-                        <small>Rede: BSC Mainnet</small><br>
-                        ${isOwner ? '<span style="color: #075E54;">⭐ Owner - Gratuidade garantida</span>' : ''}
-                    `;
-                    document.getElementById('walletInfo').style.display = 'block';
-                    document.getElementById('formSection').style.display = 'block';
-                    
-                    // Verificar status da assinatura
-                    await checkSubscriptionStatus();
-                    
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire('Erro', 'Falha ao conectar carteira: ' + error.message, 'error');
+            try {
+                // Verificar se o MetaMask está instalado
+                if (typeof window.ethereum === 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'MetaMask não encontrado',
+                        text: 'Por favor, instale a MetaMask ou outra carteira Web3',
+                        footer: '<a href="https://metamask.io/download/" target="_blank">Baixar MetaMask</a>'
+                    });
+                    return;
                 }
-            } else {
+                
+                // Solicitar conexão da carteira
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                }).catch(err => {
+                    throw new Error("Usuário negou a conexão");
+                });
+                
+                userAccount = accounts[0];
+                
+                // Inicializar Web3
+                web3 = new Web3(window.ethereum);
+                
+                // Obter chain ID atual
+                const chainId = await web3.eth.getChainId();
+                console.log("Chain ID:", chainId);
+                
+                // Verificar se está na BSC Mainnet (chainId 56)
+                const networkWarning = document.getElementById('networkWarning');
+                if (chainId !== 56) {
+                    networkWarning.style.display = 'block';
+                    networkWarning.innerHTML = `
+                        ⚠️ Rede incorreta! Detectado: Chain ID ${chainId}. 
+                        Por favor, mude para BSC Mainnet (Chain ID: 56) no MetaMask.
+                        <br><br>
+                        <button onclick="switchToBSC()" class="connect-btn" style="background: #f44336; padding: 8px 16px; font-size: 14px;">
+                            🔄 Mudar para BSC Mainnet
+                        </button>
+                    `;
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Rede Incorreta',
+                        text: `Você está na rede com Chain ID ${chainId}. Por favor, mude para BSC Mainnet (Chain ID: 56)`,
+                        confirmButtonText: 'OK'
+                    });
+                    
+                    document.getElementById('formSection').style.display = 'none';
+                    return;
+                } else {
+                    networkWarning.style.display = 'none';
+                }
+                
+                // Inicializar contrato
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                
+                // Verificar se o contrato existe
+                const code = await web3.eth.getCode(contractAddress);
+                if (code === '0x' || code === '0x0') {
+                    throw new Error("Contrato não encontrado no endereço especificado");
+                }
+                
+                // Verificar se é owner
+                let isOwner = false;
+                try {
+                    const owner = await contract.methods.getOwner().call();
+                    isOwner = userAccount.toLowerCase() === owner.toLowerCase();
+                } catch (err) {
+                    console.warn("Erro ao verificar owner:", err);
+                }
+                
+                // Atualizar interface
+                document.getElementById('walletInfo').innerHTML = `
+                    <strong>✅ Carteira Conectada:</strong><br>
+                    ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>
+                    <small>Rede: BSC Mainnet ✓</small><br>
+                    ${isOwner ? '<span style="color: #075E54;">⭐ Owner - Gratuidade garantida</span>' : ''}
+                `;
+                document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('formSection').style.display = 'block';
+                
+                // Verificar status da assinatura
+                await checkSubscriptionStatus();
+                
+                // Escutar mudanças de conta
+                window.ethereum.on('accountsChanged', function (accounts) {
+                    if (accounts.length === 0) {
+                        location.reload();
+                    } else {
+                        userAccount = accounts[0];
+                        connectWallet();
+                    }
+                });
+                
+                // Escutar mudanças de rede
+                window.ethereum.on('chainChanged', function () {
+                    window.location.reload();
+                });
+                
+            } catch (error) {
+                console.error("Erro detalhado:", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Carteira não encontrada',
-                    text: 'Por favor, instale MetaMask ou Ruby Wallet para continuar',
-                    footer: '<a href="https://metamask.io/download/" target="_blank">Baixar MetaMask</a>'
+                    title: 'Erro ao conectar',
+                    text: error.message || "Falha na conexão com a carteira",
+                    confirmButtonText: 'OK'
                 });
             }
         }
-
+        
+        // Função para mudar para BSC Mainnet
+        async function switchToBSC() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }], // 56 em hexadecimal
+                });
+            } catch (switchError) {
+                // Se a rede não existir, adicionar
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x38',
+                                chainName: 'BNB Smart Chain Mainnet',
+                                nativeCurrency: {
+                                    name: 'BNB',
+                                    symbol: 'BNB',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    } catch (addError) {
+                        Swal.fire('Erro', 'Não foi possível adicionar a rede BSC', 'error');
+                    }
+                }
+            }
+        }
+        
         async function registerClinic() {
             if (!userAccount) {
                 Swal.fire('Erro', 'Conecte sua carteira primeiro', 'error');
@@ -505,8 +612,8 @@
             
             try {
                 Swal.fire({
-                    title: 'Processando pagamento...',
-                    text: 'Por favor, confirme a transação na sua carteira',
+                    title: 'Processando...',
+                    text: 'Por favor, confirme as transações na sua carteira',
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
@@ -514,18 +621,30 @@
                 });
                 
                 // Verificar se é owner (gratuidade)
-                const owner = await contract.methods.getOwner().call();
-                const isOwner = userAccount.toLowerCase() === owner.toLowerCase();
+                let isOwner = false;
+                try {
+                    const owner = await contract.methods.getOwner().call();
+                    isOwner = userAccount.toLowerCase() === owner.toLowerCase();
+                } catch (err) {
+                    console.warn("Erro ao verificar owner:", err);
+                }
                 
                 if (!isOwner) {
-                    // Aprovar USDT
+                    // Verificar saldo de USDT
                     const usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
-                    const amount = web3.utils.toWei('50', 'ether');
+                    const balance = await usdtContract.methods.balanceOf(userAccount).call();
+                    const amountNeeded = web3.utils.toWei('50', 'ether');
                     
-                    await usdtContract.methods.approve(contractAddress, amount).send({ 
+                    if (BigInt(balance) < BigInt(amountNeeded)) {
+                        throw new Error(`Saldo insuficiente de USDT. Você precisa de 50 USDT. Saldo atual: ${web3.utils.fromWei(balance, 'ether')} USDT`);
+                    }
+                    
+                    // Aprovar USDT
+                    const approveTx = await usdtContract.methods.approve(contractAddress, amountNeeded).send({ 
                         from: userAccount,
                         gas: 100000
                     });
+                    console.log("Approve realizado:", approveTx.transactionHash);
                 }
                 
                 // Criptografar API Key
@@ -539,6 +658,8 @@
                     encryptedApiKey,
                     whatsappNumber
                 ).send({ from: userAccount, gas: 500000 });
+                
+                console.log("Registro realizado:", tx.transactionHash);
                 
                 await Swal.fire({
                     icon: 'success',
@@ -566,22 +687,20 @@
                 startSessionMonitoring();
                 
             } catch (error) {
-                console.error(error);
+                console.error("Erro detalhado:", error);
                 Swal.fire('Erro', 'Transação falhou: ' + (error.message || 'Erro desconhecido'), 'error');
             }
         }
         
         function generateWhatsAppQRCode(whatsappNumber) {
-            // Limpar QR code anterior
             const qrcodeDiv = document.getElementById('qrcode');
             qrcodeDiv.innerHTML = '';
             
-            // Gerar URL do WhatsApp Web com número pré-definido
-            // Este é o link que será escaneado pelo WhatsApp
+            // Gerar URL para WhatsApp
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20ativar%20o%20agente%20IA`;
             
             // Gerar QR code
-            currentQRCode = new QRCode(qrcodeDiv, {
+            new QRCode(qrcodeDiv, {
                 text: whatsappUrl,
                 width: 256,
                 height: 256,
@@ -590,10 +709,7 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
             
-            // Armazenar no localStorage para simular conexão
             localStorage.setItem('whatsappQRGenerated', Date.now().toString());
-            
-            // Simular verificação de conexão
             simulateWhatsAppConnection();
         }
         
@@ -608,22 +724,18 @@
         }
         
         function simulateWhatsAppConnection() {
-            // Simulação de verificação de conexão (em produção, isso viria do backend)
             let attempts = 0;
             const interval = setInterval(() => {
                 attempts++;
                 const connectionStatus = document.getElementById('connectionStatus');
                 
                 if (attempts === 5) {
-                    // Simula que o QR foi escaneado
                     connectionStatus.innerHTML = '✅ QR Code escaneado! Conectando ao WhatsApp...';
                     connectionStatus.style.color = '#4caf50';
                 } else if (attempts === 10) {
                     connectionStatus.innerHTML = '✅✅ Conectado! Agente IA ativo no WhatsApp!';
                     connectionStatus.style.color = '#4caf50';
                     clearInterval(interval);
-                    
-                    // Atualizar sessionId no contrato
                     updateSessionIdInContract();
                 } else if (attempts < 5) {
                     connectionStatus.innerHTML = '⏳ Aguardando escaneamento do QR code...';
@@ -635,7 +747,7 @@
         async function updateSessionIdInContract() {
             try {
                 const sessionId = `session_${Date.now()}_${userAccount.slice(2,8)}`;
-                await contract.methods.updateSessionId(sessionId).send({ from: userAccount });
+                await contract.methods.updateSessionId(sessionId).send({ from: userAccount, gas: 100000 });
                 console.log('Session ID atualizado no contrato');
             } catch (error) {
                 console.error('Erro ao atualizar session ID:', error);
@@ -649,8 +761,8 @@
                 const status = await contract.methods.checkSubscriptionStatus(userAccount).call();
                 const subscriptionDiv = document.getElementById('subscriptionStatus');
                 
-                if (status.isValid) {
-                    const expirationDate = new Date(status.expirationDate * 1000);
+                if (status && status.isValid) {
+                    const expirationDate = new Date(Number(status.expirationDate) * 1000);
                     subscriptionDiv.innerHTML = `
                         <div class="subscription-info">
                             <strong>✅ Assinatura Ativa</strong><br>
@@ -659,7 +771,7 @@
                             <button class="renew-btn" onclick="renewSubscription()">Renovar por mais 30 dias ($50 USDT)</button>
                         </div>
                     `;
-                } else {
+                } else if (status && status.isRegistered) {
                     subscriptionDiv.innerHTML = `
                         <div style="background: #ffebee; padding: 15px; border-radius: 10px; border-left: 4px solid #f44336;">
                             <strong>⚠️ Assinatura Expirada</strong><br>
@@ -689,7 +801,6 @@
                     }
                 });
                 
-                // Aprovar USDT
                 const usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
                 const amount = web3.utils.toWei('50', 'ether');
                 
@@ -715,30 +826,38 @@
             }
             
             sessionCheckInterval = setInterval(() => {
-                // Verificar se o QR code ainda está ativo
                 const qrGenerated = localStorage.getItem('whatsappQRGenerated');
                 if (qrGenerated) {
                     const timeElapsed = Date.now() - parseInt(qrGenerated);
-                    if (timeElapsed > 60000) { // 1 minuto
+                    if (timeElapsed > 60000) {
                         const connectionStatus = document.getElementById('connectionStatus');
-                        connectionStatus.innerHTML = '⚠️ QR Code expirado. Clique em "Gerar Novo QR Code"';
-                        connectionStatus.style.color = '#f44336';
+                        if (connectionStatus) {
+                            connectionStatus.innerHTML = '⚠️ QR Code expirado. Clique em "Gerar Novo QR Code"';
+                            connectionStatus.style.color = '#f44336';
+                        }
                     }
                 }
             }, 5000);
         }
         
-        // Verificar se já tem dados salvos ao carregar
+        // Carregar dados salvos
         window.addEventListener('load', () => {
             const savedData = localStorage.getItem('clinicData');
             if (savedData) {
                 const data = JSON.parse(savedData);
-                if (data.whatsappNumber) {
-                    document.getElementById('whatsappNumber').value = data.whatsappNumber;
-                }
-                if (data.clinicName) {
-                    document.getElementById('clinicName').value = data.clinicName;
-                }
+                if (data.whatsappNumber) document.getElementById('whatsappNumber').value = data.whatsappNumber;
+                if (data.clinicName) document.getElementById('clinicName').value = data.clinicName;
+                if (data.specialty) document.getElementById('specialty').value = data.specialty;
+                if (data.phoneNumber) document.getElementById('phoneNumber').value = data.phoneNumber;
+            }
+            
+            // Verificar se já está conectado
+            if (typeof window.ethereum !== 'undefined') {
+                window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        connectWallet();
+                    }
+                });
             }
         });
     </script>
