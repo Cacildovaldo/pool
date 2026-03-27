@@ -1,1 +1,746 @@
-Service discontinued
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ClinicAI - Agente IA para WhatsApp | Clínicas Médicas</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .wallet-section {
+            background: #f7f9fc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px solid #e1e8f0;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 10px;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .wallet-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #128C7E;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-card {
+            background: #f0f9ff;
+            border-left: 4px solid #128C7E;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px dashed #128C7E;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .subscription-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .renew-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .session-status {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .instruction-step {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .step-number {
+            background: #128C7E;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 ClinicAI Agent</h1>
+            <p>Agente de IA humanizado para WhatsApp - Gestão Inteligente de Clínicas Médicas</p>
+        </div>
+
+        <div class="content">
+            <div class="wallet-section">
+                <h3>🔐 Conectar Carteira Web3</h3>
+                <button class="connect-btn" onclick="connectWallet()">
+                    🔗 Conectar MetaMask / Ruby Wallet
+                </button>
+                <div id="walletInfo" class="wallet-info" style="display:none;"></div>
+            </div>
+
+            <div id="formSection" class="form-section">
+                <h2>📋 Cadastro da Clínica</h2>
+                <div class="two-columns">
+                    <div>
+                        <form id="clinicForm">
+                            <div class="form-group">
+                                <label>🏥 Nome da Clínica *</label>
+                                <input type="text" id="clinicName" required placeholder="Ex: Clínica Saúde Total">
+                            </div>
+
+                            <div class="form-group">
+                                <label>⚕️ Especialidade Principal *</label>
+                                <input type="text" id="specialty" required placeholder="Ex: Clínica Geral, Cardiologia">
+                            </div>
+
+                            <div class="form-group">
+                                <label>📞 Telefone para Contato *</label>
+                                <input type="tel" id="phoneNumber" required placeholder="(11) 99999-9999">
+                            </div>
+
+                            <div class="form-group">
+                                <label>📱 Número do WhatsApp (com DDD) *</label>
+                                <input type="tel" id="whatsappNumber" required placeholder="5511999999999">
+                                <small style="color: #666;">Formato: 55 + DDD + Número (sem espaços)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>🔑 API Key do Agente IA *</label>
+                                <input type="password" id="apiKey" required placeholder="Insira sua chave API">
+                                <small style="color: #666;">Sua chave será usada para conectar o agente IA</small>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div>
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div>Conecte sua carteira e pague $50 USDT</div>
+                        </div>
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div>Preencha os dados da sua clínica</div>
+                        </div>
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div>Após o pagamento, escaneie o QR code com seu WhatsApp</div>
+                        </div>
+                        <div class="instruction-step">
+                            <div class="step-number">4</div>
+                            <div>O agente IA será conectado automaticamente ao seu WhatsApp</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="submit-btn" onclick="registerClinic()">
+                    💰 Pagar $50 USDT e Ativar Agente IA
+                </button>
+
+                <div id="statusSection" style="display:none;">
+                    <div class="status-card">
+                        <h3>✅ Status do seu Agente IA</h3>
+                        <div id="subscriptionStatus"></div>
+                        
+                        <div class="qr-container">
+                            <h4>📱 Escaneie o QR Code para Conectar seu WhatsApp</h4>
+                            <div id="qrcode"></div>
+                            <p style="margin-top: 15px; color: #666;">
+                                <strong>Instruções:</strong><br>
+                                1. Abra o WhatsApp no seu celular<br>
+                                2. Toque nos três pontos → WhatsApp Web<br>
+                                3. Escaneie este QR code<br>
+                                4. O agente IA será ativado automaticamente
+                            </p>
+                            <button class="connect-btn" onclick="generateNewQRCode()" style="margin-top: 15px;">
+                                🔄 Gerar Novo QR Code
+                            </button>
+                        </div>
+
+                        <div class="session-status" id="sessionStatus">
+                            <strong>📡 Status da Conexão:</strong>
+                            <span id="connectionStatus">Aguardando escaneamento do QR code...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONTRACT ABI (inserir ABI do contrato compilado)
+        const contractABI = [
+            {
+                "inputs": [{"internalType": "address","name": "_usdtAddress","type": "address"}],
+                "stateMutability": "nonpayable","type": "constructor"
+            },
+            {
+                "inputs": [
+                    {"internalType": "string","name": "_name","type": "string"},
+                    {"internalType": "string","name": "_specialty","type": "string"},
+                    {"internalType": "string","name": "_phoneNumber","type": "string"},
+                    {"internalType": "string","name": "_apiKey","type": "string"},
+                    {"internalType": "string","name": "_whatsappNumber","type": "string"}
+                ],
+                "name": "registerClinic","outputs": [],"stateMutability": "nonpayable","type": "function"
+            },
+            {
+                "inputs": [],"name": "renewSubscription","outputs": [],"stateMutability": "nonpayable","type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address","name": "_clinicAddress","type": "address"}],
+                "name": "checkSubscriptionStatus","outputs": [
+                    {"internalType": "bool","name": "isValid","type": "bool"},
+                    {"internalType": "uint256","name": "remainingDays","type": "uint256"},
+                    {"internalType": "uint256","name": "expirationDate","type": "uint256"}
+                ],
+                "stateMutability": "view","type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address","name": "_clinicAddress","type": "address"}],
+                "name": "getClinicInfo","outputs": [
+                    {"internalType": "string","name": "name","type": "string"},
+                    {"internalType": "string","name": "specialty","type": "string"},
+                    {"internalType": "string","name": "phoneNumber","type": "string"},
+                    {"internalType": "string","name": "apiKey","type": "string"},
+                    {"internalType": "string","name": "whatsappNumber","type": "string"},
+                    {"internalType": "string","name": "sessionId","type": "string"},
+                    {"internalType": "uint256","name": "subscriptionEnd","type": "uint256"},
+                    {"internalType": "bool","name": "isActive","type": "bool"},
+                    {"internalType": "uint256","name": "createdAt","type": "uint256"}
+                ],
+                "stateMutability": "view","type": "function"
+            },
+            {
+                "inputs": [{"internalType": "string","name": "_sessionId","type": "string"}],
+                "name": "updateSessionId","outputs": [],"stateMutability": "nonpayable","type": "function"
+            }
+        ];
+
+        // CONTRACT ADDRESS (inserir após deploy no Remix)
+        const contractAddress = "0x2c4bc4a9A670Dac861Aad37a0CcAF89dE064E453";
+        
+        // USDT BSC Address (BSC Mainnet USDT)
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        
+        // ERC20 ABI mínimo para approve
+        const erc20ABI = [
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "spender","type": "address"},
+                    {"name": "amount","type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [{"name": "","type": "bool"}],
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "owner","type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"name": "","type": "uint256"}],
+                "type": "function"
+            }
+        ];
+        
+        let web3;
+        let contract;
+        let userAccount;
+        let currentQRCode;
+        let sessionCheckInterval;
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    userAccount = (await web3.eth.getAccounts())[0];
+                    
+                    // Verificar se está na BSC Mainnet
+                    const chainId = await web3.eth.getChainId();
+                    if (chainId !== 56) {
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Rede Incorreta',
+                            text: 'Por favor, mude para BSC Mainnet (Chain ID: 56) no MetaMask',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+                    
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    
+                    // Verificar se é o owner
+                    const owner = await contract.methods.getOwner().call();
+                    const isOwner = userAccount.toLowerCase() === owner.toLowerCase();
+                    
+                    document.getElementById('walletInfo').innerHTML = `
+                        <strong>✅ Carteira Conectada:</strong><br>
+                        ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>
+                        <small>Rede: BSC Mainnet</small><br>
+                        ${isOwner ? '<span style="color: #075E54;">⭐ Owner - Gratuidade garantida</span>' : ''}
+                    `;
+                    document.getElementById('walletInfo').style.display = 'block';
+                    document.getElementById('formSection').style.display = 'block';
+                    
+                    // Verificar status da assinatura
+                    await checkSubscriptionStatus();
+                    
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire('Erro', 'Falha ao conectar carteira: ' + error.message, 'error');
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Carteira não encontrada',
+                    text: 'Por favor, instale MetaMask ou Ruby Wallet para continuar',
+                    footer: '<a href="https://metamask.io/download/" target="_blank">Baixar MetaMask</a>'
+                });
+            }
+        }
+
+        async function registerClinic() {
+            if (!userAccount) {
+                Swal.fire('Erro', 'Conecte sua carteira primeiro', 'error');
+                return;
+            }
+            
+            const clinicName = document.getElementById('clinicName').value;
+            const specialty = document.getElementById('specialty').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const whatsappNumber = document.getElementById('whatsappNumber').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (!clinicName || !specialty || !phoneNumber || !whatsappNumber || !apiKey) {
+                Swal.fire('Erro', 'Preencha todos os campos', 'error');
+                return;
+            }
+            
+            // Validar formato do WhatsApp
+            if (!whatsappNumber.match(/^55\d{10,11}$/)) {
+                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número (ex: 5511999999999)', 'error');
+                return;
+            }
+            
+            try {
+                Swal.fire({
+                    title: 'Processando pagamento...',
+                    text: 'Por favor, confirme a transação na sua carteira',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Verificar se é owner (gratuidade)
+                const owner = await contract.methods.getOwner().call();
+                const isOwner = userAccount.toLowerCase() === owner.toLowerCase();
+                
+                if (!isOwner) {
+                    // Aprovar USDT
+                    const usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
+                    const amount = web3.utils.toWei('50', 'ether');
+                    
+                    await usdtContract.methods.approve(contractAddress, amount).send({ 
+                        from: userAccount,
+                        gas: 100000
+                    });
+                }
+                
+                // Criptografar API Key
+                const encryptedApiKey = btoa(apiKey);
+                
+                // Registrar clínica
+                const tx = await contract.methods.registerClinic(
+                    clinicName,
+                    specialty,
+                    phoneNumber,
+                    encryptedApiKey,
+                    whatsappNumber
+                ).send({ from: userAccount, gas: 500000 });
+                
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Agente IA Ativado!',
+                    text: isOwner ? 'Agente ativado com gratuidade por 30 dias!' : 'Pagamento confirmado! Agente ativado por 30 dias.',
+                    confirmButtonText: 'OK'
+                });
+                
+                // Gerar QR Code para conexão WhatsApp
+                generateWhatsAppQRCode(whatsappNumber);
+                
+                document.getElementById('statusSection').style.display = 'block';
+                
+                // Salvar dados localmente
+                localStorage.setItem('clinicData', JSON.stringify({
+                    clinicName,
+                    specialty,
+                    phoneNumber,
+                    whatsappNumber,
+                    activationDate: Date.now(),
+                    walletAddress: userAccount
+                }));
+                
+                // Iniciar verificação de sessão
+                startSessionMonitoring();
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Erro', 'Transação falhou: ' + (error.message || 'Erro desconhecido'), 'error');
+            }
+        }
+        
+        function generateWhatsAppQRCode(whatsappNumber) {
+            // Limpar QR code anterior
+            const qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+            
+            // Gerar URL do WhatsApp Web com número pré-definido
+            // Este é o link que será escaneado pelo WhatsApp
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Olá!%20Gostaria%20de%20ativar%20o%20agente%20IA`;
+            
+            // Gerar QR code
+            currentQRCode = new QRCode(qrcodeDiv, {
+                text: whatsappUrl,
+                width: 256,
+                height: 256,
+                colorDark: "#075E54",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // Armazenar no localStorage para simular conexão
+            localStorage.setItem('whatsappQRGenerated', Date.now().toString());
+            
+            // Simular verificação de conexão
+            simulateWhatsAppConnection();
+        }
+        
+        function generateNewQRCode() {
+            const whatsappNumber = document.getElementById('whatsappNumber').value;
+            if (whatsappNumber) {
+                generateWhatsAppQRCode(whatsappNumber);
+                Swal.fire('Sucesso', 'Novo QR Code gerado! Escaneie com seu WhatsApp', 'success');
+            } else {
+                Swal.fire('Erro', 'Número do WhatsApp não encontrado', 'error');
+            }
+        }
+        
+        function simulateWhatsAppConnection() {
+            // Simulação de verificação de conexão (em produção, isso viria do backend)
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                const connectionStatus = document.getElementById('connectionStatus');
+                
+                if (attempts === 5) {
+                    // Simula que o QR foi escaneado
+                    connectionStatus.innerHTML = '✅ QR Code escaneado! Conectando ao WhatsApp...';
+                    connectionStatus.style.color = '#4caf50';
+                } else if (attempts === 10) {
+                    connectionStatus.innerHTML = '✅✅ Conectado! Agente IA ativo no WhatsApp!';
+                    connectionStatus.style.color = '#4caf50';
+                    clearInterval(interval);
+                    
+                    // Atualizar sessionId no contrato
+                    updateSessionIdInContract();
+                } else if (attempts < 5) {
+                    connectionStatus.innerHTML = '⏳ Aguardando escaneamento do QR code...';
+                    connectionStatus.style.color = '#ff9800';
+                }
+            }, 3000);
+        }
+        
+        async function updateSessionIdInContract() {
+            try {
+                const sessionId = `session_${Date.now()}_${userAccount.slice(2,8)}`;
+                await contract.methods.updateSessionId(sessionId).send({ from: userAccount });
+                console.log('Session ID atualizado no contrato');
+            } catch (error) {
+                console.error('Erro ao atualizar session ID:', error);
+            }
+        }
+        
+        async function checkSubscriptionStatus() {
+            if (!contract || !userAccount) return;
+            
+            try {
+                const status = await contract.methods.checkSubscriptionStatus(userAccount).call();
+                const subscriptionDiv = document.getElementById('subscriptionStatus');
+                
+                if (status.isValid) {
+                    const expirationDate = new Date(status.expirationDate * 1000);
+                    subscriptionDiv.innerHTML = `
+                        <div class="subscription-info">
+                            <strong>✅ Assinatura Ativa</strong><br>
+                            Dias restantes: ${status.remainingDays} dias<br>
+                            Expira em: ${expirationDate.toLocaleDateString('pt-BR')}<br>
+                            <button class="renew-btn" onclick="renewSubscription()">Renovar por mais 30 dias ($50 USDT)</button>
+                        </div>
+                    `;
+                } else {
+                    subscriptionDiv.innerHTML = `
+                        <div style="background: #ffebee; padding: 15px; border-radius: 10px; border-left: 4px solid #f44336;">
+                            <strong>⚠️ Assinatura Expirada</strong><br>
+                            Seu agente IA está inativo. Renove para continuar usando.
+                            <button class="renew-btn" onclick="renewSubscription()" style="background: #f44336;">Renovar Agora ($50 USDT)</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro ao verificar status:', error);
+            }
+        }
+        
+        async function renewSubscription() {
+            if (!userAccount) {
+                Swal.fire('Erro', 'Conecte sua carteira primeiro', 'error');
+                return;
+            }
+            
+            try {
+                Swal.fire({
+                    title: 'Renovando assinatura...',
+                    text: 'Confirme a transação na sua carteira',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Aprovar USDT
+                const usdtContract = new web3.eth.Contract(erc20ABI, usdtAddress);
+                const amount = web3.utils.toWei('50', 'ether');
+                
+                await usdtContract.methods.approve(contractAddress, amount).send({ 
+                    from: userAccount,
+                    gas: 100000
+                });
+                
+                await contract.methods.renewSubscription().send({ from: userAccount, gas: 300000 });
+                
+                Swal.fire('Sucesso!', 'Assinatura renovada por mais 30 dias!', 'success');
+                await checkSubscriptionStatus();
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Erro', 'Renovação falhou: ' + error.message, 'error');
+            }
+        }
+        
+        function startSessionMonitoring() {
+            if (sessionCheckInterval) {
+                clearInterval(sessionCheckInterval);
+            }
+            
+            sessionCheckInterval = setInterval(() => {
+                // Verificar se o QR code ainda está ativo
+                const qrGenerated = localStorage.getItem('whatsappQRGenerated');
+                if (qrGenerated) {
+                    const timeElapsed = Date.now() - parseInt(qrGenerated);
+                    if (timeElapsed > 60000) { // 1 minuto
+                        const connectionStatus = document.getElementById('connectionStatus');
+                        connectionStatus.innerHTML = '⚠️ QR Code expirado. Clique em "Gerar Novo QR Code"';
+                        connectionStatus.style.color = '#f44336';
+                    }
+                }
+            }, 5000);
+        }
+        
+        // Verificar se já tem dados salvos ao carregar
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('clinicData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                if (data.whatsappNumber) {
+                    document.getElementById('whatsappNumber').value = data.whatsappNumber;
+                }
+                if (data.clinicName) {
+                    document.getElementById('clinicName').value = data.clinicName;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
