@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClinicAI - Agente IA Profissional para WhatsApp</title>
+    <title>ClinicAI - Agente IA para WhatsApp</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #075E54, #128C7E);
             padding: 20px;
             min-height: 100vh;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -24,14 +24,13 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
         h1 { color: #075E54; margin-bottom: 5px; }
-        .subtitle { color: #666; margin-bottom: 20px; }
         .price-badge {
             background: linear-gradient(135deg, #075E54, #128C7E);
             color: white;
             padding: 10px 20px;
             border-radius: 50px;
             display: inline-block;
-            margin-bottom: 20px;
+            margin: 20px 0;
             font-weight: bold;
         }
         .owner-badge {
@@ -40,7 +39,6 @@
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 12px;
-            display: inline-block;
             margin-left: 10px;
         }
         .wallet-box {
@@ -62,40 +60,21 @@
             transition: transform 0.2s;
         }
         button:hover { transform: translateY(-2px); }
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 14px;
         }
         .form-group { margin-bottom: 20px; }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
         .form-card {
             background: #f9f9f9;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
         }
-        .form-card h3 {
-            color: #075E54;
-            margin-bottom: 15px;
-            border-left: 4px solid #128C7E;
-            padding-left: 12px;
-        }
-        .status-card {
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        .active-status { background: #e8f5e9; border-left: 4px solid #4caf50; }
-        .inactive-status { background: #ffebee; border-left: 4px solid #f44336; }
+        .form-card h3 { color: #075E54; margin-bottom: 15px; border-left: 4px solid #128C7E; padding-left: 12px; }
         .qr-container {
             text-align: center;
             padding: 20px;
@@ -103,69 +82,23 @@
             border-radius: 10px;
             margin-top: 20px;
         }
-        #qrcode {
-            display: inline-block;
-            padding: 10px;
-            background: white;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-        .connection-status {
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-weight: bold;
-        }
+        #qrcode { display: inline-block; padding: 10px; background: white; border-radius: 10px; margin: 10px 0; }
+        .connection-status { padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
         .connected { background: #e8f5e9; color: #2e7d32; }
         .connecting { background: #fff3e0; color: #ff9800; }
         .disconnected { background: #ffebee; color: #c62828; }
-        .info-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        .backend-url {
-            background: #e3f2fd;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-        }
-        .tab {
-            padding: 10px 20px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .tab.active {
-            background: #075E54;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; }
-            .container { padding: 20px; }
-        }
+        .status-card { padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .active-status { background: #e8f5e9; border-left: 4px solid #4caf50; }
+        .inactive-status { background: #ffebee; border-left: 4px solid #f44336; }
+        .test-btn { background: #2196f3; margin-top: 10px; }
+        .info-text { font-size: 12px; color: #666; margin-top: 5px; }
+        @media (max-width: 768px) { .container { padding: 20px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤖 ClinicAI Agent</h1>
-        <p class="subtitle">Sistema profissional de atendimento automático via WhatsApp com Inteligência Artificial</p>
+        <p>Atendimento automático via WhatsApp com Inteligência Artificial</p>
         
         <div class="price-badge">
             💰 Ativação: $50 USDT por 30 dias
@@ -178,108 +111,32 @@
             <div id="networkError" style="color: red; margin-top: 10px; display: none;"></div>
         </div>
 
-        <!-- Configuração do Backend -->
-        <div class="backend-url">
-            🔌 <strong>Servidor Backend:</strong> 
-            <input type="text" id="backendUrl" value="https://clinicai-backend-6zfr.onrender.com" style="width: 400px; display: inline-block; margin: 0 10px;">
-            <small>URL do seu backend no Render</small>
-        </div>
-
         <div id="appContent" style="display: none;">
-            <!-- Abas -->
-            <div class="tabs">
-                <div class="tab active" onclick="showTab('basic')">📋 Dados da Clínica</div>
-                <div class="tab" onclick="showTab('schedule')">📅 Horários</div>
-                <div class="tab" onclick="showTab('messages')">💬 Mensagens</div>
-            </div>
-
-            <!-- Aba 1: Dados Básicos -->
-            <div id="basicTab" class="tab-content active">
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>🏥 Informações da Clínica</h3>
-                        <div class="form-group">
-                            <label>Nome da Clínica *</label>
-                            <input type="text" id="clinicName" placeholder="Ex: Clínica Saúde Total">
-                        </div>
-                        <div class="form-group">
-                            <label>Nome da Atendente Virtual *</label>
-                            <input type="text" id="attendantName" placeholder="Ex: Maria, Dra. Ana">
-                            <div class="info-text">Nome que o agente IA usará para se apresentar</div>
-                        </div>
-                        <div class="form-group">
-                            <label>📱 WhatsApp da Clínica *</label>
-                            <input type="text" id="whatsappNumber" placeholder="5511999999999">
-                            <div class="info-text">Formato: 55 + DDD + número (ex: 5511999999999)</div>
-                        </div>
-                    </div>
-                    <div class="form-card">
-                        <h3>📍 Endereço da Clínica</h3>
-                        <div class="form-group">
-                            <label>Endereço Completo</label>
-                            <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
-                        </div>
-                        <div class="form-group">
-                            <label>Google Maps Link</label>
-                            <input type="url" id="mapsLink" placeholder="https://maps.google.com/...">
-                        </div>
-                    </div>
+            <div class="form-card">
+                <h3>🏥 Dados da Clínica</h3>
+                <div class="form-group">
+                    <label>Nome da Clínica *</label>
+                    <input type="text" id="clinicName" placeholder="Ex: Clínica Saúde Total">
                 </div>
-            </div>
-
-            <!-- Aba 2: Horários -->
-            <div id="scheduleTab" class="tab-content">
-                <div class="form-card">
-                    <h3>📅 Dias de Funcionamento</h3>
-                    <div id="scheduleDays"></div>
+                <div class="form-group">
+                    <label>Nome da Atendente Virtual *</label>
+                    <input type="text" id="attendantName" placeholder="Ex: Maria, Dra. Ana">
+                    <div class="info-text">Nome que o agente IA usará para se apresentar</div>
                 </div>
-                <div class="form-card">
-                    <h3>⏰ Configurações</h3>
-                    <div class="form-group">
-                        <label>Horário de Almoço</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="time" id="lunchStart" value="12:00">
-                            <span>até</span>
-                            <input type="time" id="lunchEnd" value="13:00">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Intervalo entre consultas (minutos)</label>
-                        <input type="number" id="breakTime" value="15">
-                    </div>
-                    <div class="form-group">
-                        <label>Duração padrão da consulta (minutos)</label>
-                        <input type="number" id="consultDuration" value="30">
-                    </div>
+                <div class="form-group">
+                    <label>📱 WhatsApp da Clínica *</label>
+                    <input type="text" id="whatsappNumber" placeholder="5511999999999">
+                    <div class="info-text">Formato: 55 + DDD + número (ex: 5511999999999)</div>
                 </div>
-            </div>
-
-            <!-- Aba 3: Mensagens -->
-            <div id="messagesTab" class="tab-content">
-                <div class="form-card">
-                    <h3>💬 Mensagem de Boas-vindas</h3>
+                <div class="form-group">
+                    <label>📍 Endereço da Clínica</label>
+                    <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
+                </div>
+                <div class="form-group">
+                    <label>💬 Mensagem de Boas-vindas</label>
                     <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. 
 
 Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textarea>
-                </div>
-                <div class="form-card">
-                    <h3>✅ Confirmação de Agendamento</h3>
-                    <textarea id="confirmationMessage" rows="4">✅ Agendamento confirmado! 📅
-
-📌 Paciente: {patient_name}
-📅 Data: {date} às {time}
-📍 Endereço: {address}
-
-Confirme respondendo "CONFIRMO" 😊</textarea>
-                </div>
-                <div class="form-card">
-                    <h3>⏰ Lembrete de Consulta</h3>
-                    <textarea id="reminderMessage" rows="3">🔔 Lembrete de consulta amanhã!
-
-📅 {date} às {time}
-📍 {address}
-
-Confirme respondendo "CONFIRMO"</textarea>
                 </div>
             </div>
 
@@ -293,10 +150,11 @@ Confirme respondendo "CONFIRMO"</textarea>
                     <div id="qrcode"></div>
                     <div id="connectionStatus" class="connection-status disconnected">⏳ Clique em "Iniciar Conexão" para gerar o QR code</div>
                     <button onclick="startWhatsAppSession()" style="margin-top: 15px;">🚀 Iniciar Conexão WhatsApp</button>
+                    <button onclick="testBackendConnection()" class="test-btn" style="background:#2196f3; margin-top: 10px;">🔧 Testar Conexão com Backend</button>
                 </div>
                 <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px;">
                     <h4>✅ Agente IA Ativo!</h4>
-                    <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente pela IA.</p>
+                    <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente.</p>
                     <p><strong>⏰ Dias restantes:</strong> <span id="daysLeft">30</span> dias</p>
                     <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar por mais 30 dias ($50 USDT)</button>
                 </div>
@@ -306,6 +164,7 @@ Confirme respondendo "CONFIRMO"</textarea>
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
+        const BACKEND_URL = "https://clinicai-backend-6zfr.onrender.com";
         const CONTRACT_ADDRESS = "0x66d2B6A11A64d14fa4Dc24bc2c8d4300F320D0A8";
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
         const OWNER_WALLET = "0x9E74B0a29d0Ec2e73E7A9c984d6a0447e72df76c";
@@ -325,48 +184,42 @@ Confirme respondendo "CONFIRMO"</textarea>
         
         let web3, contract, userAccount;
         let isOwnerAccount = false;
-        let statusCheckInterval = null;
+        let statusInterval = null;
         
-        const weekDays = [
-            { id: 'mon', name: 'Segunda-feira' },
-            { id: 'tue', name: 'Terça-feira' },
-            { id: 'wed', name: 'Quarta-feira' },
-            { id: 'thu', name: 'Quinta-feira' },
-            { id: 'fri', name: 'Sexta-feira' },
-            { id: 'sat', name: 'Sábado' },
-            { id: 'sun', name: 'Domingo' }
-        ];
-        
-        function initScheduleDays() {
-            const container = document.getElementById('scheduleDays');
-            container.innerHTML = weekDays.map(day => `
-                <div class="form-group">
-                    <label>${day.name}</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="checkbox" id="${day.id}Active" checked> Ativo
-                        <input type="time" id="${day.id}Start" value="08:00">
-                        <span>até</span>
-                        <input type="time" id="${day.id}End" value="18:00">
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(`${tabName}Tab`).classList.add('active');
-            event.target.classList.add('active');
-        }
+        // Função para testar conexão com backend
+        window.testBackendConnection = async function() {
+            console.log("🔧 Testando conexão com backend...");
+            Swal.fire({ title: 'Testando...', text: 'Verificando conexão com o servidor', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/`);
+                const data = await response.json();
+                console.log("✅ Backend respondeu:", data);
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Backend OK!', 
+                    text: `Status: ${data.status}\nMensagem: ${data.message}` 
+                });
+                return true;
+            } catch (error) {
+                console.error("❌ Erro no teste:", error);
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Erro de conexão', 
+                    text: `Não foi possível conectar ao backend: ${error.message}\n\nVerifique se a URL está correta: ${BACKEND_URL}` 
+                });
+                return false;
+            }
+        };
         
         async function connectWallet() {
             if (!window.ethereum) {
-                Swal.fire('Erro', 'Instale MetaMask', 'error');
+                Swal.fire('Erro', 'Instale MetaMask: https://metamask.io/download/', 'error');
                 return;
             }
             
             try {
-                Swal.fire({ title: 'Conectando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'Conectando carteira...', text: 'Por favor, confirme no MetaMask', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAccount = accounts[0];
@@ -374,7 +227,9 @@ Confirme respondendo "CONFIRMO"</textarea>
                 
                 const chainId = await web3.eth.getChainId();
                 if (chainId !== 56) {
-                    Swal.fire('Aviso', 'Mude para BSC Mainnet', 'warning');
+                    document.getElementById('networkError').style.display = 'block';
+                    document.getElementById('networkError').innerHTML = '⚠️ Rede incorreta! Por favor, mude para BSC Mainnet no MetaMask.';
+                    Swal.fire('Aviso', 'Mude para BSC Mainnet (Chain ID: 56) no MetaMask', 'warning');
                     Swal.close();
                     return;
                 }
@@ -391,13 +246,18 @@ Confirme respondendo "CONFIRMO"</textarea>
                 document.getElementById('walletStatus').innerHTML = `✅ Conectado: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>🔗 BSC Mainnet`;
                 document.getElementById('connectBtn').style.display = 'none';
                 document.getElementById('appContent').style.display = 'block';
+                document.getElementById('networkError').style.display = 'none';
                 
                 Swal.close();
                 await checkSubscription();
                 
+                // Testar backend automaticamente após conectar
+                setTimeout(() => testBackendConnection(), 1000);
+                
             } catch (error) {
                 Swal.close();
-                Swal.fire('Erro', error.message, 'error');
+                console.error('Erro:', error);
+                Swal.fire('Erro', error.message || 'Falha ao conectar carteira', 'error');
             }
         }
         
@@ -408,12 +268,11 @@ Confirme respondendo "CONFIRMO"</textarea>
                 statusBox.style.display = 'block';
                 
                 if (result.active) {
-                    statusBox.innerHTML = `<div class="status-card active-status">✅ Assinatura Ativa - ${result.daysLeft} dias restantes</div>`;
+                    statusBox.innerHTML = `<div class="status-card active-status">✅ <strong>Assinatura Ativa</strong><br>Clínica: ${result.clinicName}<br>Dias restantes: ${result.daysLeft} dias<br>WhatsApp: ${result.whatsappNumber}</div>`;
                     document.getElementById('activateBtn').style.display = 'none';
                     document.getElementById('whatsappBox').style.display = 'block';
                     document.getElementById('daysLeft').innerText = result.daysLeft;
                     
-                    // Carregar dados salvos
                     const saved = localStorage.getItem(`clinic_${userAccount}`);
                     if (saved) {
                         const data = JSON.parse(saved);
@@ -423,10 +282,10 @@ Confirme respondendo "CONFIRMO"</textarea>
                         document.getElementById('address').value = data.address || '';
                     }
                 } else {
-                    statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa</div>`;
+                    statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ <strong>Nenhuma assinatura ativa</strong><br>Ative seu agente IA por $50 USDT para 30 dias</div>`;
                 }
             } catch (error) {
-                console.error(error);
+                console.error('Erro ao verificar assinatura:', error);
             }
         }
         
@@ -435,6 +294,7 @@ Confirme respondendo "CONFIRMO"</textarea>
             const attendantName = document.getElementById('attendantName').value;
             const whatsappNumber = document.getElementById('whatsappNumber').value;
             const address = document.getElementById('address').value;
+            const welcomeMessage = document.getElementById('welcomeMessage').value;
             
             if (!clinicName || !attendantName || !whatsappNumber) {
                 Swal.fire('Erro', 'Preencha todos os campos obrigatórios', 'error');
@@ -442,34 +302,17 @@ Confirme respondendo "CONFIRMO"</textarea>
             }
             
             if (!whatsappNumber.match(/^55\d{10,11}$/)) {
-                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número', 'error');
+                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número (ex: 5511999999999)', 'error');
                 return;
             }
             
-            // Criar configuração completa
-            const scheduleText = weekDays.filter(day => document.getElementById(`${day.id}Active`).checked)
-                .map(day => `${day.name}: ${document.getElementById(`${day.id}Start`).value} - ${document.getElementById(`${day.id}End`).value}`)
-                .join(', ');
-            
             const fullConfig = JSON.stringify({
-                clinicName,
-                attendantName,
-                whatsappNumber,
-                address,
-                scheduleText,
-                welcomeMessage: document.getElementById('welcomeMessage').value,
-                confirmationMessage: document.getElementById('confirmationMessage').value,
-                reminderMessage: document.getElementById('reminderMessage').value,
-                lunchStart: document.getElementById('lunchStart').value,
-                lunchEnd: document.getElementById('lunchEnd').value,
-                breakTime: document.getElementById('breakTime').value,
-                consultDuration: document.getElementById('consultDuration').value
+                clinicName, attendantName, whatsappNumber, address, welcomeMessage
             });
-            
             const encryptedApiKey = btoa("api_key_stored_in_backend");
             
             try {
-                Swal.fire({ title: 'Processando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'Processando...', text: 'Aguardando confirmação', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
                 if (!isOwnerAccount) {
                     const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
@@ -482,22 +325,22 @@ Confirme respondendo "CONFIRMO"</textarea>
                 
                 await contract.methods.activateClinic(clinicName, encryptedApiKey, whatsappNumber, fullConfig).send({ from: userAccount });
                 
-                // Salvar dados
                 localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({
                     clinicName, attendantName, whatsappNumber, address
                 }));
                 
-                Swal.fire('Sucesso!', 'Agente IA ativado!', 'success');
+                Swal.fire('Sucesso!', 'Agente IA ativado por 30 dias!', 'success');
                 await checkSubscription();
                 
             } catch (error) {
-                Swal.fire('Erro', error.message, 'error');
+                console.error('Erro:', error);
+                Swal.fire('Erro', error.message || 'Falha na ativação', 'error');
             }
         }
         
         async function renewSubscription() {
             try {
-                Swal.fire({ title: 'Renovando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'Renovando...', text: 'Confirme a transação', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
                 if (!isOwnerAccount) {
                     const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
@@ -509,7 +352,7 @@ Confirme respondendo "CONFIRMO"</textarea>
                 }
                 
                 await contract.methods.renewClinic().send({ from: userAccount });
-                Swal.fire('Sucesso!', 'Renovado por mais 30 dias!', 'success');
+                Swal.fire('Sucesso!', 'Assinatura renovada por mais 30 dias!', 'success');
                 await checkSubscription();
                 
             } catch (error) {
@@ -521,36 +364,35 @@ Confirme respondendo "CONFIRMO"</textarea>
             const sessionId = userAccount;
             const clinicName = document.getElementById('clinicName').value;
             const attendantName = document.getElementById('attendantName').value;
-            const backendUrl = document.getElementById('backendUrl').value;
+            const welcomeMessage = document.getElementById('welcomeMessage').value;
             
-            // Construir o prompt do sistema com as configurações
-            const scheduleText = weekDays.filter(day => document.getElementById(`${day.id}Active`).checked)
-                .map(day => `${day.name}: ${document.getElementById(`${day.id}Start`).value} - ${document.getElementById(`${day.id}End`).value}`)
-                .join(', ');
+            if (!clinicName || !attendantName) {
+                Swal.fire('Erro', 'Preencha os dados da clínica primeiro', 'error');
+                return;
+            }
             
             const systemPrompt = `Você é ${attendantName}, atendente da ${clinicName}. 
-            
-Horários de funcionamento: ${scheduleText}
-Almoço: ${document.getElementById('lunchStart').value} - ${document.getElementById('lunchEnd').value}
-Duração da consulta: ${document.getElementById('consultDuration').value} minutos
+${welcomeMessage}
 
-Mensagem de boas-vindas: ${document.getElementById('welcomeMessage').value}
-
-Seu trabalho é:
-- Atender pacientes com educação e simpatia
-- Agendar consultas nos horários disponíveis
-- Coletar nome, telefone e motivo da consulta
-- Informar horários de funcionamento
-- Responder dúvidas sobre serviços
-
-Seja sempre prestativa e mantenha um tom acolhedor.`;
+Regras:
+- Sempre seja educado, simpático e prestativo
+- Ajude os pacientes a agendar consultas
+- Colete nome, telefone e motivo da consulta
+- Informe os horários disponíveis
+- Mantenha um tom acolhedor e profissional`;
             
             Swal.fire({ title: 'Iniciando WhatsApp...', text: 'Aguardando QR code', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             try {
-                const response = await fetch(`${backendUrl}/api/start`, {
+                console.log("📡 Enviando requisição para:", `${BACKEND_URL}/api/start`);
+                console.log("📦 Dados:", { sessionId, clinicName, attendantName });
+                
+                const response = await fetch(`${BACKEND_URL}/api/start`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({
                         sessionId,
                         systemPrompt,
@@ -559,7 +401,12 @@ Seja sempre prestativa e mantenha um tom acolhedor.`;
                     })
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log("✅ Resposta do backend:", data);
                 Swal.close();
                 
                 if (data.qrCode) {
@@ -574,28 +421,34 @@ Seja sempre prestativa e mantenha um tom acolhedor.`;
                     });
                     
                     document.getElementById('connectionStatus').className = 'connection-status connecting';
-                    document.getElementById('connectionStatus').innerHTML = '📱 Escaneie o QR code com o WhatsApp da clínica';
+                    document.getElementById('connectionStatus').innerHTML = '📱 QR Code gerado! Escaneie com o WhatsApp da clínica';
                     
                     // Monitorar status
-                    if (statusCheckInterval) clearInterval(statusCheckInterval);
-                    statusCheckInterval = setInterval(async () => {
+                    if (statusInterval) clearInterval(statusInterval);
+                    statusInterval = setInterval(async () => {
                         try {
-                            const statusRes = await fetch(`${backendUrl}/api/status/${sessionId}`);
+                            const statusRes = await fetch(`${BACKEND_URL}/api/status/${sessionId}`);
                             const statusData = await statusRes.json();
                             if (statusData.status === 'connected') {
                                 document.getElementById('connectionStatus').className = 'connection-status connected';
-                                document.getElementById('connectionStatus').innerHTML = '✅ WhatsApp CONECTADO! Agente IA ativo!';
-                                clearInterval(statusCheckInterval);
+                                document.getElementById('connectionStatus').innerHTML = '✅ WhatsApp CONECTADO! Agente IA ativo e respondendo!';
+                                clearInterval(statusInterval);
                             }
-                        } catch (e) { console.error(e); }
+                        } catch (e) { console.error('Erro ao verificar status:', e); }
                     }, 3000);
                 } else {
-                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code... Recarregue a página se não aparecer';
+                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code... Se não aparecer, recarregue a página e tente novamente.';
                 }
                 
             } catch (error) {
                 Swal.close();
-                Swal.fire('Erro', `Erro ao conectar: ${error.message}`, 'error');
+                console.error('❌ Erro detalhado:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao conectar',
+                    text: `${error.message}\n\nVerifique se o backend está online: ${BACKEND_URL}`,
+                    footer: 'Clique em "Testar Conexão" para diagnosticar'
+                });
             }
         }
         
@@ -613,8 +466,6 @@ Seja sempre prestativa e mantenha um tom acolhedor.`;
                 });
             }
         }
-        
-        initScheduleDays();
         
         window.addEventListener('load', async () => {
             if (window.ethereum) {
