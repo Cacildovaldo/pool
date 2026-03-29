@@ -111,29 +111,26 @@
             border-radius: 10px;
             margin: 10px 0;
         }
+        .connection-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .connected { background: #e8f5e9; color: #2e7d32; }
+        .connecting { background: #fff3e0; color: #ff9800; }
+        .disconnected { background: #ffebee; color: #c62828; }
         .info-text {
             font-size: 12px;
             color: #666;
             margin-top: 5px;
         }
-        .time-slots {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .time-slot {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .time-slot.selected {
-            background: #075E54;
-            color: white;
-            border-color: #075E54;
+        .backend-url {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
         .add-btn {
             background: #128C7E;
@@ -180,20 +177,6 @@
         .tab-content.active {
             display: block;
         }
-        .payment-box {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        .owner-wallet {
-            font-family: monospace;
-            background: white;
-            padding: 8px;
-            border-radius: 5px;
-            word-break: break-all;
-        }
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
             .container { padding: 20px; }
@@ -216,14 +199,21 @@
             <div id="networkError" style="color: red; margin-top: 10px; display: none;"></div>
         </div>
 
+        <!-- Configuração do Backend -->
+        <div class="backend-url">
+            🔌 <strong>Servidor Backend:</strong> 
+            <input type="text" id="backendUrl" value="https://clinicai-backend-6zfr.onrender.com" style="width: 400px; display: inline-block; margin: 0 10px;">
+            <small>URL do seu backend no Render</small>
+        </div>
+
         <div id="appContent" style="display: none;">
             <!-- Abas -->
             <div class="tabs">
                 <div class="tab active" onclick="showTab('basic')">📋 Dados da Clínica</div>
-                <div class="tab" onclick="showTab('schedule')">📅 Horários e Agenda</div>
-                <div class="tab" onclick="showTab('services')">⚕️ Serviços e Médicos</div>
-                <div class="tab" onclick="showTab('rules')">📝 Regras de Agendamento</div>
-                <div class="tab" onclick="showTab('messages')">💬 Mensagens do Agente</div>
+                <div class="tab" onclick="showTab('ai')">🤖 Configuração da IA</div>
+                <div class="tab" onclick="showTab('schedule')">📅 Horários</div>
+                <div class="tab" onclick="showTab('services')">⚕️ Serviços</div>
+                <div class="tab" onclick="showTab('messages')">💬 Mensagens</div>
             </div>
 
             <!-- Aba 1: Dados Básicos -->
@@ -247,177 +237,91 @@
                         </div>
                     </div>
                     <div class="form-card">
-                        <h3>📍 Endereço da Clínica</h3>
+                        <h3>📍 Endereço</h3>
                         <div class="form-group">
                             <label>Endereço Completo</label>
-                            <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
+                            <input type="text" id="address" placeholder="Rua, número, bairro, cidade">
                         </div>
                         <div class="form-group">
                             <label>Google Maps Link</label>
                             <input type="url" id="mapsLink" placeholder="https://maps.google.com/...">
                         </div>
-                        <div class="form-group">
-                            <label>🤖 API Key (Google Gemini - Gratuito) *</label>
-                            <input type="password" id="apiKey" placeholder="Cole sua API Key do Google AI Studio">
-                            <div class="info-text">🔑 Obtenha em: <a href="https://makersuite.google.com/app/apikey" target="_blank">https://makersuite.google.com/app/apikey</a></div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Aba 2: Horários e Agenda -->
+            <!-- Aba 2: Configuração da IA -->
+            <div id="aiTab" class="tab-content">
+                <div class="form-card">
+                    <h3>🤖 Configuração da Inteligência Artificial</h3>
+                    <div class="form-group">
+                        <label>Provedor de IA *</label>
+                        <select id="aiProvider">
+                            <option value="groq">Groq AI (Mixtral/Llama - Rápido e Gratuito)</option>
+                            <option value="google">Google Gemini (Gratuito)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Modelo</label>
+                        <select id="aiModel">
+                            <option value="mixtral-8x7b-32768">Mixtral 8x7B (Groq - Recomendado)</option>
+                            <option value="llama2-70b-4096">Llama 2 70B (Groq)</option>
+                            <option value="gemini-pro">Gemini Pro (Google)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🔑 API Key *</label>
+                        <input type="password" id="apiKey" placeholder="Cole sua API Key">
+                        <div class="info-text">
+                            📌 Groq: https://console.groq.com/keys (gratuito)<br>
+                            📌 Google: https://makersuite.google.com/app/apikey (gratuito)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Instruções do Sistema</label>
+                        <textarea id="systemPrompt" rows="5">Você é {attendant_name}, atendente da {clinic_name}. Seu trabalho é:
+- Atender pacientes com educação e simpatia
+- Agendar consultas nos horários disponíveis
+- Coletar nome, telefone e motivo da consulta
+- Informar horários de funcionamento
+- Responder dúvidas sobre serviços
+
+Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba 3: Horários -->
             <div id="scheduleTab" class="tab-content">
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>📅 Dias de Funcionamento</h3>
-                        <div id="scheduleDays"></div>
-                    </div>
-                    <div class="form-card">
-                        <h3>⏰ Intervalos e Pausas</h3>
-                        <div class="form-group">
-                            <label>Horário de Almoço</label>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="time" id="lunchStart" value="12:00">
-                                <span>até</span>
-                                <input type="time" id="lunchEnd" value="13:00">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Intervalo entre consultas (minutos)</label>
-                            <input type="number" id="breakTime" value="15" min="5" max="60">
-                        </div>
-                        <div class="form-group">
-                            <label>Duração padrão da consulta (minutos)</label>
-                            <input type="number" id="consultDuration" value="30" min="15" max="120">
-                        </div>
-                    </div>
+                <div class="form-card">
+                    <h3>📅 Dias de Funcionamento</h3>
+                    <div id="scheduleDays"></div>
                 </div>
             </div>
 
-            <!-- Aba 3: Serviços e Médicos -->
+            <!-- Aba 4: Serviços -->
             <div id="servicesTab" class="tab-content">
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>⚕️ Serviços Oferecidos</h3>
-                        <div id="servicesList"></div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <input type="text" id="newService" placeholder="Serviço (ex: Consulta Cardiológica)" style="flex: 2;">
-                            <input type="text" id="servicePrice" placeholder="Preço (R$)" style="flex: 1;">
-                            <input type="text" id="serviceDuration" placeholder="Minutos" style="flex: 1;">
-                            <button class="add-btn" onclick="addService()">+ Adicionar</button>
-                        </div>
-                    </div>
-                    <div class="form-card">
-                        <h3>👨‍⚕️ Médicos/Especialistas</h3>
-                        <div id="doctorsList"></div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <input type="text" id="newDoctor" placeholder="Nome do médico" style="flex: 2;">
-                            <input type="text" id="doctorSpecialty" placeholder="Especialidade" style="flex: 1;">
-                            <button class="add-btn" onclick="addDoctor()">+ Adicionar</button>
-                        </div>
-                    </div>
-                </div>
                 <div class="form-card">
-                    <h3>🏥 Convênios Aceitos</h3>
-                    <div id="insuranceList"></div>
+                    <h3>⚕️ Serviços Oferecidos</h3>
+                    <div id="servicesList"></div>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" id="newInsurance" placeholder="Nome do convênio" style="flex: 1;">
-                        <button class="add-btn" onclick="addInsurance()">+ Adicionar</button>
+                        <input type="text" id="newService" placeholder="Serviço" style="flex: 2;">
+                        <input type="text" id="servicePrice" placeholder="Preço" style="flex: 1;">
+                        <button class="add-btn" onclick="addService()">+</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Aba 4: Regras de Agendamento -->
-            <div id="rulesTab" class="tab-content">
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>📋 Regras de Agendamento</h3>
-                        <div class="form-group">
-                            <label>Antecedência mínima para agendar (horas)</label>
-                            <input type="number" id="minAdvance" value="2" min="1" max="72">
-                        </div>
-                        <div class="form-group">
-                            <label>Horário limite para cancelamento (horas antes)</label>
-                            <input type="number" id="cancelLimit" value="4" min="1" max="48">
-                        </div>
-                        <div class="form-group">
-                            <label>Número máximo de consultas por dia</label>
-                            <input type="number" id="maxDailyAppointments" value="20" min="1" max="100">
-                        </div>
-                    </div>
-                    <div class="form-card">
-                        <h3>📝 Informações a Coletar do Paciente</h3>
-                        <label><input type="checkbox" id="collectName" checked> Nome completo</label><br>
-                        <label><input type="checkbox" id="collectPhone" checked> Telefone</label><br>
-                        <label><input type="checkbox" id="collectCpf"> CPF</label><br>
-                        <label><input type="checkbox" id="collectInsurance"> Convênio</label><br>
-                        <label><input type="checkbox" id="collectSymptoms" checked> Sintomas/Motivo</label><br>
-                        <label><input type="checkbox" id="collectAllergies"> Alergias/Medicamentos</label><br>
-                    </div>
-                </div>
-                <div class="form-card">
-                    <h3>❓ Perguntas Personalizadas</h3>
-                    <div id="customQuestionsList"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="newQuestion" placeholder="Ex: Como ficou sabendo da clínica?" style="flex: 1;">
-                        <button class="add-btn" onclick="addCustomQuestion()">+ Adicionar Pergunta</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aba 5: Mensagens do Agente -->
+            <!-- Aba 5: Mensagens -->
             <div id="messagesTab" class="tab-content">
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>💬 Mensagem de Boas-vindas</h3>
-                        <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. 
-
-🏥 Serviços disponíveis: {services_list}
-📅 Horários: {schedule_text}
-
-Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textarea>
-                    </div>
-                    <div class="form-card">
-                        <h3>✅ Confirmação de Agendamento</h3>
-                        <textarea id="confirmationMessage" rows="4">✅ Agendamento confirmado! 📅
-
-📌 Paciente: {patient_name}
-📅 Data: {date} às {time}
-⚕️ Serviço: {service}
-👨‍⚕️ Médico: {doctor}
-📍 Endereço: {address}
-
-Confirme respondendo "CONFIRMO" 😊</textarea>
-                    </div>
+                <div class="form-card">
+                    <h3>💬 Mensagem de Boas-vindas</h3>
+                    <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. Como posso ajudar você hoje?</textarea>
                 </div>
-                <div class="form-row">
-                    <div class="form-card">
-                        <h3>⏰ Lembrete de Consulta</h3>
-                        <div class="form-group">
-                            <label>Enviar lembrete com (horas de antecedência)</label>
-                            <input type="number" id="reminderHours" value="24" min="1" max="72">
-                        </div>
-                        <textarea id="reminderMessage" rows="3">🔔 Lembrete de consulta amanhã!
-
-📅 {date} às {time}
-📍 {address}
-
-Confirme respondendo "CONFIRMO"</textarea>
-                    </div>
-                    <div class="form-card">
-                        <h3>❌ Cancelamento</h3>
-                        <textarea id="cancelMessage" rows="4">✅ Cancelamento realizado com sucesso.
-
-Se precisar remarcar, é só me chamar! 💙</textarea>
-                    </div>
+                <div class="form-card">
+                    <h3>✅ Confirmação de Agendamento</h3>
+                    <textarea id="confirmationMessage" rows="4">✅ Agendamento confirmado! 📅 {date} às {time}</textarea>
                 </div>
-            </div>
-
-            <div class="payment-box">
-                <p><strong>💰 Pagamento: $50 USDT</strong></p>
-                <p id="paymentText">O valor vai diretamente para a carteira do provedor</p>
-                <div class="owner-wallet">0x9E74B0a29d0Ec2e73E7A9c984d6a0447e72df76c</div>
-                <p id="ownerInfo" style="font-size: 12px; margin-top: 10px;"></p>
             </div>
 
             <button id="activateBtn" onclick="activateClinic()" style="width: 100%;">🚀 Ativar Agente IA</button>
@@ -428,19 +332,14 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
                 <div class="qr-container">
                     <h3>📱 Conecte o WhatsApp da Clínica</h3>
                     <div id="qrcode"></div>
-                    <p><strong>Instruções:</strong></p>
-                    <ol style="text-align: left; display: inline-block;">
-                        <li>Pegue o CELULAR DA CLÍNICA</li>
-                        <li>Abra o WhatsApp → WhatsApp Web</li>
-                        <li>Escaneie este QR code</li>
-                    </ol>
-                    <button onclick="generateQRCode()" style="margin-top: 15px;">🔄 Gerar Novo QR Code</button>
+                    <div id="connectionStatus" class="connection-status disconnected">⏳ Clique em "Iniciar Conexão" para gerar o QR code</div>
+                    <button onclick="startWhatsAppSession()" style="margin-top: 15px;">🚀 Iniciar Conexão WhatsApp</button>
                 </div>
                 <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px;">
                     <h4>✅ Agente IA Ativo!</h4>
-                    <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente.</p>
+                    <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente pela IA.</p>
                     <p><strong>⏰ Dias restantes:</strong> <span id="daysLeft">30</span> dias</p>
-                    <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar por mais 30 dias ($50 USDT)</button>
+                    <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar ($50 USDT)</button>
                 </div>
             </div>
         </div>
@@ -448,20 +347,16 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
-        // ATUALIZE COM O ENDEREÇO DO SEU NOVO CONTRATO APÓS DEPLOY
         const CONTRACT_ADDRESS = "0x66d2B6A11A64d14fa4Dc24bc2c8d4300F320D0A8";
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
         const OWNER_WALLET = "0x9E74B0a29d0Ec2e73E7A9c984d6a0447e72df76c";
         
-        // ABI do contrato atualizado
         const CONTRACT_ABI = [
             {"inputs":[{"internalType":"address","name":"_usdt","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
             {"inputs":[{"internalType":"string","name":"_clinicName","type":"string"},{"internalType":"string","name":"_apiKey","type":"string"},{"internalType":"string","name":"_whatsappNumber","type":"string"},{"internalType":"string","name":"_fullConfig","type":"string"}],"name":"activateClinic","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[],"name":"renewClinic","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[{"internalType":"address","name":"_clinic","type":"address"}],"name":"checkSubscription","outputs":[{"internalType":"bool","name":"active","type":"bool"},{"internalType":"uint256","name":"daysLeft","type":"uint256"},{"internalType":"string","name":"clinicName","type":"string"},{"internalType":"string","name":"whatsappNumber","type":"string"},{"internalType":"string","name":"fullConfig","type":"string"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getTotalClients","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"isOwner","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"}
+            {"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}
         ];
         
         const USDT_ABI = [
@@ -471,8 +366,8 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
         
         let web3, contract, userAccount;
         let isOwnerAccount = false;
+        let statusCheckInterval = null;
         
-        // Dias da semana
         const weekDays = [
             { id: 'mon', name: 'Segunda-feira' },
             { id: 'tue', name: 'Terça-feira' },
@@ -483,22 +378,18 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
             { id: 'sun', name: 'Domingo' }
         ];
         
-        // Arrays para dados dinâmicos
-        let services = [];
-        let doctors = [];
-        let insurances = [];
-        let customQuestions = [];
+        let services = [], doctors = [], insurances = [], customQuestions = [];
         
         function initScheduleDays() {
             const container = document.getElementById('scheduleDays');
             container.innerHTML = weekDays.map(day => `
                 <div class="form-group">
                     <label>${day.name}</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; gap: 10px;">
                         <input type="checkbox" id="${day.id}Active" checked> Ativo
-                        <input type="time" id="${day.id}Start" value="08:00" style="width: 100px;">
+                        <input type="time" id="${day.id}Start" value="08:00">
                         <span>até</span>
-                        <input type="time" id="${day.id}End" value="18:00" style="width: 100px;">
+                        <input type="time" id="${day.id}End" value="18:00">
                     </div>
                 </div>
             `).join('');
@@ -507,13 +398,11 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
         function addService() {
             const name = document.getElementById('newService').value;
             const price = document.getElementById('servicePrice').value;
-            const duration = document.getElementById('serviceDuration').value;
             if (name && price) {
-                services.push({ name, price, duration: duration || '30' });
+                services.push({ name, price });
                 updateServicesList();
                 document.getElementById('newService').value = '';
                 document.getElementById('servicePrice').value = '';
-                document.getElementById('serviceDuration').value = '';
             }
         }
         
@@ -521,67 +410,8 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
             const container = document.getElementById('servicesList');
             container.innerHTML = services.map((s, i) => `
                 <div class="service-item">
-                    <div><strong>${s.name}</strong> - R$ ${s.price} (${s.duration} min)</div>
+                    <span>${s.name} - R$ ${s.price}</span>
                     <button class="delete-btn" onclick="services.splice(${i},1); updateServicesList()">✖</button>
-                </div>
-            `).join('');
-        }
-        
-        function addDoctor() {
-            const name = document.getElementById('newDoctor').value;
-            const specialty = document.getElementById('doctorSpecialty').value;
-            if (name) {
-                doctors.push({ name, specialty });
-                updateDoctorsList();
-                document.getElementById('newDoctor').value = '';
-                document.getElementById('doctorSpecialty').value = '';
-            }
-        }
-        
-        function updateDoctorsList() {
-            const container = document.getElementById('doctorsList');
-            container.innerHTML = doctors.map((d, i) => `
-                <div class="service-item">
-                    <div><strong>${d.name}</strong> - ${d.specialty || 'Especialista'}</div>
-                    <button class="delete-btn" onclick="doctors.splice(${i},1); updateDoctorsList()">✖</button>
-                </div>
-            `).join('');
-        }
-        
-        function addInsurance() {
-            const name = document.getElementById('newInsurance').value;
-            if (name) {
-                insurances.push(name);
-                updateInsuranceList();
-                document.getElementById('newInsurance').value = '';
-            }
-        }
-        
-        function updateInsuranceList() {
-            const container = document.getElementById('insuranceList');
-            container.innerHTML = insurances.map((ins, i) => `
-                <div class="service-item">
-                    <span>${ins}</span>
-                    <button class="delete-btn" onclick="insurances.splice(${i},1); updateInsuranceList()">✖</button>
-                </div>
-            `).join('');
-        }
-        
-        function addCustomQuestion() {
-            const question = document.getElementById('newQuestion').value;
-            if (question) {
-                customQuestions.push(question);
-                updateCustomQuestions();
-                document.getElementById('newQuestion').value = '';
-            }
-        }
-        
-        function updateCustomQuestions() {
-            const container = document.getElementById('customQuestionsList');
-            container.innerHTML = customQuestions.map((q, i) => `
-                <div class="service-item">
-                    <span>❓ ${q}</span>
-                    <button class="delete-btn" onclick="customQuestions.splice(${i},1); updateCustomQuestions()">✖</button>
                 </div>
             `).join('');
         }
@@ -595,69 +425,34 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
         
         async function connectWallet() {
             if (!window.ethereum) {
-                Swal.fire('Erro', 'Instale MetaMask: https://metamask.io/download/', 'error');
+                Swal.fire('Erro', 'Instale MetaMask', 'error');
                 return;
             }
             
             try {
-                // Mostrar loading
-                Swal.fire({
-                    title: 'Conectando carteira...',
-                    text: 'Por favor, confirme a conexão no MetaMask',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
+                Swal.fire({ title: 'Conectando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAccount = accounts[0];
                 web3 = new Web3(window.ethereum);
                 
-                // Verificar rede
                 const chainId = await web3.eth.getChainId();
-                const networkError = document.getElementById('networkError');
-                
                 if (chainId !== 56) {
-                    networkError.style.display = 'block';
-                    networkError.innerHTML = '⚠️ Rede incorreta! Por favor, mude para BSC Mainnet no MetaMask.';
-                    Swal.fire({
-                        title: 'Rede Incorreta',
-                        text: 'Você precisa estar na BSC Mainnet (Chain ID: 56) para usar este serviço.',
-                        icon: 'warning',
-                        confirmButtonText: 'OK'
-                    });
+                    Swal.fire('Aviso', 'Mude para BSC Mainnet', 'warning');
                     Swal.close();
                     return;
-                } else {
-                    networkError.style.display = 'none';
                 }
                 
-                // Inicializar contrato
                 contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                const contractOwner = await contract.methods.getOwner().call();
+                isOwnerAccount = userAccount.toLowerCase() === contractOwner.toLowerCase();
                 
-                // Verificar se é o Owner
-                try {
-                    const contractOwner = await contract.methods.getOwner().call();
-                    isOwnerAccount = userAccount.toLowerCase() === contractOwner.toLowerCase();
-                    
-                    if (isOwnerAccount) {
-                        document.getElementById('ownerBadge').style.display = 'inline-block';
-                        document.getElementById('paymentText').innerHTML = '✅ <strong>Você é o Owner!</strong> Ativação gratuita';
-                        document.getElementById('ownerInfo').innerHTML = '⭐ Como Owner, você pode ativar o serviço sem pagamento para testes.';
-                        document.getElementById('activateBtn').innerHTML = '🚀 Ativar Agente IA (Gratuito - Owner)';
-                    } else {
-                        document.getElementById('ownerBadge').style.display = 'none';
-                        document.getElementById('paymentText').innerHTML = 'O valor vai diretamente para a carteira do provedor';
-                        document.getElementById('activateBtn').innerHTML = '🚀 Ativar Agente IA - Pagar $50 USDT';
-                    }
-                } catch (e) {
-                    console.log('Erro ao verificar owner:', e);
+                if (isOwnerAccount) {
+                    document.getElementById('ownerBadge').style.display = 'inline-block';
+                    document.getElementById('activateBtn').innerHTML = '🚀 Ativar Agente IA (Gratuito - Owner)';
                 }
                 
-                document.getElementById('walletStatus').innerHTML = `
-                    ✅ Conectado: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>
-                    🔗 BSC Mainnet
-                    ${isOwnerAccount ? '<br><span style="color: #ff9800;">⭐ Modo Owner - Ativação Gratuita</span>' : ''}
-                `;
+                document.getElementById('walletStatus').innerHTML = `✅ Conectado: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>🔗 BSC Mainnet`;
                 document.getElementById('connectBtn').style.display = 'none';
                 document.getElementById('appContent').style.display = 'block';
                 
@@ -666,21 +461,18 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
                 
             } catch (error) {
                 Swal.close();
-                console.error('Erro detalhado:', error);
-                Swal.fire('Erro', error.message || 'Falha ao conectar carteira', 'error');
+                Swal.fire('Erro', error.message, 'error');
             }
         }
         
         async function checkSubscription() {
-            if (!contract || !userAccount) return;
-            
             try {
                 const result = await contract.methods.checkSubscription(userAccount).call();
                 const statusBox = document.getElementById('statusBox');
                 statusBox.style.display = 'block';
                 
                 if (result.active) {
-                    statusBox.innerHTML = `<div class="status-card active-status">✅ <strong>Assinatura Ativa</strong><br>Clínica: ${result.clinicName}<br>Dias restantes: ${result.daysLeft} dias<br>WhatsApp: ${result.whatsappNumber}</div>`;
+                    statusBox.innerHTML = `<div class="status-card active-status">✅ Assinatura Ativa - ${result.daysLeft} dias restantes</div>`;
                     document.getElementById('activateBtn').style.display = 'none';
                     document.getElementById('whatsappBox').style.display = 'block';
                     document.getElementById('daysLeft').innerText = result.daysLeft;
@@ -692,73 +484,17 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
                         document.getElementById('clinicName').value = data.clinicName || '';
                         document.getElementById('attendantName').value = data.attendantName || '';
                         document.getElementById('whatsappNumber').value = data.whatsappNumber || '';
-                        if (data.services) { services = data.services; updateServicesList(); }
-                        if (data.doctors) { doctors = data.doctors; updateDoctorsList(); }
-                        if (data.insurances) { insurances = data.insurances; updateInsuranceList(); }
-                        if (data.customQuestions) { customQuestions = data.customQuestions; updateCustomQuestions(); }
+                        if (data.apiKey) document.getElementById('apiKey').value = data.apiKey;
+                        if (data.aiProvider) document.getElementById('aiProvider').value = data.aiProvider;
+                        if (data.aiModel) document.getElementById('aiModel').value = data.aiModel;
+                        if (data.systemPrompt) document.getElementById('systemPrompt').value = data.systemPrompt;
                     }
-                    generateQRCode();
                 } else {
-                    statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa<br>Preencha os dados e ative seu agente IA</div>`;
-                    document.getElementById('activateBtn').style.display = 'block';
+                    statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa</div>`;
                 }
             } catch (error) {
-                console.error('Erro ao verificar assinatura:', error);
+                console.error(error);
             }
-        }
-        
-        function getFullConfig() {
-            // Gerar texto dos horários
-            const scheduleText = weekDays.filter(day => document.getElementById(`${day.id}Active`).checked)
-                .map(day => `${day.name}: ${document.getElementById(`${day.id}Start`).value} - ${document.getElementById(`${day.id}End`).value}`)
-                .join(', ');
-            
-            // Gerar lista de serviços
-            const servicesText = services.map(s => `${s.name} (R$ ${s.price} - ${s.duration}min)`).join(', ');
-            
-            const config = {
-                clinicName: document.getElementById('clinicName').value,
-                attendantName: document.getElementById('attendantName').value,
-                whatsappNumber: document.getElementById('whatsappNumber').value,
-                address: document.getElementById('address').value,
-                mapsLink: document.getElementById('mapsLink').value,
-                schedule: weekDays.map(day => ({
-                    day: day.id,
-                    active: document.getElementById(`${day.id}Active`).checked,
-                    start: document.getElementById(`${day.id}Start`).value,
-                    end: document.getElementById(`${day.id}End`).value
-                })),
-                scheduleText: scheduleText,
-                lunchStart: document.getElementById('lunchStart').value,
-                lunchEnd: document.getElementById('lunchEnd').value,
-                breakTime: document.getElementById('breakTime').value,
-                consultDuration: document.getElementById('consultDuration').value,
-                minAdvance: document.getElementById('minAdvance').value,
-                cancelLimit: document.getElementById('cancelLimit').value,
-                maxDailyAppointments: document.getElementById('maxDailyAppointments').value,
-                services: services,
-                servicesText: servicesText,
-                doctors: doctors,
-                insurances: insurances,
-                customQuestions: customQuestions,
-                collectFields: {
-                    name: document.getElementById('collectName').checked,
-                    phone: document.getElementById('collectPhone').checked,
-                    cpf: document.getElementById('collectCpf').checked,
-                    insurance: document.getElementById('collectInsurance').checked,
-                    symptoms: document.getElementById('collectSymptoms').checked,
-                    allergies: document.getElementById('collectAllergies').checked
-                },
-                messages: {
-                    welcome: document.getElementById('welcomeMessage').value,
-                    confirmation: document.getElementById('confirmationMessage').value,
-                    reminderHours: document.getElementById('reminderHours').value,
-                    reminder: document.getElementById('reminderMessage').value,
-                    cancel: document.getElementById('cancelMessage').value
-                }
-            };
-            
-            return JSON.stringify(config);
         }
         
         async function activateClinic() {
@@ -766,88 +502,43 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
             const attendantName = document.getElementById('attendantName').value;
             const apiKey = document.getElementById('apiKey').value;
             const whatsappNumber = document.getElementById('whatsappNumber').value;
+            const aiProvider = document.getElementById('aiProvider').value;
+            const aiModel = document.getElementById('aiModel').value;
+            const systemPrompt = document.getElementById('systemPrompt').value;
             
             if (!clinicName || !attendantName || !apiKey || !whatsappNumber) {
                 Swal.fire('Erro', 'Preencha todos os campos obrigatórios', 'error');
                 return;
             }
             
-            if (!whatsappNumber.match(/^55\d{10,11}$/)) {
-                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número (ex: 5511999999999)', 'error');
-                return;
-            }
+            const fullConfig = JSON.stringify({
+                clinicName, attendantName, whatsappNumber,
+                address: document.getElementById('address').value,
+                services: services
+            });
             
-            const fullConfig = getFullConfig();
             const encryptedApiKey = btoa(apiKey);
             
             try {
-                Swal.fire({
-                    title: isOwnerAccount ? 'Ativando Agente IA...' : 'Processando pagamento...',
-                    text: isOwnerAccount ? 'Confirmando ativação gratuita' : 'Confirme a transação de $50 USDT na sua carteira',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
+                Swal.fire({ title: 'Processando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
-                // Se não for owner, precisa aprovar USDT
                 if (!isOwnerAccount) {
                     const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
                     const amount = web3.utils.toWei('50', 'ether');
-                    
                     const allowance = await usdtContract.methods.allowance(userAccount, CONTRACT_ADDRESS).call();
                     if (BigInt(allowance) < BigInt(amount)) {
                         await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
                     }
                 }
                 
-                // Ativar clínica
-                await contract.methods.activateClinic(
-                    clinicName,
-                    encryptedApiKey,
-                    whatsappNumber,
-                    fullConfig
-                ).send({ from: userAccount });
+                await contract.methods.activateClinic(clinicName, encryptedApiKey, whatsappNumber, fullConfig).send({ from: userAccount });
                 
-                // Salvar configuração
-                const configToSave = JSON.parse(fullConfig);
-                localStorage.setItem(`clinic_${userAccount}`, JSON.stringify(configToSave));
+                // Salvar configuração da IA
+                localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({
+                    clinicName, attendantName, whatsappNumber, apiKey, aiProvider, aiModel, systemPrompt
+                }));
                 
-                Swal.fire({
-                    icon: 'success',
-                    title: isOwnerAccount ? 'Agente IA Ativado!' : 'Pagamento Confirmado!',
-                    text: isOwnerAccount ? 'Seu agente IA está ativo por 30 dias (modo Owner)' : 'Seu agente IA está ativo por 30 dias!',
-                    confirmButtonText: 'OK'
-                });
-                
-                await checkSubscription();
-                
-            } catch (error) {
-                console.error('Erro detalhado:', error);
-                Swal.fire('Erro', error.message || 'Falha na ativação', 'error');
-            }
-        }
-        
-        async function renewSubscription() {
-            try {
-                Swal.fire({
-                    title: 'Renovando assinatura...',
-                    text: 'Confirme a transação',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
-                
-                if (!isOwnerAccount) {
-                    const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
-                    const amount = web3.utils.toWei('50', 'ether');
-                    
-                    const allowance = await usdtContract.methods.allowance(userAccount, CONTRACT_ADDRESS).call();
-                    if (BigInt(allowance) < BigInt(amount)) {
-                        await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
-                    }
-                }
-                
-                await contract.methods.renewClinic().send({ from: userAccount });
-                
-                Swal.fire('Sucesso!', 'Assinatura renovada por mais 30 dias!', 'success');
+                Swal.fire('Sucesso!', 'Agente IA ativado!', 'success');
                 await checkSubscription();
                 
             } catch (error) {
@@ -855,31 +546,122 @@ Se precisar remarcar, é só me chamar! 💙</textarea>
             }
         }
         
-        function generateQRCode() {
-            const whatsappNumber = document.getElementById('whatsappNumber').value;
-            if (!whatsappNumber) return;
-            
-            const qrDiv = document.getElementById('qrcode');
-            qrDiv.innerHTML = '';
-            
-            new QRCode(qrDiv, {
-                text: `https://wa.me/${whatsappNumber}`,
-                width: 250,
-                height: 250,
-                colorDark: "#075E54",
-                colorLight: "#ffffff"
-            });
+        async function renewSubscription() {
+            try {
+                Swal.fire({ title: 'Renovando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                
+                if (!isOwnerAccount) {
+                    const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
+                    const amount = web3.utils.toWei('50', 'ether');
+                    const allowance = await usdtContract.methods.allowance(userAccount, CONTRACT_ADDRESS).call();
+                    if (BigInt(allowance) < BigInt(amount)) {
+                        await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
+                    }
+                }
+                
+                await contract.methods.renewClinic().send({ from: userAccount });
+                Swal.fire('Sucesso!', 'Renovado por mais 30 dias!', 'success');
+                await checkSubscription();
+                
+            } catch (error) {
+                Swal.fire('Erro', error.message, 'error');
+            }
         }
         
-        // Inicializar
+        async function startWhatsAppSession() {
+            const sessionId = userAccount;
+            const saved = JSON.parse(localStorage.getItem(`clinic_${userAccount}`) || '{}');
+            const apiKey = saved.apiKey;
+            const aiProvider = saved.aiProvider || 'groq';
+            const aiModel = saved.aiModel || 'mixtral-8x7b-32768';
+            const systemPrompt = saved.systemPrompt || document.getElementById('systemPrompt').value;
+            const clinicName = saved.clinicName || document.getElementById('clinicName').value;
+            const attendantName = saved.attendantName || document.getElementById('attendantName').value;
+            const backendUrl = document.getElementById('backendUrl').value;
+            
+            if (!apiKey) {
+                Swal.fire('Erro', 'Configure a API Key na aba "Configuração da IA" primeiro', 'error');
+                return;
+            }
+            
+            Swal.fire({ title: 'Iniciando WhatsApp...', text: 'Aguardando QR code', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                const response = await fetch(`${backendUrl}/api/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sessionId,
+                        apiKey,
+                        provider: aiProvider,
+                        model: aiModel,
+                        systemPrompt,
+                        clinicName,
+                        attendantName
+                    })
+                });
+                
+                const data = await response.json();
+                Swal.close();
+                
+                if (data.qrCode) {
+                    const qrDiv = document.getElementById('qrcode');
+                    qrDiv.innerHTML = '';
+                    new QRCode(qrDiv, {
+                        text: data.qrCode,
+                        width: 250,
+                        height: 250,
+                        colorDark: "#075E54",
+                        colorLight: "#ffffff"
+                    });
+                    
+                    document.getElementById('connectionStatus').className = 'connection-status connecting';
+                    document.getElementById('connectionStatus').innerHTML = '📱 Escaneie o QR code com o WhatsApp da clínica';
+                    
+                    // Monitorar status
+                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                    statusCheckInterval = setInterval(async () => {
+                        try {
+                            const statusRes = await fetch(`${backendUrl}/api/status/${sessionId}`);
+                            const statusData = await statusRes.json();
+                            if (statusData.status === 'connected') {
+                                document.getElementById('connectionStatus').className = 'connection-status connected';
+                                document.getElementById('connectionStatus').innerHTML = '✅ WhatsApp CONECTADO! Agente IA ativo!';
+                                clearInterval(statusCheckInterval);
+                            }
+                        } catch (e) { console.error(e); }
+                    }, 3000);
+                } else {
+                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code... Recarregue a página se não aparecer';
+                }
+                
+            } catch (error) {
+                Swal.close();
+                Swal.fire('Erro', `Erro ao conectar: ${error.message}`, 'error');
+            }
+        }
+        
+        function generateQRCode() {
+            const whatsappNumber = document.getElementById('whatsappNumber').value;
+            if (whatsappNumber) {
+                const qrDiv = document.getElementById('qrcode');
+                qrDiv.innerHTML = '';
+                new QRCode(qrDiv, {
+                    text: `https://wa.me/${whatsappNumber}`,
+                    width: 250,
+                    height: 250,
+                    colorDark: "#075E54",
+                    colorLight: "#ffffff"
+                });
+            }
+        }
+        
         initScheduleDays();
         
         window.addEventListener('load', async () => {
             if (window.ethereum) {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    connectWallet();
-                }
+                if (accounts.length > 0) connectWallet();
             }
         });
     </script>
