@@ -16,7 +16,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -62,7 +62,6 @@
             transition: transform 0.2s;
         }
         button:hover { transform: translateY(-2px); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
         input, textarea, select {
             width: 100%;
             padding: 12px;
@@ -132,26 +131,6 @@
             margin-bottom: 20px;
             font-size: 14px;
         }
-        .add-btn {
-            background: #128C7E;
-            padding: 8px 16px;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .service-item, .doctor-item {
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .delete-btn {
-            background: #f44336;
-            padding: 4px 10px;
-            font-size: 12px;
-        }
         .tabs {
             display: flex;
             gap: 10px;
@@ -210,9 +189,7 @@
             <!-- Abas -->
             <div class="tabs">
                 <div class="tab active" onclick="showTab('basic')">📋 Dados da Clínica</div>
-                <div class="tab" onclick="showTab('ai')">🤖 Configuração da IA</div>
                 <div class="tab" onclick="showTab('schedule')">📅 Horários</div>
-                <div class="tab" onclick="showTab('services')">⚕️ Serviços</div>
                 <div class="tab" onclick="showTab('messages')">💬 Mensagens</div>
             </div>
 
@@ -237,10 +214,10 @@
                         </div>
                     </div>
                     <div class="form-card">
-                        <h3>📍 Endereço</h3>
+                        <h3>📍 Endereço da Clínica</h3>
                         <div class="form-group">
                             <label>Endereço Completo</label>
-                            <input type="text" id="address" placeholder="Rua, número, bairro, cidade">
+                            <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
                         </div>
                         <div class="form-group">
                             <label>Google Maps Link</label>
@@ -250,77 +227,59 @@
                 </div>
             </div>
 
-            <!-- Aba 2: Configuração da IA -->
-            <div id="aiTab" class="tab-content">
-                <div class="form-card">
-                    <h3>🤖 Configuração da Inteligência Artificial</h3>
-                    <div class="form-group">
-                        <label>Provedor de IA *</label>
-                        <select id="aiProvider">
-                            <option value="groq">Groq AI (Mixtral/Llama - Rápido e Gratuito)</option>
-                            <option value="google">Google Gemini (Gratuito)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Modelo</label>
-                        <select id="aiModel">
-                            <option value="mixtral-8x7b-32768">Mixtral 8x7B (Groq - Recomendado)</option>
-                            <option value="llama2-70b-4096">Llama 2 70B (Groq)</option>
-                            <option value="gemini-pro">Gemini Pro (Google)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>🔑 API Key *</label>
-                        <input type="password" id="apiKey" placeholder="Cole sua API Key">
-                        <div class="info-text">
-                            📌 Groq: https://console.groq.com/keys (gratuito)<br>
-                            📌 Google: https://makersuite.google.com/app/apikey (gratuito)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Instruções do Sistema</label>
-                        <textarea id="systemPrompt" rows="5">Você é {attendant_name}, atendente da {clinic_name}. Seu trabalho é:
-- Atender pacientes com educação e simpatia
-- Agendar consultas nos horários disponíveis
-- Coletar nome, telefone e motivo da consulta
-- Informar horários de funcionamento
-- Responder dúvidas sobre serviços
-
-Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Aba 3: Horários -->
+            <!-- Aba 2: Horários -->
             <div id="scheduleTab" class="tab-content">
                 <div class="form-card">
                     <h3>📅 Dias de Funcionamento</h3>
                     <div id="scheduleDays"></div>
                 </div>
-            </div>
-
-            <!-- Aba 4: Serviços -->
-            <div id="servicesTab" class="tab-content">
                 <div class="form-card">
-                    <h3>⚕️ Serviços Oferecidos</h3>
-                    <div id="servicesList"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="newService" placeholder="Serviço" style="flex: 2;">
-                        <input type="text" id="servicePrice" placeholder="Preço" style="flex: 1;">
-                        <button class="add-btn" onclick="addService()">+</button>
+                    <h3>⏰ Configurações</h3>
+                    <div class="form-group">
+                        <label>Horário de Almoço</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="time" id="lunchStart" value="12:00">
+                            <span>até</span>
+                            <input type="time" id="lunchEnd" value="13:00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Intervalo entre consultas (minutos)</label>
+                        <input type="number" id="breakTime" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label>Duração padrão da consulta (minutos)</label>
+                        <input type="number" id="consultDuration" value="30">
                     </div>
                 </div>
             </div>
 
-            <!-- Aba 5: Mensagens -->
+            <!-- Aba 3: Mensagens -->
             <div id="messagesTab" class="tab-content">
                 <div class="form-card">
                     <h3>💬 Mensagem de Boas-vindas</h3>
-                    <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. Como posso ajudar você hoje?</textarea>
+                    <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. 
+
+Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textarea>
                 </div>
                 <div class="form-card">
                     <h3>✅ Confirmação de Agendamento</h3>
-                    <textarea id="confirmationMessage" rows="4">✅ Agendamento confirmado! 📅 {date} às {time}</textarea>
+                    <textarea id="confirmationMessage" rows="4">✅ Agendamento confirmado! 📅
+
+📌 Paciente: {patient_name}
+📅 Data: {date} às {time}
+📍 Endereço: {address}
+
+Confirme respondendo "CONFIRMO" 😊</textarea>
+                </div>
+                <div class="form-card">
+                    <h3>⏰ Lembrete de Consulta</h3>
+                    <textarea id="reminderMessage" rows="3">🔔 Lembrete de consulta amanhã!
+
+📅 {date} às {time}
+📍 {address}
+
+Confirme respondendo "CONFIRMO"</textarea>
                 </div>
             </div>
 
@@ -339,7 +298,7 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
                     <h4>✅ Agente IA Ativo!</h4>
                     <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente pela IA.</p>
                     <p><strong>⏰ Dias restantes:</strong> <span id="daysLeft">30</span> dias</p>
-                    <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar ($50 USDT)</button>
+                    <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar por mais 30 dias ($50 USDT)</button>
                 </div>
             </div>
         </div>
@@ -378,8 +337,6 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
             { id: 'sun', name: 'Domingo' }
         ];
         
-        let services = [], doctors = [], insurances = [], customQuestions = [];
-        
         function initScheduleDays() {
             const container = document.getElementById('scheduleDays');
             container.innerHTML = weekDays.map(day => `
@@ -391,27 +348,6 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
                         <span>até</span>
                         <input type="time" id="${day.id}End" value="18:00">
                     </div>
-                </div>
-            `).join('');
-        }
-        
-        function addService() {
-            const name = document.getElementById('newService').value;
-            const price = document.getElementById('servicePrice').value;
-            if (name && price) {
-                services.push({ name, price });
-                updateServicesList();
-                document.getElementById('newService').value = '';
-                document.getElementById('servicePrice').value = '';
-            }
-        }
-        
-        function updateServicesList() {
-            const container = document.getElementById('servicesList');
-            container.innerHTML = services.map((s, i) => `
-                <div class="service-item">
-                    <span>${s.name} - R$ ${s.price}</span>
-                    <button class="delete-btn" onclick="services.splice(${i},1); updateServicesList()">✖</button>
                 </div>
             `).join('');
         }
@@ -484,10 +420,7 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
                         document.getElementById('clinicName').value = data.clinicName || '';
                         document.getElementById('attendantName').value = data.attendantName || '';
                         document.getElementById('whatsappNumber').value = data.whatsappNumber || '';
-                        if (data.apiKey) document.getElementById('apiKey').value = data.apiKey;
-                        if (data.aiProvider) document.getElementById('aiProvider').value = data.aiProvider;
-                        if (data.aiModel) document.getElementById('aiModel').value = data.aiModel;
-                        if (data.systemPrompt) document.getElementById('systemPrompt').value = data.systemPrompt;
+                        document.getElementById('address').value = data.address || '';
                     }
                 } else {
                     statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa</div>`;
@@ -500,24 +433,40 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
         async function activateClinic() {
             const clinicName = document.getElementById('clinicName').value;
             const attendantName = document.getElementById('attendantName').value;
-            const apiKey = document.getElementById('apiKey').value;
             const whatsappNumber = document.getElementById('whatsappNumber').value;
-            const aiProvider = document.getElementById('aiProvider').value;
-            const aiModel = document.getElementById('aiModel').value;
-            const systemPrompt = document.getElementById('systemPrompt').value;
+            const address = document.getElementById('address').value;
             
-            if (!clinicName || !attendantName || !apiKey || !whatsappNumber) {
+            if (!clinicName || !attendantName || !whatsappNumber) {
                 Swal.fire('Erro', 'Preencha todos os campos obrigatórios', 'error');
                 return;
             }
             
+            if (!whatsappNumber.match(/^55\d{10,11}$/)) {
+                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número', 'error');
+                return;
+            }
+            
+            // Criar configuração completa
+            const scheduleText = weekDays.filter(day => document.getElementById(`${day.id}Active`).checked)
+                .map(day => `${day.name}: ${document.getElementById(`${day.id}Start`).value} - ${document.getElementById(`${day.id}End`).value}`)
+                .join(', ');
+            
             const fullConfig = JSON.stringify({
-                clinicName, attendantName, whatsappNumber,
-                address: document.getElementById('address').value,
-                services: services
+                clinicName,
+                attendantName,
+                whatsappNumber,
+                address,
+                scheduleText,
+                welcomeMessage: document.getElementById('welcomeMessage').value,
+                confirmationMessage: document.getElementById('confirmationMessage').value,
+                reminderMessage: document.getElementById('reminderMessage').value,
+                lunchStart: document.getElementById('lunchStart').value,
+                lunchEnd: document.getElementById('lunchEnd').value,
+                breakTime: document.getElementById('breakTime').value,
+                consultDuration: document.getElementById('consultDuration').value
             });
             
-            const encryptedApiKey = btoa(apiKey);
+            const encryptedApiKey = btoa("api_key_stored_in_backend");
             
             try {
                 Swal.fire({ title: 'Processando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -533,9 +482,9 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
                 
                 await contract.methods.activateClinic(clinicName, encryptedApiKey, whatsappNumber, fullConfig).send({ from: userAccount });
                 
-                // Salvar configuração da IA
+                // Salvar dados
                 localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({
-                    clinicName, attendantName, whatsappNumber, apiKey, aiProvider, aiModel, systemPrompt
+                    clinicName, attendantName, whatsappNumber, address
                 }));
                 
                 Swal.fire('Sucesso!', 'Agente IA ativado!', 'success');
@@ -570,19 +519,31 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
         
         async function startWhatsAppSession() {
             const sessionId = userAccount;
-            const saved = JSON.parse(localStorage.getItem(`clinic_${userAccount}`) || '{}');
-            const apiKey = saved.apiKey;
-            const aiProvider = saved.aiProvider || 'groq';
-            const aiModel = saved.aiModel || 'mixtral-8x7b-32768';
-            const systemPrompt = saved.systemPrompt || document.getElementById('systemPrompt').value;
-            const clinicName = saved.clinicName || document.getElementById('clinicName').value;
-            const attendantName = saved.attendantName || document.getElementById('attendantName').value;
+            const clinicName = document.getElementById('clinicName').value;
+            const attendantName = document.getElementById('attendantName').value;
             const backendUrl = document.getElementById('backendUrl').value;
             
-            if (!apiKey) {
-                Swal.fire('Erro', 'Configure a API Key na aba "Configuração da IA" primeiro', 'error');
-                return;
-            }
+            // Construir o prompt do sistema com as configurações
+            const scheduleText = weekDays.filter(day => document.getElementById(`${day.id}Active`).checked)
+                .map(day => `${day.name}: ${document.getElementById(`${day.id}Start`).value} - ${document.getElementById(`${day.id}End`).value}`)
+                .join(', ');
+            
+            const systemPrompt = `Você é ${attendantName}, atendente da ${clinicName}. 
+            
+Horários de funcionamento: ${scheduleText}
+Almoço: ${document.getElementById('lunchStart').value} - ${document.getElementById('lunchEnd').value}
+Duração da consulta: ${document.getElementById('consultDuration').value} minutos
+
+Mensagem de boas-vindas: ${document.getElementById('welcomeMessage').value}
+
+Seu trabalho é:
+- Atender pacientes com educação e simpatia
+- Agendar consultas nos horários disponíveis
+- Coletar nome, telefone e motivo da consulta
+- Informar horários de funcionamento
+- Responder dúvidas sobre serviços
+
+Seja sempre prestativa e mantenha um tom acolhedor.`;
             
             Swal.fire({ title: 'Iniciando WhatsApp...', text: 'Aguardando QR code', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
@@ -592,9 +553,6 @@ Seja sempre prestativa e mantenha um tom acolhedor.</textarea>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         sessionId,
-                        apiKey,
-                        provider: aiProvider,
-                        model: aiModel,
                         systemPrompt,
                         clinicName,
                         attendantName
