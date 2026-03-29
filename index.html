@@ -60,7 +60,7 @@
             transition: transform 0.2s;
         }
         button:hover { transform: translateY(-2px); }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
@@ -145,8 +145,19 @@
                     <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
                 </div>
                 <div class="form-group">
+                    <label>⏰ Horário de Funcionamento</label>
+                    <input type="text" id="schedule" placeholder="Ex: Seg-Sex 8h-18h, Sáb 8h-12h">
+                </div>
+                <div class="form-group">
+                    <label>⚕️ Especialidades</label>
+                    <input type="text" id="specialties" placeholder="Ex: Clínica Geral, Cardiologia, Pediatria">
+                </div>
+                <div class="form-group">
                     <label>💬 Mensagem de Boas-vindas</label>
                     <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. 
+
+🏥 Atendemos: {specialties}
+⏰ Horários: {schedule}
 
 Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textarea>
                 </div>
@@ -176,9 +187,7 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
 
     <script>
         // ==================== CONFIGURAÇÕES ====================
-        // URL CORRETA DO BACKEND - VERIFIQUE SE ESTÁ EXATAMENTE ASSIM!
         const BACKEND_URL = "https://clinicai-backend-6zfr.onrender.com";
-        
         const CONTRACT_ADDRESS = "0x66d2B6A11A64d14fa4Dc24bc2c8d4300F320D0A8";
         const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
         
@@ -199,75 +208,52 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
         let isOwnerAccount = false;
         let statusInterval = null;
         
-        // Função para testar conexão com backend
         window.testBackendConnection = async function() {
-            console.log("🔧 Testando conexão com backend:", BACKEND_URL);
-            Swal.fire({ title: 'Testando...', text: 'Verificando conexão com o servidor', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
+            Swal.fire({ title: 'Testando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
                 const response = await fetch(`${BACKEND_URL}/`);
                 const data = await response.json();
-                console.log("✅ Backend respondeu:", data);
                 document.getElementById('backendStatus').style.display = 'block';
                 document.getElementById('backendStatusText').innerHTML = '✅ Online';
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'Backend OK!', 
-                    text: `Status: ${data.status}\nMensagem: ${data.message}` 
-                });
+                Swal.fire({ icon: 'success', title: 'Backend OK!', text: data.message });
                 return true;
             } catch (error) {
-                console.error("❌ Erro no teste:", error);
                 document.getElementById('backendStatus').style.display = 'block';
-                document.getElementById('backendStatusText').innerHTML = '❌ Offline - ' + error.message;
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'Erro de conexão', 
-                    text: `Não foi possível conectar ao backend: ${error.message}\n\nURL: ${BACKEND_URL}` 
-                });
+                document.getElementById('backendStatusText').innerHTML = '❌ Offline';
+                Swal.fire({ icon: 'error', title: 'Erro', text: error.message });
                 return false;
             }
         };
         
         async function connectWallet() {
             if (!window.ethereum) {
-                Swal.fire('Erro', 'Instale MetaMask: https://metamask.io/download/', 'error');
+                Swal.fire('Erro', 'Instale MetaMask', 'error');
                 return;
             }
-            
             try {
-                Swal.fire({ title: 'Conectando carteira...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                
+                Swal.fire({ title: 'Conectando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAccount = accounts[0];
                 web3 = new Web3(window.ethereum);
-                
                 const chainId = await web3.eth.getChainId();
                 if (chainId !== 56) {
-                    Swal.fire('Aviso', 'Mude para BSC Mainnet no MetaMask', 'warning');
+                    Swal.fire('Aviso', 'Mude para BSC Mainnet', 'warning');
                     Swal.close();
                     return;
                 }
-                
                 contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
                 const contractOwner = await contract.methods.getOwner().call();
                 isOwnerAccount = userAccount.toLowerCase() === contractOwner.toLowerCase();
-                
                 if (isOwnerAccount) {
                     document.getElementById('ownerBadge').style.display = 'inline-block';
                     document.getElementById('activateBtn').innerHTML = '🚀 Ativar Agente IA (Gratuito - Owner)';
                 }
-                
                 document.getElementById('walletStatus').innerHTML = `✅ Conectado: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>🔗 BSC Mainnet`;
                 document.getElementById('connectBtn').style.display = 'none';
                 document.getElementById('appContent').style.display = 'block';
-                
                 Swal.close();
                 await checkSubscription();
-                
-                // Testar backend automaticamente
                 setTimeout(() => testBackendConnection(), 1000);
-                
             } catch (error) {
                 Swal.close();
                 Swal.fire('Erro', error.message, 'error');
@@ -279,13 +265,11 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
                 const result = await contract.methods.checkSubscription(userAccount).call();
                 const statusBox = document.getElementById('statusBox');
                 statusBox.style.display = 'block';
-                
                 if (result.active) {
                     statusBox.innerHTML = `<div class="status-card active-status">✅ Assinatura Ativa - ${result.daysLeft} dias restantes</div>`;
                     document.getElementById('activateBtn').style.display = 'none';
                     document.getElementById('whatsappBox').style.display = 'block';
                     document.getElementById('daysLeft').innerText = result.daysLeft;
-                    
                     const saved = localStorage.getItem(`clinic_${userAccount}`);
                     if (saved) {
                         const data = JSON.parse(saved);
@@ -293,13 +277,13 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
                         document.getElementById('attendantName').value = data.attendantName || '';
                         document.getElementById('whatsappNumber').value = data.whatsappNumber || '';
                         document.getElementById('address').value = data.address || '';
+                        document.getElementById('schedule').value = data.schedule || '';
+                        document.getElementById('specialties').value = data.specialties || '';
                     }
                 } else {
                     statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa</div>`;
                 }
-            } catch (error) {
-                console.error(error);
-            }
+            } catch (error) { console.error(error); }
         }
         
         async function activateClinic() {
@@ -307,23 +291,24 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
             const attendantName = document.getElementById('attendantName').value;
             const whatsappNumber = document.getElementById('whatsappNumber').value;
             const address = document.getElementById('address').value;
+            const schedule = document.getElementById('schedule').value;
+            const specialties = document.getElementById('specialties').value;
             const welcomeMessage = document.getElementById('welcomeMessage').value;
             
             if (!clinicName || !attendantName || !whatsappNumber) {
                 Swal.fire('Erro', 'Preencha todos os campos obrigatórios', 'error');
                 return;
             }
-            
             if (!whatsappNumber.match(/^55\d{10,11}$/)) {
                 Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número', 'error');
                 return;
             }
             
-            const fullConfig = JSON.stringify({ clinicName, attendantName, whatsappNumber, address, welcomeMessage });
+            const fullConfig = JSON.stringify({ clinicName, attendantName, whatsappNumber, address, schedule, specialties, welcomeMessage });
             const encryptedApiKey = btoa("api_key_in_backend");
             
             try {
-                Swal.fire({ title: 'Processando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                Swal.fire({ title: 'Processando...', text: isOwnerAccount ? 'Ativação gratuita' : 'Serão 2 transações: 1° Aprovar USDT, 2° Pagar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 
                 if (!isOwnerAccount) {
                     const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
@@ -335,12 +320,9 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
                 }
                 
                 await contract.methods.activateClinic(clinicName, encryptedApiKey, whatsappNumber, fullConfig).send({ from: userAccount });
-                
-                localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({ clinicName, attendantName, whatsappNumber, address }));
-                
+                localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({ clinicName, attendantName, whatsappNumber, address, schedule, specialties }));
                 Swal.fire('Sucesso!', 'Agente IA ativado!', 'success');
                 await checkSubscription();
-                
             } catch (error) {
                 Swal.fire('Erro', error.message, 'error');
             }
@@ -349,7 +331,6 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
         async function renewSubscription() {
             try {
                 Swal.fire({ title: 'Renovando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                
                 if (!isOwnerAccount) {
                     const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
                     const amount = web3.utils.toWei('50', 'ether');
@@ -358,11 +339,9 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
                         await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
                     }
                 }
-                
                 await contract.methods.renewClinic().send({ from: userAccount });
                 Swal.fire('Sucesso!', 'Renovado por mais 30 dias!', 'success');
                 await checkSubscription();
-                
             } catch (error) {
                 Swal.fire('Erro', error.message, 'error');
             }
@@ -372,6 +351,8 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
             const sessionId = userAccount;
             const clinicName = document.getElementById('clinicName').value;
             const attendantName = document.getElementById('attendantName').value;
+            const schedule = document.getElementById('schedule').value;
+            const specialties = document.getElementById('specialties').value;
             const welcomeMessage = document.getElementById('welcomeMessage').value;
             
             if (!clinicName || !attendantName) {
@@ -380,55 +361,36 @@ Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textar
             }
             
             const systemPrompt = `Você é ${attendantName}, atendente da ${clinicName}. 
-${welcomeMessage}
+${welcomeMessage.replace(/{attendant_name}/g, attendantName).replace(/{clinic_name}/g, clinicName).replace(/{schedule}/g, schedule).replace(/{specialties}/g, specialties)}
 
 Regras:
 - Sempre seja educado, simpático e prestativo
 - Ajude os pacientes a agendar consultas
 - Colete nome, telefone e motivo da consulta
+- Informe os horários: ${schedule}
+- Informe as especialidades: ${specialties}
 - Mantenha um tom acolhedor e profissional`;
             
             Swal.fire({ title: 'Iniciando WhatsApp...', text: 'Aguardando QR code', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             try {
-                console.log("📡 Enviando requisição para:", `${BACKEND_URL}/api/start`);
-                
                 const response = await fetch(`${BACKEND_URL}/api/start`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sessionId,
-                        systemPrompt,
-                        clinicName,
-                        attendantName
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId, systemPrompt, clinicName, attendantName })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-                console.log("✅ Resposta:", data);
                 Swal.close();
                 
                 if (data.qrCode) {
                     const qrDiv = document.getElementById('qrcode');
                     qrDiv.innerHTML = '';
-                    new QRCode(qrDiv, {
-                        text: data.qrCode,
-                        width: 250,
-                        height: 250,
-                        colorDark: "#075E54",
-                        colorLight: "#ffffff"
-                    });
-                    
+                    new QRCode(qrDiv, { text: data.qrCode, width: 250, height: 250, colorDark: "#075E54", colorLight: "#ffffff" });
                     document.getElementById('connectionStatus').className = 'connection-status connecting';
                     document.getElementById('connectionStatus').innerHTML = '📱 QR Code gerado! Escaneie com o WhatsApp da clínica';
                     
-                    // Monitorar status
                     if (statusInterval) clearInterval(statusInterval);
                     statusInterval = setInterval(async () => {
                         try {
@@ -442,18 +404,11 @@ Regras:
                         } catch (e) { console.error(e); }
                     }, 3000);
                 } else {
-                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code... Se não aparecer, recarregue e tente novamente.';
+                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code...';
                 }
-                
             } catch (error) {
                 Swal.close();
-                console.error('❌ Erro:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro ao conectar',
-                    text: `${error.message}\n\nBackend: ${BACKEND_URL}`,
-                    footer: 'Clique em "Testar Conexão" para diagnosticar'
-                });
+                Swal.fire({ icon: 'error', title: 'Erro', text: error.message });
             }
         }
         
