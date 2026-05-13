@@ -1,423 +1,332 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClinicAI - Agente IA para WhatsApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix/qrcode.min.js"></script>
+    <title>PING Token 💎 | Staking Automático Integrado</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💎%3C/text%3E%3C/svg%3E">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #075E54, #128C7E);
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        h1 { color: #075E54; margin-bottom: 5px; }
-        .price-badge {
-            background: linear-gradient(135deg, #075E54, #128C7E);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        .owner-badge {
-            background: #ff9800;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-        .wallet-box {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        button {
-            background: #075E54;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-            transition: transform 0.2s;
-        }
-        button:hover { transform: translateY(-2px); }
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-card {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .form-card h3 { color: #075E54; margin-bottom: 15px; border-left: 4px solid #128C7E; padding-left: 12px; }
-        .qr-container {
-            text-align: center;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        #qrcode { display: inline-block; padding: 10px; background: white; border-radius: 10px; margin: 10px 0; }
-        .connection-status { padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
-        .connected { background: #e8f5e9; color: #2e7d32; }
-        .connecting { background: #fff3e0; color: #ff9800; }
-        .disconnected { background: #ffebee; color: #c62828; }
-        .status-card { padding: 15px; border-radius: 10px; margin-top: 20px; }
-        .active-status { background: #e8f5e9; border-left: 4px solid #4caf50; }
-        .inactive-status { background: #ffebee; border-left: 4px solid #f44336; }
-        .test-btn { background: #2196f3; margin-top: 10px; }
-        .info-text { font-size: 12px; color: #666; margin-top: 5px; }
-        .backend-status {
-            background: #e8f5e9;
-            padding: 8px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 14px;
-        }
-        @media (max-width: 768px) { .container { padding: 20px; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1429 100%); min-height: 100vh; padding: 1rem; color: #e0e4ff; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; padding: 1rem 1.5rem; background: rgba(10, 14, 39, 0.8); backdrop-filter: blur(10px); border-radius: 28px; border: 1px solid rgba(79, 172, 254, 0.3); }
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 1.8rem; font-weight: bold; }
+        .logo span:first-child { font-size: 2.5rem; }
+        .logo span:last-child { background: linear-gradient(135deg, #4facfe, #00f2fe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .wallet-section { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .wallet-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; padding: 0.8rem 1.8rem; border-radius: 40px; color: #0a0e27; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .wallet-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6); }
+        .wallet-address { background: rgba(0,0,0,0.4); padding: 0.5rem 1.2rem; border-radius: 40px; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(79, 172, 254, 0.5); }
+        .card { background: rgba(15, 20, 45, 0.8); backdrop-filter: blur(10px); border-radius: 32px; padding: 1.5rem; border: 1px solid rgba(79, 172, 254, 0.25); margin-bottom: 1.5rem; }
+        .card h2 { margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px; font-size: 1.4rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: rgba(20, 25, 55, 0.7); backdrop-filter: blur(8px); border-radius: 24px; padding: 1rem; text-align: center; border: 1px solid rgba(79, 172, 254, 0.2); transition: all 0.3s; }
+        .stat-card:hover { border-color: #4facfe; transform: translateY(-2px); }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #8e9eff; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 1.3rem; font-weight: bold; }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #b8c0ff; }
+        .input-group input { width: 100%; padding: 0.9rem; background: rgba(0,0,0,0.4); border: 1px solid #2a2f55; border-radius: 20px; color: white; font-size: 1rem; }
+        .action-btn { width: 100%; padding: 0.9rem; background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; border-radius: 40px; font-weight: bold; font-size: 1rem; color: #0a0e27; cursor: pointer; transition: all 0.3s; margin-top: 0.5rem; }
+        .action-btn-danger { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .action-btn-success { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .flex-2cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+        .info-text { background: rgba(79, 172, 254, 0.1); padding: 0.8rem; border-radius: 16px; font-size: 0.8rem; margin-top: 1rem; color: #b8c0ff; line-height: 1.5; }
+        .badge { background: #4facfe20; border-radius: 20px; padding: 0.2rem 0.6rem; font-size: 0.7rem; color: #4facfe; }
+        .tx-status { position: fixed; bottom: 20px; right: 20px; background: #1a1f3a; padding: 0.8rem 1.2rem; border-radius: 50px; border-left: 4px solid #4facfe; font-size: 0.8rem; z-index: 1000; }
+        .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab { background: rgba(20, 25, 55, 0.7); padding: 0.6rem 1.2rem; border-radius: 40px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; }
+        .tab.active { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0a0e27; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        footer { text-align: center; padding: 2rem; color: #5a6e8a; font-size: 0.75rem; }
+        @media (max-width: 768px) { .stat-value { font-size: 1rem; } .card { padding: 1rem; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🤖 ClinicAI Agent</h1>
-        <p>Atendimento automático via WhatsApp com Inteligência Artificial</p>
-        
-        <div class="price-badge">
-            💰 Ativação: $50 USDT por 30 dias
-            <span id="ownerBadge" class="owner-badge" style="display:none;">⭐ Owner - Gratuito</span>
+<div class="container">
+    <div class="header">
+        <div class="logo"><span>💎</span><span>PING Token</span><span class="badge">⚡ Staking Integrado</span></div>
+        <div class="wallet-section">
+            <div class="wallet-address" id="walletDisplay">Desconectado</div>
+            <button class="wallet-btn" id="connectBtn">🔌 Conectar Carteira</button>
         </div>
+    </div>
 
-        <div class="wallet-box">
-            <button id="connectBtn" onclick="connectWallet()">🔗 Conectar MetaMask / Ruby Wallet</button>
-            <div id="walletStatus" style="margin-top: 10px;"></div>
-            <div id="networkError" style="color: red; margin-top: 10px; display: none;"></div>
-        </div>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">💰 PREÇO PING</div><div class="stat-value" id="price">-- USDT</div></div>
+        <div class="stat-card"><div class="stat-label">🔄 SUPPLY</div><div class="stat-value" id="supply">--</div></div>
+        <div class="stat-card"><div class="stat-label">💧 RESERVA</div><div class="stat-value" id="reserve">-- USDT</div></div>
+        <div class="stat-card"><div class="stat-label">🏦 TESOURARIA</div><div class="stat-value" id="treasury">-- USDT</div></div>
+        <div class="stat-card"><div class="stat-label">🎁 FUNDO STAKING</div><div class="stat-value" id="stakingFund">-- USDT</div></div>
+        <div class="stat-card"><div class="stat-label">🪙 SEU PING</div><div class="stat-value" id="pingBalance">--</div></div>
+    </div>
 
-        <div id="backendStatus" class="backend-status" style="display: none;">
-            🔌 Backend: <span id="backendStatusText">Verificando...</span>
-        </div>
+    <div class="tab-bar">
+        <div class="tab active" data-tab="trade">📊 TRADE</div>
+        <div class="tab" data-tab="staking">⛏️ STAKING</div>
+        <div class="tab" data-tab="info">📜 INFO</div>
+    </div>
 
-        <div id="appContent" style="display: none;">
-            <div class="form-card">
-                <h3>🏥 Dados da Clínica</h3>
-                <div class="form-group">
-                    <label>Nome da Clínica *</label>
-                    <input type="text" id="clinicName" placeholder="Ex: Clínica Saúde Total">
-                </div>
-                <div class="form-group">
-                    <label>Nome da Atendente Virtual *</label>
-                    <input type="text" id="attendantName" placeholder="Ex: Maria, Dra. Ana">
-                    <div class="info-text">Nome que o agente IA usará para se apresentar</div>
-                </div>
-                <div class="form-group">
-                    <label>📱 WhatsApp da Clínica *</label>
-                    <input type="text" id="whatsappNumber" placeholder="5511999999999">
-                    <div class="info-text">Formato: 55 + DDD + número (ex: 5511999999999)</div>
-                </div>
-                <div class="form-group">
-                    <label>📍 Endereço da Clínica</label>
-                    <input type="text" id="address" placeholder="Rua, número, bairro, cidade - UF">
-                </div>
-                <div class="form-group">
-                    <label>⏰ Horário de Funcionamento</label>
-                    <input type="text" id="schedule" placeholder="Ex: Seg-Sex 8h-18h, Sáb 8h-12h">
-                </div>
-                <div class="form-group">
-                    <label>⚕️ Especialidades</label>
-                    <input type="text" id="specialties" placeholder="Ex: Clínica Geral, Cardiologia, Pediatria">
-                </div>
-                <div class="form-group">
-                    <label>💬 Mensagem de Boas-vindas</label>
-                    <textarea id="welcomeMessage" rows="4">Olá! 👋 Sou {attendant_name}, assistente virtual da {clinic_name}. 
-
-🏥 Atendemos: {specialties}
-⏰ Horários: {schedule}
-
-Como posso ajudar você hoje? Digite "AGENDAR" para marcar uma consulta!</textarea>
-                </div>
+    <div id="tab-trade" class="tab-content active">
+        <div class="flex-2cols">
+            <div class="card"><h2>📈 COMPRAR PING</h2>
+                <div class="input-group"><label>💰 Quantidade USDT</label><input type="number" id="buyAmount" placeholder="Ex: 100" step="10" min="5"></div>
+                <button class="action-btn" id="buyBtn">✅ Comprar PING</button>
+                <div class="info-text">🔹 Mínimo 5 USDT | 3% Tesouraria | 3% Reserva | 2% Staking | 2% Emergência</div>
             </div>
-
-            <button id="activateBtn" onclick="activateClinic()" style="width: 100%;">🚀 Ativar Agente IA</button>
-
-            <div id="statusBox" style="display: none;"></div>
-
-            <div id="whatsappBox" style="display: none;">
-                <div class="qr-container">
-                    <h3>📱 Conecte o WhatsApp da Clínica</h3>
-                    <div id="qrcode"></div>
-                    <div id="connectionStatus" class="connection-status disconnected">⏳ Clique em "Iniciar Conexão" para gerar o QR code</div>
-                    <button onclick="startWhatsAppSession()" style="margin-top: 15px;">🚀 Iniciar Conexão WhatsApp</button>
-                    <button onclick="testBackendConnection()" class="test-btn" style="background:#2196f3; margin-top: 10px;">🔧 Testar Conexão com Backend</button>
-                </div>
-                <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px;">
-                    <h4>✅ Agente IA Ativo!</h4>
-                    <p>Todos os pacientes que enviarem mensagem serão atendidos automaticamente.</p>
-                    <p><strong>⏰ Dias restantes:</strong> <span id="daysLeft">30</span> dias</p>
-                    <button onclick="renewSubscription()" style="background: #ff9800;">🔄 Renovar por mais 30 dias ($50 USDT)</button>
-                </div>
+            <div class="card"><h2>📉 VENDER PING</h2>
+                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="sellAmount" placeholder="Ex: 1000" step="100"></div>
+                <button class="action-btn action-btn-danger" id="sellBtn">💸 Vender PING</button>
+                <div class="info-text">🔹 Limite 10% do supply | Cooldown 1h | Máx 50% do saldo</div>
             </div>
         </div>
     </div>
 
-    <script>
-        // ==================== CONFIGURAÇÕES ====================
-        const BACKEND_URL = "https://clinicai-backend-6zfr.onrender.com";
-        const CONTRACT_ADDRESS = "0x66d2B6A11A64d14fa4Dc24bc2c8d4300F320D0A8";
-        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-        
-        const CONTRACT_ABI = [
-            {"inputs":[{"internalType":"address","name":"_usdt","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
-            {"inputs":[{"internalType":"string","name":"_clinicName","type":"string"},{"internalType":"string","name":"_apiKey","type":"string"},{"internalType":"string","name":"_whatsappNumber","type":"string"},{"internalType":"string","name":"_fullConfig","type":"string"}],"name":"activateClinic","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[],"name":"renewClinic","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"address","name":"_clinic","type":"address"}],"name":"checkSubscription","outputs":[{"internalType":"bool","name":"active","type":"bool"},{"internalType":"uint256","name":"daysLeft","type":"uint256"},{"internalType":"string","name":"clinicName","type":"string"},{"internalType":"string","name":"whatsappNumber","type":"string"},{"internalType":"string","name":"fullConfig","type":"string"}],"stateMutability":"view","type":"function"},
-            {"inputs":[],"name":"getOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}
-        ];
-        
-        const USDT_ABI = [
-            {"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"},
-            {"constant":true,"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"type":"function"}
-        ];
-        
-        let web3, contract, userAccount;
-        let isOwnerAccount = false;
-        let statusInterval = null;
-        
-        window.testBackendConnection = async function() {
-            Swal.fire({ title: 'Testando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    <div id="tab-staking" class="tab-content">
+        <div class="flex-2cols">
+            <div class="card"><h2>⛏️ FAZER STAKE</h2>
+                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="stakeAmount" placeholder="Ex: 1000" step="100"></div>
+                <button class="action-btn action-btn-success" id="stakeBtn">🔒 Fazer Stake</button>
+                <div class="info-text">✅ Seus PING são queimados e você ganha recompensas automáticas em USDT!</div>
+            </div>
+            <div class="card"><h2>💸 RETIRAR STAKE</h2>
+                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="unstakeAmount" placeholder="Ex: 500" step="100"></div>
+                <button class="action-btn action-btn-danger" id="unstakeBtn">🔓 Retirar Stake</button>
+                <div class="info-text">⚠️ Taxa 1% (queimada) | Saque antecipado (&lt;30 dias): 5%</div>
+            </div>
+        </div>
+
+        <div class="card"><h2>💰 SUAS RECOMPENSAS</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div><strong>Recompensas Pendentes:</strong> <span id="pendingRewards" style="color:#4facfe; font-size:1.5rem;">-- USDT</span></div>
+                <div><strong>Total em Stake:</strong> <span id="stakedAmount" style="color:#38ef7d; font-size:1.3rem;">-- PING</span></div>
+                <div><strong>Tempo em Stake:</strong> <span id="stakeDuration">--</span></div>
+                <button class="wallet-btn" id="claimRewardsBtn" style="padding: 0.5rem 1.2rem;">🎁 Reivindicar</button>
+            </div>
+        </div>
+
+        <div class="card"><h2>📊 ESTATÍSTICAS DO POOL</h2>
+            <div class="stats-grid" style="margin-bottom:0;">
+                <div class="stat-card"><div class="stat-label">💎 Total em Stake</div><div class="stat-value" id="totalStaked">-- PING</div></div>
+                <div class="stat-card"><div class="stat-label">🎁 Recompensas Disp.</div><div class="stat-value" id="availableRewards">-- USDT</div></div>
+                <div class="stat-card"><div class="stat-label">📈 APY Estimado</div><div class="stat-value" id="poolAPY">--%</div></div>
+                <div class="stat-card"><div class="stat-label">👥 Stakers</div><div class="stat-value" id="totalStakers">--</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-info" class="tab-content">
+        <div class="flex-2cols">
+            <div class="card"><h2>⚙️ COMO FUNCIONA</h2>
+                <div class="info-text"><strong>🔬 Bonding Curve Automática</strong><br>Preço = 0.01 + 0.0001 × Supply + 0.0000001 × Supply²<br><br>
+                <strong>⛏️ Staking Integrado</strong><br>• 2% de cada compra vai para recompensas<br>• Distribuição automática proporcional<br>• Sem necessidade de segundo contrato<br>• Sem intervenção manual</div>
+            </div>
+            <div class="card"><h2>📜 CONTRATO</h2>
+                <div class="info-text"><strong>Token PING (Unificado):</strong><br><code id="contractAddr" style="font-size:0.7rem; word-break:break-all;">0x6fB4733D38841e7c51Dc2D3Fece5B52C4EEbB01E</code><br><br>
+                <strong>✅ Vantagens:</strong><br>• Staking 100% automático<br>• Recompensas em USDT real<br>• Taxas de saída queimadas (deflacionário)<br>• Sem risco de rug pull</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>⚠️ Projeto experimental com bonding curve + staking integrado | 100% automatizado e transparente<br>💎 PING Token - Sem proprietário para fundos de staking | Sustentável por design</footer>
+</div>
+<div id="txStatus" class="tx-status" style="display: none;">✅ Pronto</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+    const CONTRACT_ADDRESS = "0x7D89Ea65BE4b433012465b7a7e5bD00359d37d3B";
+    const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+    const BSC_CHAIN_ID = "0x38";
+
+    const ABI = [
+        "function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)",
+        "function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)",
+        "function currentPrice() view returns (uint256)", "function getReserves() view returns (uint256, uint256, uint256, uint256)",
+        "function getSystemHealth() view returns (uint256, uint256, string)", "function buy(uint256 usdtAmount) external",
+        "function sell(uint256 pingAmount, uint256 minUSDTAmount) external", "function approve(address, uint256) returns (bool)",
+        "function allowance(address, address) view returns (uint256)",
+        "function stake(uint256 amount) external", "function unstake(uint256 amount) external", "function claimRewards() external",
+        "function pendingReward(address) view returns (uint256)", "function totalStaked() view returns (uint256)",
+        "function getPoolStats() view returns (uint256, uint256, uint256, uint256, uint256)",
+        "function getStakerInfo(address) view returns (uint256, uint256, uint256, uint256)"
+    ];
+
+    const USDT_ABI = ["function transferFrom(address, address, uint256) returns (bool)", "function approve(address, uint256) returns (bool)", "function allowance(address, address) view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
+
+    let provider, signer, userAddress, contract, usdtContract;
+    let isConnected = false;
+
+    const connectBtn = document.getElementById("connectBtn");
+    const walletDisplay = document.getElementById("walletDisplay");
+    const txStatusDiv = document.getElementById("txStatus");
+
+    function showStatus(msg, isError = false) {
+        txStatusDiv.style.display = "block";
+        txStatusDiv.style.background = isError ? "#4a1a2a" : "#1a3a2a";
+        txStatusDiv.style.borderLeftColor = isError ? "#f5576c" : "#4facfe";
+        txStatusDiv.innerHTML = isError ? "❌ " + msg : "✅ " + msg;
+        setTimeout(() => { txStatusDiv.style.display = "none"; }, 5000);
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    async function updateDashboard() {
+        if (!contract || !isConnected) return;
+        try {
+            const priceRaw = await contract.currentPrice();
+            document.getElementById("price").innerHTML = Number(ethers.formatUnits(priceRaw, 18)).toFixed(6) + " USDT";
+            const supplyRaw = await contract.totalSupply();
+            document.getElementById("supply").innerHTML = Number(ethers.formatUnits(supplyRaw, 18)).toFixed(0) + " PING";
+            const reserves = await contract.getReserves();
+            document.getElementById("reserve").innerHTML = Number(ethers.formatUnits(reserves[0], 18)).toFixed(2) + " USDT";
+            document.getElementById("treasury").innerHTML = Number(ethers.formatUnits(reserves[1], 18)).toFixed(2) + " USDT";
+            document.getElementById("stakingFund").innerHTML = Number(ethers.formatUnits(reserves[2], 18)).toFixed(2) + " USDT";
+            const userPing = await contract.balanceOf(userAddress);
+            document.getElementById("pingBalance").innerHTML = Number(ethers.formatUnits(userPing, 18)).toFixed(2) + " PING";
+            
+            const pending = await contract.pendingReward(userAddress);
+            document.getElementById("pendingRewards").innerHTML = Number(ethers.formatUnits(pending, 18)).toFixed(4) + " USDT";
+            const stakerInfo = await contract.getStakerInfo(userAddress);
+            document.getElementById("stakedAmount").innerHTML = Number(ethers.formatUnits(stakerInfo[0], 18)).toFixed(2) + " PING";
+            document.getElementById("stakeDuration").innerHTML = Math.floor(Number(stakerInfo[2]) / 86400) + " dias";
+            const poolStats = await contract.getPoolStats();
+            document.getElementById("totalStaked").innerHTML = Number(ethers.formatUnits(poolStats[0], 18)).toFixed(0) + " PING";
+            document.getElementById("availableRewards").innerHTML = Number(ethers.formatUnits(poolStats[1], 18)).toFixed(2) + " USDT";
+            document.getElementById("poolAPY").innerHTML = (Number(poolStats[3]) / 100).toFixed(2) + "%";
+            document.getElementById("totalStakers").innerHTML = poolStats[4];
+        } catch(e) { console.warn(e); }
+    }
+
+    async function approveUSDT(amountWei) {
+        const allowance = await usdtContract.allowance(userAddress, CONTRACT_ADDRESS);
+        if (allowance >= amountWei) return true;
+        showStatus("Aprovando USDT...");
+        const tx = await usdtContract.approve(CONTRACT_ADDRESS, ethers.MaxUint256);
+        await tx.wait();
+        showStatus("✅ USDT aprovado");
+        return true;
+    }
+
+    async function approvePINGForStaking(amountWei) {
+        const allowance = await contract.allowance(userAddress, CONTRACT_ADDRESS);
+        if (allowance >= amountWei) return true;
+        showStatus("Aprovando PING para staking...");
+        const tx = await contract.approve(CONTRACT_ADDRESS, ethers.MaxUint256);
+        await tx.wait();
+        showStatus("✅ PING aprovado");
+        return true;
+    }
+
+    document.getElementById("buyBtn")?.addEventListener("click", async () => {
+        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
+        const amount = parseFloat(document.getElementById("buyAmount").value);
+        if (isNaN(amount) || amount < 5) { showStatus("Mínimo 5 USDT", true); return; }
+        const amountWei = ethers.parseUnits(amount.toString(), 18);
+        try {
+            await approveUSDT(amountWei);
+            showStatus("Comprando...");
+            const tx = await contract.buy(amountWei);
+            await tx.wait();
+            showStatus(`🎉 Comprou ${amount} USDT em PING`);
+            document.getElementById("buyAmount").value = "";
+            updateDashboard();
+        } catch(e) { showStatus(e.message.slice(0,100), true); }
+    });
+
+    document.getElementById("sellBtn")?.addEventListener("click", async () => {
+        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
+        const amount = parseFloat(document.getElementById("sellAmount").value);
+        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
+        const amountWei = ethers.parseUnits(amount.toString(), 18);
+        try {
+            showStatus("Vendendo...");
+            const tx = await contract.sell(amountWei, 0);
+            await tx.wait();
+            showStatus(`💰 Vendeu ${amount} PING`);
+            document.getElementById("sellAmount").value = "";
+            updateDashboard();
+        } catch(e) { showStatus(e.message.slice(0,100), true); }
+    });
+
+    document.getElementById("stakeBtn")?.addEventListener("click", async () => {
+        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
+        const amount = parseFloat(document.getElementById("stakeAmount").value);
+        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
+        const amountWei = ethers.parseUnits(amount.toString(), 18);
+        try {
+            await approvePINGForStaking(amountWei);
+            showStatus("Fazendo stake...");
+            const tx = await contract.stake(amountWei);
+            await tx.wait();
+            showStatus(`🔒 Stake de ${amount} PING realizado!`);
+            document.getElementById("stakeAmount").value = "";
+            updateDashboard();
+        } catch(e) { showStatus(e.message.slice(0,100), true); }
+    });
+
+    document.getElementById("unstakeBtn")?.addEventListener("click", async () => {
+        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
+        const amount = parseFloat(document.getElementById("unstakeAmount").value);
+        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
+        const amountWei = ethers.parseUnits(amount.toString(), 18);
+        try {
+            showStatus("Retirando stake...");
+            const tx = await contract.unstake(amountWei);
+            await tx.wait();
+            showStatus(`🔓 Retirou ${amount} PING do stake`);
+            document.getElementById("unstakeAmount").value = "";
+            updateDashboard();
+        } catch(e) { showStatus(e.message.slice(0,100), true); }
+    });
+
+    document.getElementById("claimRewardsBtn")?.addEventListener("click", async () => {
+        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
+        try {
+            showStatus("Reivindicando recompensas...");
+            const tx = await contract.claimRewards();
+            await tx.wait();
+            showStatus("🎁 Recompensas recebidas!");
+            updateDashboard();
+        } catch(e) { showStatus(e.message.slice(0,100), true); }
+    });
+
+    async function connectWallet() {
+        if (window.ethereum) {
             try {
-                const response = await fetch(`${BACKEND_URL}/`);
-                const data = await response.json();
-                document.getElementById('backendStatus').style.display = 'block';
-                document.getElementById('backendStatusText').innerHTML = '✅ Online';
-                Swal.fire({ icon: 'success', title: 'Backend OK!', text: data.message });
-                return true;
-            } catch (error) {
-                document.getElementById('backendStatus').style.display = 'block';
-                document.getElementById('backendStatusText').innerHTML = '❌ Offline';
-                Swal.fire({ icon: 'error', title: 'Erro', text: error.message });
-                return false;
-            }
-        };
-        
-        async function connectWallet() {
-            if (!window.ethereum) {
-                Swal.fire('Erro', 'Instale MetaMask', 'error');
-                return;
-            }
-            try {
-                Swal.fire({ title: 'Conectando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userAccount = accounts[0];
-                web3 = new Web3(window.ethereum);
-                const chainId = await web3.eth.getChainId();
-                if (chainId !== 56) {
-                    Swal.fire('Aviso', 'Mude para BSC Mainnet', 'warning');
-                    Swal.close();
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const network = await provider.getNetwork();
+                if (Number(network.chainId) !== 56) {
+                    showStatus("Mude para BSC Mainnet", true);
+                    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BSC_CHAIN_ID }] });
+                    setTimeout(() => connectWallet(), 1000);
                     return;
                 }
-                contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-                const contractOwner = await contract.methods.getOwner().call();
-                isOwnerAccount = userAccount.toLowerCase() === contractOwner.toLowerCase();
-                if (isOwnerAccount) {
-                    document.getElementById('ownerBadge').style.display = 'inline-block';
-                    document.getElementById('activateBtn').innerHTML = '🚀 Ativar Agente IA (Gratuito - Owner)';
-                }
-                document.getElementById('walletStatus').innerHTML = `✅ Conectado: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}<br>🔗 BSC Mainnet`;
-                document.getElementById('connectBtn').style.display = 'none';
-                document.getElementById('appContent').style.display = 'block';
-                Swal.close();
-                await checkSubscription();
-                setTimeout(() => testBackendConnection(), 1000);
-            } catch (error) {
-                Swal.close();
-                Swal.fire('Erro', error.message, 'error');
-            }
+                signer = await provider.getSigner();
+                userAddress = await signer.getAddress();
+                walletDisplay.innerHTML = userAddress.slice(0,6)+"..."+userAddress.slice(-4);
+                isConnected = true;
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+                usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
+                showStatus("✅ Conectado à BSC");
+                updateDashboard();
+                setInterval(() => { if(isConnected) updateDashboard(); }, 10000);
+            } catch(e) { console.error(e); showStatus("Erro ao conectar", true); }
+        } else {
+            showStatus("Instale MetaMask ou Rabby", true);
         }
-        
-        async function checkSubscription() {
-            try {
-                const result = await contract.methods.checkSubscription(userAccount).call();
-                const statusBox = document.getElementById('statusBox');
-                statusBox.style.display = 'block';
-                if (result.active) {
-                    statusBox.innerHTML = `<div class="status-card active-status">✅ Assinatura Ativa - ${result.daysLeft} dias restantes</div>`;
-                    document.getElementById('activateBtn').style.display = 'none';
-                    document.getElementById('whatsappBox').style.display = 'block';
-                    document.getElementById('daysLeft').innerText = result.daysLeft;
-                    const saved = localStorage.getItem(`clinic_${userAccount}`);
-                    if (saved) {
-                        const data = JSON.parse(saved);
-                        document.getElementById('clinicName').value = data.clinicName || '';
-                        document.getElementById('attendantName').value = data.attendantName || '';
-                        document.getElementById('whatsappNumber').value = data.whatsappNumber || '';
-                        document.getElementById('address').value = data.address || '';
-                        document.getElementById('schedule').value = data.schedule || '';
-                        document.getElementById('specialties').value = data.specialties || '';
-                    }
-                } else {
-                    statusBox.innerHTML = `<div class="status-card inactive-status">⚠️ Nenhuma assinatura ativa</div>`;
-                }
-            } catch (error) { console.error(error); }
-        }
-        
-        async function activateClinic() {
-            const clinicName = document.getElementById('clinicName').value;
-            const attendantName = document.getElementById('attendantName').value;
-            const whatsappNumber = document.getElementById('whatsappNumber').value;
-            const address = document.getElementById('address').value;
-            const schedule = document.getElementById('schedule').value;
-            const specialties = document.getElementById('specialties').value;
-            const welcomeMessage = document.getElementById('welcomeMessage').value;
-            
-            if (!clinicName || !attendantName || !whatsappNumber) {
-                Swal.fire('Erro', 'Preencha todos os campos obrigatórios', 'error');
-                return;
-            }
-            if (!whatsappNumber.match(/^55\d{10,11}$/)) {
-                Swal.fire('Erro', 'WhatsApp inválido. Use formato: 55 + DDD + número', 'error');
-                return;
-            }
-            
-            const fullConfig = JSON.stringify({ clinicName, attendantName, whatsappNumber, address, schedule, specialties, welcomeMessage });
-            const encryptedApiKey = btoa("api_key_in_backend");
-            
-            try {
-                Swal.fire({ title: 'Processando...', text: isOwnerAccount ? 'Ativação gratuita' : 'Serão 2 transações: 1° Aprovar USDT, 2° Pagar', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                
-                if (!isOwnerAccount) {
-                    const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
-                    const amount = web3.utils.toWei('50', 'ether');
-                    const allowance = await usdtContract.methods.allowance(userAccount, CONTRACT_ADDRESS).call();
-                    if (BigInt(allowance) < BigInt(amount)) {
-                        await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
-                    }
-                }
-                
-                await contract.methods.activateClinic(clinicName, encryptedApiKey, whatsappNumber, fullConfig).send({ from: userAccount });
-                localStorage.setItem(`clinic_${userAccount}`, JSON.stringify({ clinicName, attendantName, whatsappNumber, address, schedule, specialties }));
-                Swal.fire('Sucesso!', 'Agente IA ativado!', 'success');
-                await checkSubscription();
-            } catch (error) {
-                Swal.fire('Erro', error.message, 'error');
-            }
-        }
-        
-        async function renewSubscription() {
-            try {
-                Swal.fire({ title: 'Renovando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                if (!isOwnerAccount) {
-                    const usdtContract = new web3.eth.Contract(USDT_ABI, USDT_ADDRESS);
-                    const amount = web3.utils.toWei('50', 'ether');
-                    const allowance = await usdtContract.methods.allowance(userAccount, CONTRACT_ADDRESS).call();
-                    if (BigInt(allowance) < BigInt(amount)) {
-                        await usdtContract.methods.approve(CONTRACT_ADDRESS, amount).send({ from: userAccount });
-                    }
-                }
-                await contract.methods.renewClinic().send({ from: userAccount });
-                Swal.fire('Sucesso!', 'Renovado por mais 30 dias!', 'success');
-                await checkSubscription();
-            } catch (error) {
-                Swal.fire('Erro', error.message, 'error');
-            }
-        }
-        
-        async function startWhatsAppSession() {
-            const sessionId = userAccount;
-            const clinicName = document.getElementById('clinicName').value;
-            const attendantName = document.getElementById('attendantName').value;
-            const schedule = document.getElementById('schedule').value;
-            const specialties = document.getElementById('specialties').value;
-            const welcomeMessage = document.getElementById('welcomeMessage').value;
-            
-            if (!clinicName || !attendantName) {
-                Swal.fire('Erro', 'Preencha os dados da clínica primeiro', 'error');
-                return;
-            }
-            
-            const systemPrompt = `Você é ${attendantName}, atendente da ${clinicName}. 
-${welcomeMessage.replace(/{attendant_name}/g, attendantName).replace(/{clinic_name}/g, clinicName).replace(/{schedule}/g, schedule).replace(/{specialties}/g, specialties)}
+    }
 
-Regras:
-- Sempre seja educado, simpático e prestativo
-- Ajude os pacientes a agendar consultas
-- Colete nome, telefone e motivo da consulta
-- Informe os horários: ${schedule}
-- Informe as especialidades: ${specialties}
-- Mantenha um tom acolhedor e profissional`;
-            
-            Swal.fire({ title: 'Iniciando WhatsApp...', text: 'Aguardando QR code', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId, systemPrompt, clinicName, attendantName })
-                });
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                Swal.close();
-                
-                if (data.qrCode) {
-                    const qrDiv = document.getElementById('qrcode');
-                    qrDiv.innerHTML = '';
-                    new QRCode(qrDiv, { text: data.qrCode, width: 250, height: 250, colorDark: "#075E54", colorLight: "#ffffff" });
-                    document.getElementById('connectionStatus').className = 'connection-status connecting';
-                    document.getElementById('connectionStatus').innerHTML = '📱 QR Code gerado! Escaneie com o WhatsApp da clínica';
-                    
-                    if (statusInterval) clearInterval(statusInterval);
-                    statusInterval = setInterval(async () => {
-                        try {
-                            const statusRes = await fetch(`${BACKEND_URL}/api/status/${sessionId}`);
-                            const statusData = await statusRes.json();
-                            if (statusData.status === 'connected') {
-                                document.getElementById('connectionStatus').className = 'connection-status connected';
-                                document.getElementById('connectionStatus').innerHTML = '✅ WhatsApp CONECTADO! Agente IA ativo!';
-                                clearInterval(statusInterval);
-                            }
-                        } catch (e) { console.error(e); }
-                    }, 3000);
-                } else {
-                    document.getElementById('connectionStatus').innerHTML = '⏳ Aguardando QR code...';
-                }
-            } catch (error) {
-                Swal.close();
-                Swal.fire({ icon: 'error', title: 'Erro', text: error.message });
-            }
-        }
-        
-        window.addEventListener('load', async () => {
-            if (window.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) connectWallet();
-            }
-        });
-    </script>
+    connectBtn.addEventListener("click", connectWallet);
+    document.getElementById("contractAddr").innerHTML = CONTRACT_ADDRESS;
+</script>
 </body>
 </html>
