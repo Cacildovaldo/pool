@@ -1,332 +1,425 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PING Token 💎 | Staking Automático Integrado</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💎%3C/text%3E%3C/svg%3E">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1429 100%); min-height: 100vh; padding: 1rem; color: #e0e4ff; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; padding: 1rem 1.5rem; background: rgba(10, 14, 39, 0.8); backdrop-filter: blur(10px); border-radius: 28px; border: 1px solid rgba(79, 172, 254, 0.3); }
-        .logo { display: flex; align-items: center; gap: 12px; font-size: 1.8rem; font-weight: bold; }
-        .logo span:first-child { font-size: 2.5rem; }
-        .logo span:last-child { background: linear-gradient(135deg, #4facfe, #00f2fe); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .wallet-section { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-        .wallet-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; padding: 0.8rem 1.8rem; border-radius: 40px; color: #0a0e27; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-        .wallet-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6); }
-        .wallet-address { background: rgba(0,0,0,0.4); padding: 0.5rem 1.2rem; border-radius: 40px; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(79, 172, 254, 0.5); }
-        .card { background: rgba(15, 20, 45, 0.8); backdrop-filter: blur(10px); border-radius: 32px; padding: 1.5rem; border: 1px solid rgba(79, 172, 254, 0.25); margin-bottom: 1.5rem; }
-        .card h2 { margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px; font-size: 1.4rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: rgba(20, 25, 55, 0.7); backdrop-filter: blur(8px); border-radius: 24px; padding: 1rem; text-align: center; border: 1px solid rgba(79, 172, 254, 0.2); transition: all 0.3s; }
-        .stat-card:hover { border-color: #4facfe; transform: translateY(-2px); }
-        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #8e9eff; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 1.3rem; font-weight: bold; }
-        .input-group { margin-bottom: 1rem; }
-        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #b8c0ff; }
-        .input-group input { width: 100%; padding: 0.9rem; background: rgba(0,0,0,0.4); border: 1px solid #2a2f55; border-radius: 20px; color: white; font-size: 1rem; }
-        .action-btn { width: 100%; padding: 0.9rem; background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; border-radius: 40px; font-weight: bold; font-size: 1rem; color: #0a0e27; cursor: pointer; transition: all 0.3s; margin-top: 0.5rem; }
-        .action-btn-danger { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .action-btn-success { background: linear-gradient(135deg, #11998e, #38ef7d); }
-        .flex-2cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
-        .info-text { background: rgba(79, 172, 254, 0.1); padding: 0.8rem; border-radius: 16px; font-size: 0.8rem; margin-top: 1rem; color: #b8c0ff; line-height: 1.5; }
-        .badge { background: #4facfe20; border-radius: 20px; padding: 0.2rem 0.6rem; font-size: 0.7rem; color: #4facfe; }
-        .tx-status { position: fixed; bottom: 20px; right: 20px; background: #1a1f3a; padding: 0.8rem 1.2rem; border-radius: 50px; border-left: 4px solid #4facfe; font-size: 0.8rem; z-index: 1000; }
-        .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .tab { background: rgba(20, 25, 55, 0.7); padding: 0.6rem 1.2rem; border-radius: 40px; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; }
-        .tab.active { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0a0e27; font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        footer { text-align: center; padding: 2rem; color: #5a6e8a; font-size: 0.75rem; }
-        @media (max-width: 768px) { .stat-value { font-size: 1rem; } .card { padding: 1rem; } }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FlashLoan Arb Bot - Painel de Controle</title>
+<script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#151b2b; --panel2:#1c2440; --line:#2a3350;
+    --txt:#e6ecff; --mut:#8a94b0; --acc:#5b8cff; --ok:#2fbf71; --bad:#ff5d6c; --warn:#ffb020;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:20px}
+  .wrap{max-width:1140px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  header h1{font-size:1.25rem;font-weight:700;letter-spacing:.5px}
+  header h1 span{color:var(--acc)}
+  .badge{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.8rem}
+  .badge.ok{color:var(--ok);border-color:var(--ok)} .badge.no{color:var(--bad);border-color:var(--bad)}
+  .addr-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.85rem}
+  .addr-bar code{color:var(--acc);font-family:Consolas,monospace}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h2{font-size:.92rem;margin-bottom:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  label{display:block;font-size:.78rem;color:var(--mut);margin:10px 0 4px}
+  input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:10px 12px;font-size:.9rem;font-family:inherit;outline:none}
+  input:focus{border-color:var(--acc)}
+  .sm{font-size:.78rem;color:var(--mut);line-height:1.5}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px 14px;font-size:.85rem;font-weight:600;
+    background:var(--acc);color:#fff;margin-top:10px;transition:opacity .15s;width:100%}
+  button:hover{opacity:.88} button:disabled{opacity:.4;cursor:not-allowed}
+  button.ghost{background:var(--panel2);border:1px solid var(--line)}
+  button.danger{background:var(--ok);color:#04140a}
+  .row{display:flex;gap:8px} .row>*{flex:1}
+  .stat{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.85rem}
+  .stat:last-child{border-bottom:none} .stat .v{font-weight:700}
+  #log{background:#070a12;border:1px solid var(--line);border-radius:8px;height:230px;overflow-y:auto;
+    font-family:Consolas,monospace;font-size:.78rem;padding:10px;margin-top:10px}
+  #log div{padding:2px 0;border-bottom:1px solid #141a2e}
+  #log .ok{color:var(--ok)} #log .bad{color:var(--bad)} #log .warn{color:var(--warn)} #log .sys{color:var(--acc)}
+  .howto{background:#0e1526;border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+    font-size:.8rem;line-height:1.7;color:var(--mut)}
+  .howto b{color:var(--txt)}
+  .howto .tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:5px;
+    padding:1px 8px;margin-right:6px;font-size:.72rem;color:var(--acc)}
+</style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="logo"><span>💎</span><span>PING Token</span><span class="badge">⚡ Staking Integrado</span></div>
-        <div class="wallet-section">
-            <div class="wallet-address" id="walletDisplay">Desconectado</div>
-            <button class="wallet-btn" id="connectBtn">🔌 Conectar Carteira</button>
-        </div>
+<div class="wrap">
+
+  <header>
+    <h1>FlashLoan <span>Arb Bot</span> — BSC</h1>
+    <div id="net" class="badge no">Rede: ---</div>
+  </header>
+
+  <!-- Contrato embutido -->
+  <div class="addr-bar">
+    <span>Contrato embutido:</span>
+    <code id="contractAddr"></code>
+    <a id="bscLink" href="" target="_blank" style="color:var(--acc);font-size:.78rem">BscScan &gt;</a>
+    <span id="srcState" class="badge no">verificando estado...</span>
+  </div>
+
+  <!-- Explicacao da arquitetura -->
+  <div class="howto" style="margin-bottom:14px">
+    <span class="tag">Como funciona</span>
+    <b>O backend nao e o Python nem a pagina — e o CONTRATO Solidity</b> implantado na BSC.
+    A pagina usa a <b>sua carteira</b> para assinar e enviar as operacoes (painel manual).
+    O <b>bot Python</b> faz exatamente a mesma coisa, mas sozinho (piloto automatico, usando a chave privada dele).
+    Os dois chamam os mesmos metodos (<code>viewProfit</code> para estimar, <code>startArb</code> para executar).
+    O lucro gerado fica em WBNB dentro do contrato e voce retira com <b>Resgatar</b>.
+  </div>
+
+  <div class="grid">
+
+    <!-- COLUNA 1: Carteira -->
+    <div class="card">
+      <h2>Carteira (para executar)</h2>
+      <div class="sm">Ler/estimar funciona sem carteira. Conectar so e necessario para EXECUTAR e resgatar.</div>
+      <button id="btnConnect">Conectar MetaMask / Rabby</button>
+      <div id="addr" class="stat"><span>Endereco</span><span class="v" style="font-size:.72rem">---</span></div>
+      <div class="stat"><span>BNB (saldo)</span><span class="v" id="bnbBal">---</span></div>
+      <div class="stat"><span>WBNB (saldo)</span><span class="v" id="wbnbBal">---</span></div>
+      <div class="stat"><span>E dono do contrato?</span><span class="v" id="isOwner">---</span></div>
+      <div class="stat"><span>Lucro no contrato (WBNB)</span><span class="v" id="ctProfit">---</span></div>
+      <div class="stat"><span>Rede atual</span><span class="v" id="chainId">---</span></div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">💰 PREÇO PING</div><div class="stat-value" id="price">-- USDT</div></div>
-        <div class="stat-card"><div class="stat-label">🔄 SUPPLY</div><div class="stat-value" id="supply">--</div></div>
-        <div class="stat-card"><div class="stat-label">💧 RESERVA</div><div class="stat-value" id="reserve">-- USDT</div></div>
-        <div class="stat-card"><div class="stat-label">🏦 TESOURARIA</div><div class="stat-value" id="treasury">-- USDT</div></div>
-        <div class="stat-card"><div class="stat-label">🎁 FUNDO STAKING</div><div class="stat-value" id="stakingFund">-- USDT</div></div>
-        <div class="stat-card"><div class="stat-label">🪙 SEU PING</div><div class="stat-value" id="pingBalance">--</div></div>
+    <!-- COLUNA 2: Estado do contrato -->
+    <div class="card">
+      <h2>Contrato</h2>
+      <div class="stat"><span>Pausado?</span><span class="v" id="paused">---</span></div>
+      <div class="stat"><span>Slippage (bps)</span><span class="v" id="slippage">---</span></div>
+      <div class="stat"><span>Router A (compra)</span><span class="v" id="routerA" style="font-size:.72rem">---</span></div>
+      <div class="stat"><span>Source pair</span><span class="v" id="sourcePair" style="font-size:.72rem">---</span></div>
+      <div class="stat"><span>Reserva fonte (WBNB)</span><span class="v" id="srcReserve">---</span></div>
+      <div class="stat"><span>Dono</span><span class="v" id="ownerDisp" style="font-size:.72rem">---</span></div>
+      <div class="row">
+        <button id="btnPause" class="ghost">Pausar</button>
+        <button id="btnResume" class="ghost">Retomar</button>
+      </div>
     </div>
 
-    <div class="tab-bar">
-        <div class="tab active" data-tab="trade">📊 TRADE</div>
-        <div class="tab" data-tab="staking">⛏️ STAKING</div>
-        <div class="tab" data-tab="info">📜 INFO</div>
+    <!-- COLUNA 3: Operacao -->
+    <div class="card">
+      <h2>Operacao (Flash Arbitrage)</h2>
+
+      <label>Token alvo (0x...)</label>
+      <input id="token" placeholder="cole o endereco do token" />
+
+      <label>Router de venda (pool B)</label>
+      <input id="sellRouter" value="0x10ED43C718714eb63d5aA57B78B54704E256024E" />
+      <div class="sm">1) PCS 2) Biswap 0x3a6d8cA21D1CF76F653A67577FA0D27453350dD8 3) ApeSwap 0xcF0feBd3f17CEf5b47b0cD257aCf6025c5BFf3b7</div>
+
+      <label>Rota de venda (virgula, primeira=token, ultima=WBNB)</label>
+      <input id="sellPath" placeholder="token,WBNB  |  token,USDT,WBNB" />
+
+      <label>Valor do flash-loan (WBNB)</label>
+      <input id="amount" type="number" value="0.5" step="any" min="0" />
+
+      <div class="row">
+        <button id="btnEstimate" class="ghost">Estimar lucro</button>
+        <button id="btnExec" class="danger">Executar</button>
+      </div>
+
+      <div class="stat"><span>Compra (token)</span><span class="v" id="stBuy">---</span></div>
+      <div class="stat"><span>Venda (WBNB, rota)</span><span class="v" id="stSell">---</span></div>
+      <div class="stat"><span>Repag. flash</span><span class="v" id="stRepay">---</span></div>
+      <div class="stat"><span><b>Lucro estimado</b></span><span class="v" id="stProfit" style="font-size:1.05rem">---</span></div>
+      <div class="sm">Lucro real aparece no log ("Tx confirmada"). Estimar nao gasta gas nem gasolina.</div>
     </div>
 
-    <div id="tab-trade" class="tab-content active">
-        <div class="flex-2cols">
-            <div class="card"><h2>📈 COMPRAR PING</h2>
-                <div class="input-group"><label>💰 Quantidade USDT</label><input type="number" id="buyAmount" placeholder="Ex: 100" step="10" min="5"></div>
-                <button class="action-btn" id="buyBtn">✅ Comprar PING</button>
-                <div class="info-text">🔹 Mínimo 5 USDT | 3% Tesouraria | 3% Reserva | 2% Staking | 2% Emergência</div>
-            </div>
-            <div class="card"><h2>📉 VENDER PING</h2>
-                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="sellAmount" placeholder="Ex: 1000" step="100"></div>
-                <button class="action-btn action-btn-danger" id="sellBtn">💸 Vender PING</button>
-                <div class="info-text">🔹 Limite 10% do supply | Cooldown 1h | Máx 50% do saldo</div>
-            </div>
-        </div>
+    <!-- COLUNA 4: Fundo / config -->
+    <div class="card">
+      <h2>Fundo / Recuperar</h2>
+      <label>Token para resgatar do contrato (0x...)</label>
+      <input id="rescueToken" placeholder="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c (WBNB)" />
+      <button id="btnRescue" class="ghost">Resgatar token</button>
+      <button id="btnRescueBNB" class="ghost">Resgatar BNB</button>
+      <h2 style="margin-top:14px">Config remota (so owner)</h2>
+      <button id="btnSetRouterA" class="ghost">Setar Router A = campo acima</button>
+      <button id="btnSetBack" class="ghost">Setar Back Router = campo acima</button>
+      <br />
+      <div class="sm" style="margin-top:8px">
+        <b>Fonte segura da arbitragem:</b> empresta WBNB de WBNB/USDT (pool liquido, sem lock de reentrancia),
+        compra barato na pool A, vende pela rota na pool B, volta +0.25% de volta ao fonte.
+      </div>
     </div>
 
-    <div id="tab-staking" class="tab-content">
-        <div class="flex-2cols">
-            <div class="card"><h2>⛏️ FAZER STAKE</h2>
-                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="stakeAmount" placeholder="Ex: 1000" step="100"></div>
-                <button class="action-btn action-btn-success" id="stakeBtn">🔒 Fazer Stake</button>
-                <div class="info-text">✅ Seus PING são queimados e você ganha recompensas automáticas em USDT!</div>
-            </div>
-            <div class="card"><h2>💸 RETIRAR STAKE</h2>
-                <div class="input-group"><label>🪙 Quantidade PING</label><input type="number" id="unstakeAmount" placeholder="Ex: 500" step="100"></div>
-                <button class="action-btn action-btn-danger" id="unstakeBtn">🔓 Retirar Stake</button>
-                <div class="info-text">⚠️ Taxa 1% (queimada) | Saque antecipado (&lt;30 dias): 5%</div>
-            </div>
-        </div>
-
-        <div class="card"><h2>💰 SUAS RECOMPENSAS</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                <div><strong>Recompensas Pendentes:</strong> <span id="pendingRewards" style="color:#4facfe; font-size:1.5rem;">-- USDT</span></div>
-                <div><strong>Total em Stake:</strong> <span id="stakedAmount" style="color:#38ef7d; font-size:1.3rem;">-- PING</span></div>
-                <div><strong>Tempo em Stake:</strong> <span id="stakeDuration">--</span></div>
-                <button class="wallet-btn" id="claimRewardsBtn" style="padding: 0.5rem 1.2rem;">🎁 Reivindicar</button>
-            </div>
-        </div>
-
-        <div class="card"><h2>📊 ESTATÍSTICAS DO POOL</h2>
-            <div class="stats-grid" style="margin-bottom:0;">
-                <div class="stat-card"><div class="stat-label">💎 Total em Stake</div><div class="stat-value" id="totalStaked">-- PING</div></div>
-                <div class="stat-card"><div class="stat-label">🎁 Recompensas Disp.</div><div class="stat-value" id="availableRewards">-- USDT</div></div>
-                <div class="stat-card"><div class="stat-label">📈 APY Estimado</div><div class="stat-value" id="poolAPY">--%</div></div>
-                <div class="stat-card"><div class="stat-label">👥 Stakers</div><div class="stat-value" id="totalStakers">--</div></div>
-            </div>
-        </div>
+    <!-- COLUNA 5: Log -->
+    <div class="card" style="grid-column:1/-1">
+      <h2>Log</h2>
+      <div id="log"><div class="sys">Carregando contrato via RPC publica...</div></div>
     </div>
-
-    <div id="tab-info" class="tab-content">
-        <div class="flex-2cols">
-            <div class="card"><h2>⚙️ COMO FUNCIONA</h2>
-                <div class="info-text"><strong>🔬 Bonding Curve Automática</strong><br>Preço = 0.01 + 0.0001 × Supply + 0.0000001 × Supply²<br><br>
-                <strong>⛏️ Staking Integrado</strong><br>• 2% de cada compra vai para recompensas<br>• Distribuição automática proporcional<br>• Sem necessidade de segundo contrato<br>• Sem intervenção manual</div>
-            </div>
-            <div class="card"><h2>📜 CONTRATO</h2>
-                <div class="info-text"><strong>Token PING (Unificado):</strong><br><code id="contractAddr" style="font-size:0.7rem; word-break:break-all;">0x6fB4733D38841e7c51Dc2D3Fece5B52C4EEbB01E</code><br><br>
-                <strong>✅ Vantagens:</strong><br>• Staking 100% automático<br>• Recompensas em USDT real<br>• Taxas de saída queimadas (deflacionário)<br>• Sem risco de rug pull</div>
-            </div>
-        </div>
-    </div>
-
-    <footer>⚠️ Projeto experimental com bonding curve + staking integrado | 100% automatizado e transparente<br>💎 PING Token - Sem proprietário para fundos de staking | Sustentável por design</footer>
+  </div>
 </div>
-<div id="txStatus" class="tx-status" style="display: none;">✅ Pronto</div>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script>
-    const CONTRACT_ADDRESS = "0x7D89Ea65BE4b433012465b7a7e5bD00359d37d3B";
-    const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-    const BSC_CHAIN_ID = "0x38";
+// ============ DADOS EMbutidos ============
+const CONTRACT_ADDR = "0x345c654415AfDda8c388D5CfA3fc2374b263ea02";
+const BSC_RPC = "https://bsc-dataseed1.binance.org";
+const WBNB_TOKN = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
+const BSC_CHAIN = { chainId:"0x38", chainName:"BSC Mainnet", nativeCurrency:{name:"BNB",symbol:"BNB",decimals:18},
+  rpcUrls:[BSC_RPC], blockExplorerUrls:["https://bscscan.com"] };
 
-    const ABI = [
-        "function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)",
-        "function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)",
-        "function currentPrice() view returns (uint256)", "function getReserves() view returns (uint256, uint256, uint256, uint256)",
-        "function getSystemHealth() view returns (uint256, uint256, string)", "function buy(uint256 usdtAmount) external",
-        "function sell(uint256 pingAmount, uint256 minUSDTAmount) external", "function approve(address, uint256) returns (bool)",
-        "function allowance(address, address) view returns (uint256)",
-        "function stake(uint256 amount) external", "function unstake(uint256 amount) external", "function claimRewards() external",
-        "function pendingReward(address) view returns (uint256)", "function totalStaked() view returns (uint256)",
-        "function getPoolStats() view returns (uint256, uint256, uint256, uint256, uint256)",
-        "function getStakerInfo(address) view returns (uint256, uint256, uint256, uint256)"
-    ];
+const ABI=[
+  {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"repay","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"wbnbOut","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"profit","type":"uint256"}],"name":"ArbExecuted","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"what","type":"string"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"ConfigChanged","type":"event"},
+  {"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"what","type":"string"},{"indexed":false,"internalType":"address","name":"router","type":"address"}],"name":"RouterChanged","type":"event"},
+  {"inputs":[],"name":"backRouter","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"factory","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"flashFeeDen","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"flashFeeNum","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"routerA","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"slippageBps","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"sourcePair","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getSourceWbnbReserve","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"internalType":"address","name":"r","type":"address"}],"name":"setRouterA","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"r","type":"address"}],"name":"setBackRouter","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"p","type":"address"}],"name":"setSourcePair","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"bool","name":"p","type":"bool"}],"name":"setPaused","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"uint256","name":"bps","type":"uint256"}],"name":"setSlippageBps","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"address","name":"sellRouter","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"sellPath","type":"address[]"}],"name":"startArb","outputs":[],"stateMutability":"payable","type":"function"},
+  {"inputs":[{"internalType":"address","name":"token","type":"address"},{"internalType":"address","name":"sellRouter","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"sellPath","type":"address[]"}],"name":"viewProfit","outputs":[{"internalType":"uint256","name":"profit","type":"uint256"},{"internalType":"uint256","name":"buyOut","type":"uint256"},{"internalType":"uint256","name":"sellOut","type":"uint256"},{"internalType":"uint256","name":"repay","type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"WBNB","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
+  {"stateMutability":"payable","type":"receive"},
+  {"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"rescue","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"rescueBNB","outputs":[],"stateMutability":"nonpayable","type":"function"}
+];
 
-    const USDT_ABI = ["function transferFrom(address, address, uint256) returns (bool)", "function approve(address, uint256) returns (bool)", "function allowance(address, address) view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
+const ERC20_ABI=["function balanceOf(address) view returns (uint256)","function decimals() view returns (uint8)","function symbol() view returns (string)"];
 
-    let provider, signer, userAddress, contract, usdtContract;
-    let isConnected = false;
+let readProvider=null, liveProvider=null, signer=null, account=null, contractRO=null, contractSig=null, symCache={};
+const $=id=>document.getElementById(id);
+const fmt=(b,d=18)=>(b===undefined||b===null)?"---":Number(ethers.utils.formatUnits(b,d));
+const short=a=>a?a.slice(0,6)+"..."+a.slice(-4):"---";
 
-    const connectBtn = document.getElementById("connectBtn");
-    const walletDisplay = document.getElementById("walletDisplay");
-    const txStatusDiv = document.getElementById("txStatus");
+function log(m,c="sys"){const el=document.createElement("div");el.className=c;el.textContent=`[${new Date().toLocaleTimeString()}] ${m}`;$("log").appendChild(el);$("log").scrollTop=$("log").scrollHeight}
 
-    function showStatus(msg, isError = false) {
-        txStatusDiv.style.display = "block";
-        txStatusDiv.style.background = isError ? "#4a1a2a" : "#1a3a2a";
-        txStatusDiv.style.borderLeftColor = isError ? "#f5576c" : "#4facfe";
-        txStatusDiv.innerHTML = isError ? "❌ " + msg : "✅ " + msg;
-        setTimeout(() => { txStatusDiv.style.display = "none"; }, 5000);
+function getInjected(){
+  if(window.rabby){ log("Rabby detectado.","ok"); return window.rabby; }
+  if(window.ethereum){ log("MetaMask/ethereum detectado.","ok"); return window.ethereum; }
+  return null;
+}
+function chainOk(id){ return (id||"").toLowerCase()==="0x38"; }
+
+// ============ LEITURA SO (sem carteira) ============
+async function loadContractRead(){
+  $("contractAddr").textContent = CONTRACT_ADDR;
+  $("bscLink").href = "https://bscscan.com/address/"+CONTRACT_ADDR;
+  try{
+    readProvider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+    contractRO = new ethers.Contract(CONTRACT_ADDR, ABI, readProvider);
+    const block = await readProvider.getBlockNumber();
+    $("net").textContent = "Rede BSC / bloco "+block;
+    $("net").className = "badge ok";
+    const [owner, paused, slip, ra, sp, reserve] = await Promise.all([
+      contractRO.owner(), contractRO.paused(), contractRO.slippageBps(),
+      contractRO.routerA(), contractRO.sourcePair(), contractRO.getSourceWbnbReserve()]);
+    $("ownerDisp").textContent = short(owner);
+    $("paused").textContent = paused ? "SIM":"Nao";
+    $("slippage").textContent = slip.toString();
+    $("routerA").textContent = short(ra);
+    $("sourcePair").textContent = short(sp);
+    $("srcReserve").textContent = fmt(reserve)+" WBNB";
+    // lucro acumulado no contrato (saldo WBNB)
+    const wc = new ethers.Contract(WBNB_TOKN, ERC20_ABI, readProvider);
+    const ctBal = await wc.balanceOf(CONTRACT_ADDR);
+    $("ctProfit").textContent = fmt(ctBal)+" WBNB";
+    $("srcState").textContent = "ativo";
+    $("srcState").className = "badge ok";
+    log("Contrato carregado (RPC publica). Owner: "+short(owner), "ok");
+    return owner;
+  }catch(e){ $("srcState").textContent="erro"; log("Falha ao ler contrato: "+e.message,"bad"); }
+}
+
+// ============ CARTEIRA (para execucao) ============
+async function ensureNetwork(eth){
+  try{
+    const id = await eth.request({method:"eth_chainId"});
+    if(!chainOk(id)){
+      log("Trocando para BSC Mainnet (chainId 0x38)...","warn");
+      try{ await eth.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x38"}]}); }
+      catch(er){
+        if(er && (er.code===4902||String(er.message).includes("Unrecognized")))
+          await eth.request({method:"wallet_addEthereumChain",params:[BSC_CHAIN]});
+        else throw er;
+      }
     }
+  }catch(e){ log("Atencao rede: "+e.message,"warn"); }
+}
 
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
-        });
-    });
+async function connect(){
+  const eth = getInjected();
+  if(!eth){ log("Nenhuma carteira injetada. Instale MetaMask ou Rabby.","bad"); return; }
+  try{
+    $("btnConnect").disabled = true;
+    $("btnConnect").textContent = "Aguardando aprovacao...";
+    let accounts;
+    try{ accounts = await eth.request({method:"eth_requestAccounts"}); }
+    catch(e){ accounts = await eth.enable(); }
+    if(!accounts || !accounts.length){ log("Nenhuma conta retornada pela carteira.","bad"); return; }
+    await ensureNetwork(eth);
 
-    async function updateDashboard() {
-        if (!contract || !isConnected) return;
-        try {
-            const priceRaw = await contract.currentPrice();
-            document.getElementById("price").innerHTML = Number(ethers.formatUnits(priceRaw, 18)).toFixed(6) + " USDT";
-            const supplyRaw = await contract.totalSupply();
-            document.getElementById("supply").innerHTML = Number(ethers.formatUnits(supplyRaw, 18)).toFixed(0) + " PING";
-            const reserves = await contract.getReserves();
-            document.getElementById("reserve").innerHTML = Number(ethers.formatUnits(reserves[0], 18)).toFixed(2) + " USDT";
-            document.getElementById("treasury").innerHTML = Number(ethers.formatUnits(reserves[1], 18)).toFixed(2) + " USDT";
-            document.getElementById("stakingFund").innerHTML = Number(ethers.formatUnits(reserves[2], 18)).toFixed(2) + " USDT";
-            const userPing = await contract.balanceOf(userAddress);
-            document.getElementById("pingBalance").innerHTML = Number(ethers.formatUnits(userPing, 18)).toFixed(2) + " PING";
-            
-            const pending = await contract.pendingReward(userAddress);
-            document.getElementById("pendingRewards").innerHTML = Number(ethers.formatUnits(pending, 18)).toFixed(4) + " USDT";
-            const stakerInfo = await contract.getStakerInfo(userAddress);
-            document.getElementById("stakedAmount").innerHTML = Number(ethers.formatUnits(stakerInfo[0], 18)).toFixed(2) + " PING";
-            document.getElementById("stakeDuration").innerHTML = Math.floor(Number(stakerInfo[2]) / 86400) + " dias";
-            const poolStats = await contract.getPoolStats();
-            document.getElementById("totalStaked").innerHTML = Number(ethers.formatUnits(poolStats[0], 18)).toFixed(0) + " PING";
-            document.getElementById("availableRewards").innerHTML = Number(ethers.formatUnits(poolStats[1], 18)).toFixed(2) + " USDT";
-            document.getElementById("poolAPY").innerHTML = (Number(poolStats[3]) / 100).toFixed(2) + "%";
-            document.getElementById("totalStakers").innerHTML = poolStats[4];
-        } catch(e) { console.warn(e); }
-    }
+    liveProvider = new ethers.providers.Web3Provider(eth, "any");
+    signer = liveProvider.getSigner();
+    account = await signer.getAddress();
 
-    async function approveUSDT(amountWei) {
-        const allowance = await usdtContract.allowance(userAddress, CONTRACT_ADDRESS);
-        if (allowance >= amountWei) return true;
-        showStatus("Aprovando USDT...");
-        const tx = await usdtContract.approve(CONTRACT_ADDRESS, ethers.MaxUint256);
-        await tx.wait();
-        showStatus("✅ USDT aprovado");
-        return true;
-    }
+    // Eventos da carteira (conexao reativa)
+    eth.on && eth.on("accountsChanged",(accs)=>{ account = (accs && accs[0]) ? accs[0] : null; refreshAll(); });
+    eth.on && eth.on("chainChanged",()=> setTimeout(refreshAll, 500));
+    eth.on && eth.on("disconnect",()=>{ account=null; log("Carteira desconectada.","warn"); refreshAll(); });
 
-    async function approvePINGForStaking(amountWei) {
-        const allowance = await contract.allowance(userAddress, CONTRACT_ADDRESS);
-        if (allowance >= amountWei) return true;
-        showStatus("Aprovando PING para staking...");
-        const tx = await contract.approve(CONTRACT_ADDRESS, ethers.MaxUint256);
-        await tx.wait();
-        showStatus("✅ PING aprovado");
-        return true;
-    }
+    contractSig = new ethers.Contract(CONTRACT_ADDR, ABI, signer);
+    $("addr").querySelector(".v").textContent = account;
+    log("Carteira conectada: "+account,"ok");
+    refreshAll();
+  }catch(e){
+    log("Falha ao conectar: "+(e.message||e), "bad");
+  }finally{
+    $("btnConnect").disabled=false;
+    $("btnConnect").textContent="Conectar MetaMask / Rabby";
+  }
+}
 
-    document.getElementById("buyBtn")?.addEventListener("click", async () => {
-        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
-        const amount = parseFloat(document.getElementById("buyAmount").value);
-        if (isNaN(amount) || amount < 5) { showStatus("Mínimo 5 USDT", true); return; }
-        const amountWei = ethers.parseUnits(amount.toString(), 18);
-        try {
-            await approveUSDT(amountWei);
-            showStatus("Comprando...");
-            const tx = await contract.buy(amountWei);
-            await tx.wait();
-            showStatus(`🎉 Comprou ${amount} USDT em PING`);
-            document.getElementById("buyAmount").value = "";
-            updateDashboard();
-        } catch(e) { showStatus(e.message.slice(0,100), true); }
-    });
+async function restoreIfConnected(){
+  const eth = getInjected();
+  if(!eth) return;
+  try{
+    const accs = await eth.request({method:"eth_accounts"});
+    if(accs && accs.length){ log("Sessao anterior detectada, reconectando...","sys"); await connect(); }
+  }catch(e){}
+}
 
-    document.getElementById("sellBtn")?.addEventListener("click", async () => {
-        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
-        const amount = parseFloat(document.getElementById("sellAmount").value);
-        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
-        const amountWei = ethers.parseUnits(amount.toString(), 18);
-        try {
-            showStatus("Vendendo...");
-            const tx = await contract.sell(amountWei, 0);
-            await tx.wait();
-            showStatus(`💰 Vendeu ${amount} PING`);
-            document.getElementById("sellAmount").value = "";
-            updateDashboard();
-        } catch(e) { showStatus(e.message.slice(0,100), true); }
-    });
+async function refreshAll(){
+  // Dono / owner
+  if(contractRO && account){
+    try{
+      const owner = await contractRO.owner();
+      $("isOwner").textContent = (account.toLowerCase()===owner.toLowerCase()) ? "SIM":"NAO";
+    }catch(e){}
+  }
+  if(!liveProvider || !account){ return; }
+  try{
+    $("bnbBal").textContent = fmt(await liveProvider.getBalance(account))+" BNB";
+    const wc = new ethers.Contract(WBNB_TOKN, ERC20_ABI, liveProvider);
+    $("wbnbBal").textContent = fmt(await wc.balanceOf(account))+" WBNB";
+    const id = await liveProvider.getNetwork();
+    $("chainId").textContent = chainOk("0x"+id.chainId.toString(16)) ? "BSC OK" : ("OUTRA ("+id.name+")");
+  }catch(e){}
+}
 
-    document.getElementById("stakeBtn")?.addEventListener("click", async () => {
-        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
-        const amount = parseFloat(document.getElementById("stakeAmount").value);
-        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
-        const amountWei = ethers.parseUnits(amount.toString(), 18);
-        try {
-            await approvePINGForStaking(amountWei);
-            showStatus("Fazendo stake...");
-            const tx = await contract.stake(amountWei);
-            await tx.wait();
-            showStatus(`🔒 Stake de ${amount} PING realizado!`);
-            document.getElementById("stakeAmount").value = "";
-            updateDashboard();
-        } catch(e) { showStatus(e.message.slice(0,100), true); }
-    });
+async function sym(tk){
+  if(symCache[tk]) return symCache[tk];
+  try{ const c=new ethers.Contract(tk,ERC20_ABI, readProvider||liveProvider); symCache[tk]=await c.symbol(); }catch(e){ symCache[tk]=tk.slice(0,6); }
+  return symCache[tk];
+}
 
-    document.getElementById("unstakeBtn")?.addEventListener("click", async () => {
-        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
-        const amount = parseFloat(document.getElementById("unstakeAmount").value);
-        if (isNaN(amount) || amount <= 0) { showStatus("Quantidade inválida", true); return; }
-        const amountWei = ethers.parseUnits(amount.toString(), 18);
-        try {
-            showStatus("Retirando stake...");
-            const tx = await contract.unstake(amountWei);
-            await tx.wait();
-            showStatus(`🔓 Retirou ${amount} PING do stake`);
-            document.getElementById("unstakeAmount").value = "";
-            updateDashboard();
-        } catch(e) { showStatus(e.message.slice(0,100), true); }
-    });
+// ============ OPERACOES ============
+function parsePath(){
+  const token=$("token").value.trim();
+  let raw=$("sellPath").value.trim();
+  if(!raw) raw = token+","+WBNB_TOKN;
+  const parts=raw.split(",").map(s=>s.trim()).filter(Boolean);
+  if(parts.length<2) { log("Rota invalida (precisa [token, ..., WBNB]).","bad"); return null; }
+  if(!ethers.utils.isAddress(parts[0])) { log("Primeiro endereco da rota invalido.","bad"); return null; }
+  if(parts[parts.length-1].toLowerCase()!==WBNB_TOKN.toLowerCase()) { log("Rota precisa terminar em WBNB.","bad"); return null; }
+  for(const p of parts){ if(!ethers.utils.isAddress(p)){ log("Endereco invalido na rota: "+p,"bad"); return null; } }
+  return parts;
+}
 
-    document.getElementById("claimRewardsBtn")?.addEventListener("click", async () => {
-        if (!isConnected) { showStatus("Conecte a carteira", true); return; }
-        try {
-            showStatus("Reivindicando recompensas...");
-            const tx = await contract.claimRewards();
-            await tx.wait();
-            showStatus("🎁 Recompensas recebidas!");
-            updateDashboard();
-        } catch(e) { showStatus(e.message.slice(0,100), true); }
-    });
+async function estimate(){
+  if(!contractRO){ log("Contrato ainda nao carregado.","bad"); return; }
+  const token=$("token").value.trim(), rtr=$("sellRouter").value.trim();
+  const amt=ethers.utils.parseEther(String(Number($("amount").value)||0));
+  const path=parsePath(); if(!path) return;
+  if(!ethers.utils.isAddress(token)||!ethers.utils.isAddress(rtr)){ log("Token/Router invalido.","bad"); return; }
+  if(amt.isZero()){ log("Defina valor do flash-loan.","bad"); return; }
+  try{
+    const[profit,buyOut,sellOut,repay]=await contractRO.viewProfit(token,rtr,amt,path);
+    $("stBuy").textContent=fmt(buyOut)+" "+await sym(token);
+    $("stSell").textContent=fmt(sellOut)+" WBNB";
+    $("stRepay").textContent=fmt(repay)+" WBNB";
+    $("stProfit").textContent=profit.gt(0)?"+ "+fmt(profit)+" WBNB (~$"+(fmt(profit)*600).toFixed(2)+")":"Sem lucro";
+    $("stProfit").style.color=profit.gt(0)?"var(--ok)":"var(--bad)";
+    log(`Estimativa rota ${path.map(a=>a.slice(0,6)).join('->')}: lucro ${profit.gt(0)?"+":""}${fmt(profit)} WBNB`,profit.gt(0)?"ok":"warn");
+  }catch(e){ log("Falha na estimativa: "+(e.message||e),"bad"); }
+}
 
-    async function connectWallet() {
-        if (window.ethereum) {
-            try {
-                await window.ethereum.request({ method: "eth_requestAccounts" });
-                provider = new ethers.BrowserProvider(window.ethereum);
-                const network = await provider.getNetwork();
-                if (Number(network.chainId) !== 56) {
-                    showStatus("Mude para BSC Mainnet", true);
-                    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BSC_CHAIN_ID }] });
-                    setTimeout(() => connectWallet(), 1000);
-                    return;
-                }
-                signer = await provider.getSigner();
-                userAddress = await signer.getAddress();
-                walletDisplay.innerHTML = userAddress.slice(0,6)+"..."+userAddress.slice(-4);
-                isConnected = true;
-                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-                usdtContract = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
-                showStatus("✅ Conectado à BSC");
-                updateDashboard();
-                setInterval(() => { if(isConnected) updateDashboard(); }, 10000);
-            } catch(e) { console.error(e); showStatus("Erro ao conectar", true); }
-        } else {
-            showStatus("Instale MetaMask ou Rabby", true);
-        }
-    }
+async function execute(){
+  if(!signer){ log("Conecte a carteira primeiro.","bad"); return; }
+  if($("isOwner").textContent!=="SIM"){ log("Sua carteira nao e dona do contrato.","bad"); return; }
+  const token=$("token").value.trim(), rtr=$("sellRouter").value.trim();
+  const amt=ethers.utils.parseEther(String(Number($("amount").value)||0));
+  const path=parsePath(); if(!path) return;
+  if(!ethers.utils.isAddress(token)||!ethers.utils.isAddress(rtr)||amt.isZero()){ log("Preencha todos os campos.","bad"); return; }
+  try{
+    const gp=await liveProvider.getGasPrice();
+    const est=await contractSig.estimateGas.startArb(token,rtr,amt,path);
+    const cost=gp.mul(est);
+    const bal=await liveProvider.getBalance(account);
+    if(bal.lt(cost)){ log(`BNB insuficiente: precisa ~${fmt(cost)} BNB, tem ${fmt(bal)}.`,"bad"); return; }
+    log(`Executando startArb (gas ~${est.toString()}, custo ~${fmt(cost)} BNB)...`,"warn");
+    const tx=await contractSig.startArb(token,rtr,amt,path,{gasLimit:est.mul(3).div(2)});
+    log("Tx enviada: "+tx.hash,"sys");
+    const rc=await tx.wait();
+    log("CONFIRMADA bloco "+rc.blockNumber,"ok");
+    const ev=rc.events.find(e=>e.event==="ArbExecuted");
+    if(ev){ const p=ev.args.profit; log("LUCRO REAL: +"+fmt(p)+" WBNB", p.gt(0)?"ok":"bad"); }
+    refreshAll();
+  }catch(e){ log("Falha na execucao: "+(e.message||e),"bad"); }
+}
 
-    connectBtn.addEventListener("click", connectWallet);
-    document.getElementById("contractAddr").innerHTML = CONTRACT_ADDRESS;
+// ============ ADMIN ============
+async function requireOwner(){
+  if(!signer){ log("Conecte a carteira.","bad"); return false; }
+  if($("isOwner").textContent!=="SIM"){ log("Somente o owner pode fazer isso.","bad"); return false; }
+  return true;
+}
+async function doWithContract(fn,msg){
+  if(!contractSig) { log("Carteira nao conectada.","bad"); return; }
+  try{ const tx=await fn(); log(msg+" tx: "+tx.hash,"sys"); const r=await tx.wait(); log(msg+" confirmado.","ok"); refreshAll(); }
+  catch(e){ log(msg+" erro: "+(e.message||e),"bad"); }
+}
+
+// ============ INIT ============
+window.addEventListener("load", async ()=>{
+  $("btnConnect").onclick=connect;
+  $("btnEstimate").onclick=estimate;
+  $("btnExec").onclick=execute;
+
+  $("btnPause").onclick=async()=>{ if(!(await requireOwner()))return; doWithContract(()=>contractSig.setPaused(true),"Pausar"); };
+  $("btnResume").onclick=async()=>{ if(!(await requireOwner()))return; doWithContract(()=>contractSig.setPaused(false),"Retomar"); };
+  $("btnRescue").onclick=async()=>{
+    const a=$("rescueToken").value.trim();
+    if(!ethers.utils.isAddress(a)){ log("Token de resgate invalido.","bad"); return; }
+    if(!(await requireOwner()))return;
+    doWithContract(()=>contractSig.rescue(a),"Resgatar token");
+  };
+  $("btnRescueBNB").onclick=async()=>{ if(!(await requireOwner()))return; doWithContract(()=>contractSig.rescueBNB(),"Resgatar BNB"); };
+  $("btnSetRouterA").onclick=async()=>{
+    const r=$("sellRouter").value.trim();
+    if(!ethers.utils.isAddress(r)){ log("Router invalido.","bad"); return; }
+    if(!(await requireOwner()))return;
+    doWithContract(()=>contractSig.setRouterA(r),"Setar Router A");
+  };
+  $("btnSetBack").onclick=async()=>{
+    const r=$("sellRouter").value.trim();
+    if(!ethers.utils.isAddress(r)){ log("Router invalido.","bad"); return; }
+    if(!(await requireOwner()))return;
+    doWithContract(()=>contractSig.setBackRouter(r),"Setar Back Router");
+  };
+
+  await loadContractRead();
+  await restoreIfConnected();
+});
 </script>
 </body>
 </html>
